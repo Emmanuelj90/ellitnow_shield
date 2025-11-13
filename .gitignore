@@ -1,0 +1,10 @@
+# Archivos y carpetas sensibles
+.streamlit/
+tenants.db
+pdf_reports/
+logos_clientes/
+
+# Archivos temporales
+__pycache__/
+*.pyc
+.DS_Store

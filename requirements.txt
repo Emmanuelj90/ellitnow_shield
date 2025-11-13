@@ -1,0 +1,10 @@
+streamlit
+openai
+pandas
+plotly
+fpdf2
+bcrypt
+stripe
+reportlab
+matplotlib
+kaleido==0.2.1
