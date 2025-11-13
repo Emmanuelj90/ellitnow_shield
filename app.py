@@ -2285,7 +2285,67 @@ init_db_and_superadmin()
 
 # else:
 #     login_screen()
+# =============================================
+# SUPER ADMIN: CREAR TENANT (VISIBLE SOLO PARA TI)
+# =============================================
+if st.session_state.get("auth_status") == "super_admin":
+    st.success("Super Admin sincronizado con SUPER_ADMIN_KEY.")
 
+    # --- SIDEBAR: CREAR TENANT ---
+    with st.sidebar:
+        st.markdown("## Super Admin Panel")
+        st.markdown("### Crear Nuevo Cliente")
+
+        with st.form("form_crear_tenant", clear_on_submit=True):
+            nuevo_nombre = st.text_input("Nombre del Cliente", placeholder="Ej: Ellit Elite")
+            nuevo_email = st.text_input("Email del Admin", placeholder="admin@ellitnow.com")
+            nuevo_color = st.color_picker("Color Principal", "#FF0080")
+            crear = st.form_submit_button("CREAR TENANT", type="primary", use_container_width=True)
+
+            if crear:
+                if not nuevo_nombre or not nuevo_email:
+                    st.error("Nombre y email son obligatorios")
+                else:
+                    # Generar ID único
+                    import uuid
+                    tenant_id = str(uuid.uuid4())[:8]
+
+                    # Guardar en session_state (simulación de base de datos)
+                    if "tenants" not in st.session_state:
+                        st.session_state.tenants = {}
+
+                    st.session_state.tenants[tenant_id] = {
+                        "id": tenant_id,
+                        "name": nuevo_nombre,
+                        "email": nuevo_email,
+                        "color": nuevo_color,
+                        "created_at": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M")
+                    }
+
+                    st.success(f"¡Cliente '{nuevo_nombre}' creado con éxito!")
+                    st.balloons()
+                    st.rerun()
+
+    # --- MOSTRAR TENANTS CREADOS ---
+    if "tenants" in st.session_state and st.session_state.tenants:
+        st.markdown("### Clientes Creados")
+        for tid, t in st.session_state.tenants.items():
+            cols = st.columns([1, 3, 2, 1])
+            cols[0].code(tid[:6])
+            cols[1].write(f"**{t['name']}**")
+            cols[2].write(t['email'])
+            if cols[3].button("Entrar", key=f"enter_{tid}"):
+                # Simular login como ese tenant
+                st.session_state.update({
+                    "auth_status": "tenant_admin",
+                    "tenant_id": tid,
+                    "tenant_name": t['name'],
+                    "user_email": t['email'],
+                    "primary_color": t['color']
+                })
+                st.success(f"Entraste como {t['name']}")
+                st.rerun()
+                
 # === DEBUG: FORZAR MODO SUPER ADMIN ===
 st.sidebar.markdown("---")
 st.sidebar.error("MODO DEBUG ACTIVADO")
