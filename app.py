@@ -2286,3 +2286,15 @@ init_db_and_superadmin()
 # else:
 #     login_screen()
 
+# === DEBUG: FORZAR MODO SUPER ADMIN ===
+st.sidebar.markdown("---")
+st.sidebar.error("MODO DEBUG ACTIVADO")
+if st.sidebar.button("FORZAR SUPER ADMIN"):
+    st.session_state.update({
+        "auth_status": "super_admin",
+        "tenant_id": "debug-001",
+        "tenant_name": "DEBUG ELLIT",
+        "user_email": "debug@ellitnow.com",
+        "primary_color": "#FF0080"
+    })
+    st.rerun()
