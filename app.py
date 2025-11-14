@@ -82,7 +82,7 @@ st.markdown("""
     }
 
     /* 3️⃣ Sidebar fijo sin afectar el main */
-    section[data-testid="stSidebar"] {
+    /*section[data-testid="stSidebar"] {
         min-width: 260px !important;
         max-width: 260px !important;
     }
@@ -91,7 +91,7 @@ st.markdown("""
     .element-container, .stPlotlyChart, .stPlot {
         max-width: 100% !important;
         overflow-x: hidden !important;
-    }
+    } */
 
     </style>
 """, unsafe_allow_html=True)
