@@ -544,7 +544,7 @@ def login_screen():
                         "primary_color": "#FF0080",
                     })
                     st.success("Acceso concedido como Super Admin.")
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error("Clave de Super Admin incorrecta.")
 
@@ -580,7 +580,7 @@ def login_screen():
                                     "primary_color": user["primary_color"],
                                 })
                                 st.success("Acceso correcto.")
-                                st.experimental_rerun()
+                                st.rerun()
                             else:
                                 st.error("Contraseña incorrecta.")
                         except Exception:
@@ -656,7 +656,7 @@ def impersonate_tenant(target_tenant_id):
         st.session_state["tenant_name"] = tenant[1]
         st.session_state["primary_color"] = tenant[3] or "#FF0080"
         st.success(f"Ahora estás viendo como: {tenant[1]}")
-        st.experimental_rerun()
+        st.rerun()
     else:
         st.error("Tenant no encontrado.")
 
@@ -665,7 +665,7 @@ def stop_impersonation():
         del st.session_state["impersonated_tenant"]
     st.session_state["auth_status"] = "super_admin"
     st.sidebar.success("Volviste al modo Super Admin")
-    st.experimental_rerun()
+    st.rerun()
 
 def render_role_controls():
     role = st.session_state.get("auth_status")
@@ -748,7 +748,7 @@ def render_role_controls():
         if st.sidebar.button("Cerrar sesión demo"):
             for k in ["auth_status", "user_role", "user_id", "tenant_id", "tenant_name", "user_email"]:
                 st.session_state[k] = None
-            st.experimental_rerun()
+            st.rerun()
 
 
 # ==============================
