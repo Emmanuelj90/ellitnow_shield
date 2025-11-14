@@ -85,13 +85,13 @@ st.markdown("""
     /*section[data-testid="stSidebar"] {
         min-width: 260px !important;
         max-width: 260px !important;
-    }
+    } */
 
     /* 4️⃣ Prevenir desbordes de gráficos o contenedores */
     .element-container, .stPlotlyChart, .stPlot {
         max-width: 100% !important;
         overflow-x: hidden !important;
-    } */
+    } 
 
     </style>
 """, unsafe_allow_html=True)
