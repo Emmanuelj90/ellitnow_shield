@@ -2376,7 +2376,7 @@ if st.session_state.get("auth_status") == "super_admin":
         for tid, t in st.session_state.tenants.items():
             cols = st.columns([1, 3, 2, 1])
             cols[0].code(tid[:6])
-            cols[1].write(f"**{t['name']}**")
+            cols[1].write(f"**{t['name']}**") 
             cols[2].write(t['email'])
             if cols[3].button("Entrar", key=f"enter_{tid}"):
                 st.session_state.update({
