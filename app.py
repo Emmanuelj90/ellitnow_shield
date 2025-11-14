@@ -59,9 +59,9 @@ import datetime as _dt
 
 
 
-if os.path.exists("ellit.db"):
-    os.remove("ellit.db")
-    st.warning(">>> BASE DE DATOS ellit.db BORRADA (TEMPORAL) <<<")
+# -if os.path.exists("ellit.db"):
+# -    os.remove("ellit.db")
+ # -   st.warning(">>> BASE DE DATOS ellit.db BORRADA (TEMPORAL) <<<")
 
 # ==============================
 # CONFIGURACIÓN DE PÁGINA
