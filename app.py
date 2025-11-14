@@ -57,6 +57,12 @@ import tempfile
 from io import BytesIO
 import datetime as _dt
 
+
+
+if os.path.exists("ellit.db"):
+    os.remove("ellit.db")
+    st.warning(">>> BASE DE DATOS ellit.db BORRADA (TEMPORAL) <<<")
+
 # ==============================
 # CONFIGURACIÓN DE PÁGINA
 # ==============================
