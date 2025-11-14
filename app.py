@@ -2294,31 +2294,45 @@ def render_licencias_tab():
 # 1. Inicializamos DB + Super Admin (solo una vez)
 init_db_and_superadmin()
 
-# 2. Si ya pasamos el st.stop() → estamos logueados o en login
-# if st.session_state.get("auth_status"):
-    # Banner de impersonación
- #    if st.session_state.auth_status == "impersonated":
- #        tenant = st.session_state.get("impersonated_tenant", {})
-   #      st.markdown(f"""
-   #      <div style="background: linear-gradient(135deg, #FF0080 0%, #00B4FF 100%);
-   #                  color:white; padding:15px; border-radius:12px; text-align:center;
-   #                  font-size:18px; font-weight:bold; margin-bottom:20px; position:sticky; top:0; z-index:1000;">
-    #         Estás viendo como: <b>{tenant.get('name', 'Cliente')}</b>
-    #     </div>
-    #     """, unsafe_allow_html=True)
-    #     if st.button("Volver a Super Admin", key="stop_imp"):
-     #        stop_impersonation()
+# 2. Flujo normal de autenticación
+if st.session_state.get("auth_status"):
 
-   #  render_panel()
-    
-    # Controles de rol
-   #  if st.session_state.auth_status in ["super_admin", "impersonated", "partner"]:
-   #      render_role_controls()
+    # =============================================
+    # BANNER SI ESTÁS IMPERSONANDO UN TENANT
+    # =============================================
+    if st.session_state.auth_status == "impersonated":
+        tenant = st.session_state.get("impersonated_tenant", {})
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #FF0080 0%, #00B4FF 100%);
+                    color:white; padding:15px; border-radius:12px; text-align:center;
+                    font-size:18px; font-weight:bold; margin-bottom:20px; position:sticky; top:0; z-index:1000;">
+            Estás viendo como: <b>{tenant.get('name', 'Cliente')}</b>
+        </div>
+        """, unsafe_allow_html=True)
 
-# else:
-#     login_screen()
+        if st.button("Volver a Super Admin", key="stop_imp"):
+            stop_impersonation()
+
+    # =============================================
+    # MOSTRAR PANEL PRINCIPAL
+    # =============================================
+    render_panel()
+
+    # =============================================
+    # OPCIONES DE CONTROL PARA ROLES ELEVADOS
+    # =============================================
+    if st.session_state.auth_status in ["super_admin", "impersonated", "partner"]:
+        render_role_controls()
+
+else:
+    # =============================================
+    # SI NO HAY LOGIN → PANTALLA DE LOGIN
+    # =============================================
+    login_screen()
+
+
 # =============================================
-# SUPER ADMIN: CREAR TENANT (VISIBLE SOLO PARA TI)
+# SUPER ADMIN: PANEL DE CREACIÓN DE TENANTS
 # =============================================
 if st.session_state.get("auth_status") == "super_admin":
     st.success("Super Admin sincronizado con SUPER_ADMIN_KEY.")
@@ -2338,11 +2352,9 @@ if st.session_state.get("auth_status") == "super_admin":
                 if not nuevo_nombre or not nuevo_email:
                     st.error("Nombre y email son obligatorios")
                 else:
-                    # Generar ID único
                     import uuid
                     tenant_id = str(uuid.uuid4())[:8]
 
-                    # Guardar en session_state (simulación de base de datos)
                     if "tenants" not in st.session_state:
                         st.session_state.tenants = {}
 
@@ -2358,7 +2370,7 @@ if st.session_state.get("auth_status") == "super_admin":
                     st.balloons()
                     st.rerun()
 
-    # --- MOSTRAR TENANTS CREADOS ---
+    # --- LISTADO DE TENANTS ---
     if "tenants" in st.session_state and st.session_state.tenants:
         st.markdown("### Clientes Creados")
         for tid, t in st.session_state.tenants.items():
@@ -2367,7 +2379,6 @@ if st.session_state.get("auth_status") == "super_admin":
             cols[1].write(f"**{t['name']}**")
             cols[2].write(t['email'])
             if cols[3].button("Entrar", key=f"enter_{tid}"):
-                # Simular login como ese tenant
                 st.session_state.update({
                     "auth_status": "tenant_admin",
                     "tenant_id": tid,
@@ -2377,6 +2388,21 @@ if st.session_state.get("auth_status") == "super_admin":
                 })
                 st.success(f"Entraste como {t['name']}")
                 st.rerun()
+
+
+# === DEBUG MODE ===
+st.sidebar.markdown("---")
+st.sidebar.error("MODO DEBUG ACTIVADO")
+if st.sidebar.button("FORZAR SUPER ADMIN"):
+    st.session_state.update({
+        "auth_status": "super_admin",
+        "tenant_id": "debug-001",
+        "tenant_name": "DEBUG ELLIT",
+        "user_email": "debug@ellitnow.com",
+        "primary_color": "#FF0080"
+    })
+    st.rerun()
+
                 
 # === DEBUG: FORZAR MODO SUPER ADMIN ===
 st.sidebar.markdown("---")
