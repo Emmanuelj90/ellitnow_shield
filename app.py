@@ -4,11 +4,48 @@
 # All authentication, roles, sidebar, and layout are rebuilt cleanly.
 
 import streamlit as st
-import sqlite3, uuid, hashlib, secrets, bcrypt
+import sqlite3
+import bcrypt
+import hashlib
+import secrets
+import uuid     
+from openai import OpenAI
+
+# Inicializar cliente de OpenAI
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+# --- Librerías de análisis y visualización ---
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import matplotlib.pyplot as plt
 import numpy as np
+import tempfile
+
+# --- Librerías auxiliares ---
+import stripe
+import random
+import base64
+import json
+import re
+import io
+import os
+import gc
+import time
+import traceback
+from math import pi
+from datetime import datetime
+
+# --- Generador de informes PDF ---
+from fpdf import FPDF
+import textwrap
+import tempfile
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib.colors import Color
+from reportlab.lib.utils import ImageReader
 from io import BytesIO
-import datetime as dt
+import datetime as _dt
 
 # ================================================
 # DATABASE CONNECTION
