@@ -63,6 +63,36 @@ import datetime as _dt
 # -    os.remove("ellit.db")
  # -   st.warning(">>> BASE DE DATOS ellit.db BORRADA (TEMPORAL) <<<")
 
+# Ajuste visual: evitar desplazamiento del contenido cuando existe sidebar custom
+st.markdown("""
+    <style>
+
+    /* Quitar scroll horizontal global */
+    html, body, [class*="css"]  {
+        overflow-x: hidden !important;
+    }
+
+    /* Ajustar el contenedor principal para dejar espacio a la barra izquierda */
+    .main {
+        margin-left: 280px !important;   /* AJUSTAR AL ANCHO REAL DE TU SIDEBAR */
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    /* Opcional: que el header también se ajuste */
+    header[data-testid="stHeader"] {
+        margin-left: 280px !important;
+    }
+
+    /* Evita que los tabs se salgan del marco */
+    .stTabs {
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+    }
+
+    </style>
+""", unsafe_allow_html=True)
+
 # ==============================
 # CONFIGURACIÓN DE PÁGINA
 # ==============================
