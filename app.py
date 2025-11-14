@@ -63,35 +63,39 @@ import datetime as _dt
 # -    os.remove("ellit.db")
  # -   st.warning(">>> BASE DE DATOS ellit.db BORRADA (TEMPORAL) <<<")
 
-# Ajuste visual: evitar desplazamiento del contenido cuando existe sidebar custom
+# Ajuste visual moderno: corrige desplazamientos y desbordes
 st.markdown("""
     <style>
-
-    /* Quitar scroll horizontal global */
-    html, body, [class*="css"]  {
+    
+    /* 1️⃣ Evitar scroll horizontal global */
+    html, body, [data-testid="stAppViewContainer"] {
         overflow-x: hidden !important;
     }
 
-    /* Ajustar el contenedor principal para dejar espacio a la barra izquierda */
-    .main {
-        margin-left: 280px !important;   /* AJUSTAR AL ANCHO REAL DE TU SIDEBAR */
-        padding-left: 20px !important;
-        padding-right: 20px !important;
+    /* 2️⃣ Centrar el contenido y limitar su ancho */
+    div.block-container {
+        max-width: 1250px;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
 
-    /* Opcional: que el header también se ajuste */
-    header[data-testid="stHeader"] {
-        margin-left: 280px !important;
+    /* 3️⃣ Sidebar fijo sin afectar el main */
+    section[data-testid="stSidebar"] {
+        min-width: 260px !important;
+        max-width: 260px !important;
     }
 
-    /* Evita que los tabs se salgan del marco */
-    .stTabs {
-        overflow-x: auto !important;
-        white-space: nowrap !important;
+    /* 4️⃣ Prevenir desbordes de gráficos o contenedores */
+    .element-container, .stPlotlyChart, .stPlot {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
     }
 
     </style>
 """, unsafe_allow_html=True)
+
 
 # ==============================
 # CONFIGURACIÓN DE PÁGINA
