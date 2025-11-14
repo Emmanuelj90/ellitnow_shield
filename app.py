@@ -542,6 +542,32 @@ def render_panel():
     tenant_name = st.session_state.get("tenant_name", "AI Executive Shield")
     primary_color = st.session_state.get("primary_color", "#FF0080")
 
+    # ===== SUPER ADMIN — Selección de Tenant Activo =====
+    if role == "super_admin":
+        conn = get_conn()
+        tenants = conn.execute("SELECT id, name FROM tenants ORDER BY name ASC").fetchall()
+        conn.close()
+
+        if tenants:
+            tenant_map = {t[1]: t[0] for t in tenants}
+
+            st.markdown("### Seleccionar Tenant Activo (Modo Super Admin)")
+            chosen_tenant = st.selectbox(
+                "Selecciona un tenant:",
+                list(tenant_map.keys()),
+                key="super_admin_tenant_selector"
+            )
+
+            # Actualizar tenant activo en memoria
+            st.session_state["tenant_id"] = tenant_map[chosen_tenant]
+            st.session_state["tenant_name"] = chosen_tenant
+
+            # Actualizar el nombre que se muestra en el header
+            tenant_name = chosen_tenant
+        else:
+            st.warning("⚠️ No existen tenants disponibles. Crea uno primero desde el panel de administración.")
+
+    # ===== Encabezado con gradiente =====
     st.markdown(f"""
         <div style="
             background: linear-gradient(135deg, {primary_color} 0%, #00B4FF 100%);
@@ -551,9 +577,15 @@ def render_panel():
         </div>
     """, unsafe_allow_html=True)
 
+    # ===== Tabs principales =====
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "Radar IA™", "Panel de Continuidad de Negocio", "Políticas IA", "Predictive", "Licencias"
+        "Radar IA™", 
+        "Panel de Continuidad de Negocio", 
+        "Políticas IA", 
+        "Predictive", 
+        "Licencias"
     ])
+
     # ==============================
     # TAB 1 — RADAR IA™ (Cognitive Risk Engine)
     # ==============================
