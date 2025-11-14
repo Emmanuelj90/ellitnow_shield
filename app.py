@@ -57,13 +57,6 @@ import tempfile
 from io import BytesIO
 import datetime as _dt
 
-
-
-# -if os.path.exists("ellit.db"):
-# -    os.remove("ellit.db")
- # -   st.warning(">>> BASE DE DATOS ellit.db BORRADA (TEMPORAL) <<<")
-
-# Ajuste visual moderno: corrige desplazamientos y desbordes
 st.markdown("""
     <style>
     
@@ -81,17 +74,20 @@ st.markdown("""
         margin-right: auto !important;
     }
 
-    /* 3️⃣ Sidebar fijo sin afectar el main */
-    /*section[data-testid="stSidebar"] {
-        min-width: 260px !important;
-        max-width: 260px !important;
-    } */
+    /* 3️⃣ Sidebar elegante sin romper el layout */
+    section[data-testid="stSidebar"] {
+        width: 220px !important;
+        min-width: 220px !important;
+        padding-right: 10px !important;
+        padding-left: 10px !important;
+        overflow-x: hidden !important;
+    }
 
     /* 4️⃣ Prevenir desbordes de gráficos o contenedores */
     .element-container, .stPlotlyChart, .stPlot {
         max-width: 100% !important;
         overflow-x: hidden !important;
-    } 
+    }
 
     </style>
 """, unsafe_allow_html=True)
