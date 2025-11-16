@@ -12,7 +12,7 @@ import uuid
 from openai import OpenAI
 
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+client = init_openai(st.secrets["OPENAI_API_KEY"])
 
 # --- Librerías de análisis y visualización ---
 import pandas as pd
@@ -56,6 +56,15 @@ import textwrap
 import tempfile
 from io import BytesIO
 import datetime as _dt
+from core.cognitive_core import (
+    init_openai,
+    analyze_radar_ia,
+    generate_policy,
+    generate_bcp_plan,
+    generate_predictive_analysis,
+    compute_sgsi_maturity
+)
+
 
 st.markdown("""
     <style>
@@ -823,7 +832,7 @@ def render_panel():
     ])
 
     # ------------------------------------------------------------------
-    # TAB 1 — Radar IA (toda tu lógica existente, sin iconos)
+    # TAB 1 — Radar IA
     # ------------------------------------------------------------------
     with tab1:
         st.markdown("""
@@ -932,7 +941,6 @@ def render_panel():
         </div>
         """, unsafe_allow_html=True)
 
-        # Perfil organizacional
         st.markdown("### Perfil de la organización")
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -959,73 +967,42 @@ def render_panel():
         certificaciones = st.text_area("Certificaciones y marcos aplicables",
                                        placeholder="Ejemplo: ISO 27001, ENS Medio, NIST CSF, SOC 2 Tipo II...")
 
+        # INTEGRACIÓN DEL NUEVO MOTOR COGNITIVO
         if st.button("Analizar con Ellit Cognitive Core", key="analizar_radar_ia"):
-            import re as _re
-            with st.spinner("Analizando contexto de seguridad y madurez organizacional..."):
+            with st.spinner("Analizando contexto organizacional..."):
+
+                context = {
+                    "organizacion": nombre_org,
+                    "sector": sector,
+                    "nivel_ens": nivel_ens,
+                    "tamano": tamano,
+                    "region": region,
+                    "responsable": responsable,
+                    "riesgos_detectados": riesgos,
+                    "certificaciones": certificaciones
+                }
+
                 try:
-                    prompt = f"""
-Eres Ellit Cognitive Core, motor cognitivo especializado en ENS, ISO 27001, NIST CSF y continuidad ISO 22301.
-Evalúa la madurez de {nombre_org}, sector {sector}, tamaño {tamano}, nivel ENS {nivel_ens}, en la región {region}.
+                    data = analyze_radar_ia(client, context)
 
-Basado en el contexto y madurez declarada:
-- Si ENS es 'Medio', orienta el objetivo hacia ISO 27001 óptimo y ENS Alto.
-- Si ENS es 'Alto', refuerza controles NIST CSF Tier 3+ e ISO 22301.
-- Proporciona un análisis técnico + ejecutivo para CISO.
-- Genera 10 acciones críticas agrupadas según horizonte temporal.
-
-Responde solo en JSON válido:
-{{
-  "indicadores": {{
-    "Madurez SGSI": 0-100,
-    "Nivel de Protección": 0-100,
-    "Cumplimiento Normativo": 0-100,
-    "Probabilidad de Materialización": 0-100,
-    "Resiliencia BCP": 0-100,
-    "Cultura de Seguridad": 0-100,
-    "Brecha ENS (%)": 0-100
-  }},
-  "analisis": "Análisis contextual con interpretación ENS/ISO/NIST/22301.",
-  "acciones": {{
-    "0-3 meses": ["acción 1", "acción 2"],
-    "3-6 meses": ["acción 3", "acción 4"],
-    "6-12 meses": ["acción 5", "acción 6"]
-  }},
-  "recomendaciones": ["Recomendación 1", "Recomendación 2"],
-  "alertas": ["Alerta 1", "Alerta 2"]
-}}
-"""
-                    response = client.chat.completions.create(
-                        model="gpt-4o-mini",
-                        messages=[
-                            {"role": "system", "content": "Eres un evaluador experto en GRC y ciberseguridad ENS/ISO27001."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=0.3,
-                        max_tokens=1500
-                    )
-
-                    raw = response.choices[0].message.content or ""
-                    match = _re.search(r"\{.*\}", raw, _re.S)
-                    if match:
-                        data = json.loads(match.group(0))
+                    if data is not None:
                         st.session_state["radar_data"] = data
-                        st.success(f"Análisis completado para {nombre_org}")
+                        st.success("Análisis completado correctamente.")
                     else:
-                        st.error("No se pudo interpretar la respuesta del núcleo cognitivo.")
-                        data = None
+                        st.error("No se pudo interpretar la respuesta del motor cognitivo.")
 
                 except Exception as e:
-                    st.error(f"Error al conectar con Ellit Cognitive Core: {str(e)}")
-                    data = None
+                    st.error(f"Error al procesar el análisis: {str(e)}")
+
         else:
             data = st.session_state.get("radar_data", None)
 
+        # Presentación del informe si existe
         if data:
             st.markdown("### Evaluación global de madurez y riesgo")
 
             indicadores = data.get("indicadores", {})
             if indicadores:
-                # Fila 1: gauge + radar
                 c1, c2 = st.columns(2)
                 with c1:
                     st.subheader("Madurez del SGSI")
@@ -1121,76 +1098,6 @@ Responde solo en JSON válido:
                 for a in alertas:
                     st.error(a)
 
-        # Evaluación documental ENS (igual que tenías)
-        if data:
-            st.markdown("### Evaluación documental ENS — Nivel objetivo")
-            st.info("Analiza los documentos existentes y los requeridos para alcanzar el nivel ENS superior.")
-
-            documentos_existentes = st.text_area(
-                "Documentos existentes (uno por línea)",
-                placeholder="Ejemplo:\nPolítica de Seguridad de la Información\nGestión de Riesgos\nProcedimiento de Control de Accesos"
-            ).splitlines()
-
-            controles_faltantes = st.text_area(
-                "Controles ENS faltantes (uno por línea, formato: MP.INFO.1, OP.ACC.2, etc.)",
-                placeholder="Ejemplo:\nMP.INFO.2\nOP.BCP.2\nPR.COM.1"
-            ).splitlines()
-
-            mapa_controles_docs = {
-                "MP.INFO.1": "Política de Seguridad de la Información",
-                "MP.INFO.2": "Informe de Evaluación y Gestión de Riesgos",
-                "MP.INFO.3": "Política de Clasificación de la Información",
-                "OP.ACC.1": "Procedimiento de Control de Accesos",
-                "OP.LOG.2": "Procedimiento de Monitorización y Registro de Actividades",
-                "ORG.CONT.3": "Plan de Continuidad y Recuperación ante Desastres",
-                "PR.DAT.1": "Política de Protección de Datos Personales",
-                "PR.COM.1": "Procedimiento de Comunicaciones Seguras",
-                "OP.BCP.2": "Informe de Pruebas de Continuidad Operativa",
-                "MP.AUD.2": "Informe de Auditoría de Seguridad",
-                "MP.SUP.1": "Plan de Mantenimiento y Soporte de Sistemas",
-                "ORG.FOR.1": "Manual de Formación y Concienciación en Seguridad",
-                "MP.CHG.1": "Procedimiento de Gestión de Cambios",
-                "MP.ACQ.1": "Procedimiento de Adquisición Segura de Sistemas y Servicios",
-                "PR.CRY.1": "Política de Cifrado y Gestión de Claves",
-                "PR.IDS.1": "Informe de Gestión de Incidentes de Seguridad",
-                "OP.CON.1": "Controles de Red y Segmentación Lógica",
-                "ORG.SUP.1": "Manual de Soporte y Escalado Técnico",
-                "MP.CONF.1": "Procedimiento de Configuración Segura",
-                "PR.MAL.1": "Procedimiento de Protección frente a Malware"
-            }
-
-            def calcular_documentos_faltantes(ctrls_f, docs_ex, nivel_ens_local):
-                documentos_faltantes = []
-                for control in ctrls_f:
-                    control = control.strip()
-                    if not control:
-                        continue
-                    doc_requerido = mapa_controles_docs.get(control)
-                    if doc_requerido and all(doc_requerido.lower() not in d.lower() for d in docs_ex):
-                        documentos_faltantes.append(f"{control} → {doc_requerido}")
-
-                if nivel_ens_local == "Medio":
-                    adicionales = [
-                        "Informe de Análisis de Brechas hacia ENS Alto",
-                        "Procedimiento de Gestión de Proveedores Críticos",
-                        "Política de Seguridad por Capas (Zero Trust)",
-                        "Plan de Pruebas de Resiliencia Operativa Anual"
-                    ]
-                    for doc in adicionales:
-                        if all(doc.lower() not in d.lower() for d in docs_ex):
-                            documentos_faltantes.append(f"ENS Alto → {doc}")
-                return documentos_faltantes
-
-            if st.button("Analizar documentación ENS", key="analizar_docs_ens"):
-                documentos_falt = calcular_documentos_faltantes(controles_faltantes, documentos_existentes, nivel_ens)
-                if documentos_falt:
-                    st.error("Documentos faltantes para alcanzar el nivel objetivo ENS:")
-                    for doc in documentos_falt:
-                        st.markdown(f"- {doc}")
-                else:
-                    st.success("Todos los documentos requeridos para el nivel actual están presentes.")
-
-        # Exportar informe PDF (mantengo tu lógica)
         st.markdown("---")
         st.markdown("### Exportar informe PDF")
         estilo = st.selectbox("Estilo del informe PDF", ["Clásico", "Corporativo", "Ellit"], index=2)
@@ -1210,6 +1117,7 @@ Responde solo en JSON válido:
                     download_pdf_button("Informe Radar IA", nombre_org, content, pdf_name)
             except Exception:
                 st.error("Error al generar el PDF.")
+
 
     # ------------------------------------------------------------------
     # TAB 2 — Panel de Continuidad de Negocio (tu código)
