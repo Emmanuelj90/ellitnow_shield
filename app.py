@@ -1376,10 +1376,9 @@ Ellit Cognitive Core — Documento generado automáticamente
                 """, unsafe_allow_html=True)
 
 
-  # ------------------------------------------------------------------
-# TAB 4 — Ellit Predictive Intelligence (Leaflet + Cognitive Core)
-# ------------------------------------------------------------------
-with tab4:
+    # ------------------------------------------------------------------
+    # TAB 4 — Ellit Predictive Intelligence (Leaflet + Cognitive Core)
+    # ------------------------------------------------------------------
 
     st.markdown("""
     <style>
@@ -1438,6 +1437,7 @@ with tab4:
     # Filters
     # ----------------------------------------------------------------------
     col1_p, col2_p, col3_p = st.columns(3)
+
     with col1_p:
         sector_p = st.selectbox(
             "Sector",
@@ -1448,8 +1448,10 @@ with tab4:
                 "Defensa", "Sector Público"
             ]
         )
+
     with col2_p:
         pais = st.text_input("País / Región", "España")
+
     with col3_p:
         madurez_p = st.slider("Madurez ENS/ISO (percepción interna)", 1, 5, 3)
 
@@ -1465,6 +1467,7 @@ with tab4:
         "Defensa": 700000,
         "Sector Público": 300000,
     }
+
     costo_promedio = base_costos.get(sector_p, 350000)
 
     # Data enviada al Cognitive Core
@@ -1490,12 +1493,10 @@ with tab4:
             predictive_data = generate_predictive_analysis(client, predictive_input)
 
         if predictive_data:
-            # Riesgo
             raw_riesgo = predictive_data.get("riesgo_sectorial", "")
             nums = re.findall(r"\d+", str(raw_riesgo))
             riesgo_sectorial_val = int(nums[0]) if nums else random.randint(60, 95)
 
-            # Impacto
             raw_impacto = predictive_data.get("impacto_estimado", "")
             nums_i = re.findall(r"\d+", str(raw_impacto).replace(".", "").replace(",", ""))
 
@@ -1550,9 +1551,6 @@ with tab4:
 
         st.markdown('<div class="section-title">Mapa global de inteligencia de amenazas</div>', unsafe_allow_html=True)
 
-        # --------------------
-        # Threat Country Data
-        # --------------------
         threat_countries = [
             {
                 "country": "España",
@@ -1626,7 +1624,6 @@ with tab4:
             }
         ]
 
-        # Si país no existe, añadirlo dinámicamente
         if not any(pais.lower() == c["country"].lower() for c in threat_countries):
             threat_countries.append({
                 "country": pais,
@@ -1639,7 +1636,6 @@ with tab4:
                 "critical": random.randint(3, 12)
             })
 
-        # Render map
         threat_data = {"countries": threat_countries}
 
         ellit_leaflet_map(
@@ -1648,9 +1644,6 @@ with tab4:
             key="ellit_global_threats"
         )
 
-    # ----------------------------------------------------------------------
-    # Cognitive Core Insights
-    # ----------------------------------------------------------------------
     with c2_p2:
 
         st.markdown('<div class="section-title">Inteligencia del Cognitive Core</div>', unsafe_allow_html=True)
@@ -1713,9 +1706,6 @@ with tab4:
                 "- Evaluación reforzada de cadena de suministro.\n"
             )
 
-    # ----------------------------------------------------------------------
-    # Benchmark ENS / ISO / NIST
-    # ----------------------------------------------------------------------
     with c4_p3:
 
         st.markdown('<div class="section-title">Benchmark ENS / ISO / NIST</div>', unsafe_allow_html=True)
@@ -1756,7 +1746,6 @@ with tab4:
         ax_radar.grid(True, linewidth=0.5, color="#CBD5F5", alpha=0.8)
 
         st.pyplot(fig_radar)
-
 
 
     # ------------------------------------------------------------------
