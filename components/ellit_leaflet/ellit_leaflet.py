@@ -2,7 +2,7 @@ import os
 import json
 import streamlit.components.v1 as components
 
-# Ruta del frontend
+# Ruta del frontend (index.html, script.js, style.css)
 COMPONENT_PATH = os.path.join(os.path.dirname(__file__), "frontend")
 
 # Declaración del componente
@@ -17,7 +17,7 @@ def ellit_leaflet_map(
     key: str = None
 ):
     """
-    Renderiza el mapa Leaflet profesional con datos de amenazas globales.
+    Renderiza el mapa Leaflet profesional de inteligencia de amenazas.
 
     Parámetros:
     - threat_data: dict con estructura:
@@ -36,11 +36,11 @@ def ellit_leaflet_map(
                 ...
             ]
         }
-    - height: altura del mapa
-    - key: clave única en Streamlit
+
+    - height: alto del contenedor (px)
+    - key: clave única streamlit
     """
 
-    # Convertir a JSON para pasarlo al frontend
     threat_json = json.dumps(threat_data)
 
     return ellit_leaflet_component(
