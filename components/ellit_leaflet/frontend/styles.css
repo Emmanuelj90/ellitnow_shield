@@ -1,0 +1,30 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+/* Popup estilo Ellit */
+.leaflet-popup-content-wrapper {
+    background: #0F172A;
+    color: white;
+    border-radius: 10px;
+    border: 2px solid #00B4FF;
+}
+
+.leaflet-popup-tip {
+    background: #00B4FF;
+}
+
+/* Capa de riesgo por país */
+.ellit-risk-circle {
+    border-radius: 50%;
+    opacity: 0.8;
+    box-shadow: 0 0 8px rgba(255,0,128,0.8);
+}
