@@ -11,9 +11,6 @@ import secrets
 import uuid
 from openai import OpenAI
 
-# Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
-client = init_openai(st.secrets["OPENAI_API_KEY"])
-
 # --- Librerías de análisis y visualización ---
 import pandas as pd
 import plotly.express as px
@@ -66,6 +63,8 @@ from core.cognitive_core import (
 )
 from components.ellit_leaflet import ellit_leaflet_map
 
+# Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
+client = init_openai(st.secrets["OPENAI_API_KEY"])
 
 st.markdown("""
     <style>
