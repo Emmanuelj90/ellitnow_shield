@@ -1,31 +1,91 @@
+/* ================================
+   CONFIGURACIÓN GLOBAL
+================================ */
+
 html, body {
     margin: 0;
     padding: 0;
-    overflow: hidden;
     height: 100%;
+    overflow: hidden;
 }
 
 #map {
     height: 100%;
     width: 100%;
+    background: #0F172A;
 }
 
-/* Popup estilo Ellit */
+/* ================================
+   POPUP PROFESIONAL ELLIT
+================================ */
+
 .leaflet-popup-content-wrapper {
-    background: #0F172A;
-    color: white;
-    border-radius: 10px;
-    border: 2px solid #00B4FF;
+    background: #0F172A !important;
+    color: #FFFFFF !important;
+    border-radius: 12px;
+    border: 1.5px solid #00B4FF;
+    box-shadow: 0 4px 16px rgba(0, 180, 255, 0.25);
 }
 
 .leaflet-popup-tip {
-    background: #00B4FF;
+    background: #00B4FF !important;
 }
 
-/* Efecto de riesgo */
+/* Ajuste limpio para el texto del popup */
+.leaflet-popup-content {
+    font-size: 13px;
+    line-height: 1.4;
+    color: #FFFFFF;
+}
+
+
+/* ================================
+   CÍRCULOS DE RIESGO — ELLIT RISK DOTS
+================================ */
+
 .ellit-risk-circle {
     border-radius: 50%;
-    opacity: 0.85;
-    box-shadow: 0 0 8px rgba(255, 0, 128, 0.8);
+    opacity: 0.88;
+    transition: transform 0.18s ease-in-out, box-shadow 0.25s ease;
+
+    /* Efecto Glow Ellit */
+    box-shadow:
+        0 0 12px rgba(255, 0, 128, 0.45),
+        0 0 24px rgba(0, 180, 255, 0.25);
 }
+
+/* Hover profesional */
+.ellit-risk-circle:hover {
+    transform: scale(1.18);
+    opacity: 1;
+    box-shadow:
+        0 0 16px rgba(255, 0, 128, 0.7),
+        0 0 28px rgba(0, 180, 255, 0.35);
+}
+
+/* ================================
+   CONTROL DE ZOOM — ESTILO ELLIT
+================================ */
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+    background-color: #0F172A !important;
+    color: #FFFFFF !important;
+    border: 1px solid #1E293B !important;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+    background-color: #00B4FF !important;
+    color: #0F172A !important;
+}
+
+/* ================================
+   INTERFAZ RESPONSIVE Y LIMPIA
+================================ */
+
+.leaflet-control-attribution {
+    display: none !important;
+}
+
 
