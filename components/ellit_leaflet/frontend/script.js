@@ -52,9 +52,9 @@ function loadMap(threatData, streamlitSendEvent) {
 function StreamlitComponent() {}
 
 StreamlitComponent.prototype.onRender = function(event) {
-    if (!event.detail.args.threatData) return;
+    if (!event.detail.args.data) return;
 
-    const threatData = JSON.parse(event.detail.args.threatData);
+    const threatData = JSON.parse(event.detail.args.data);
 
     loadMap(threatData, (payload) => {
         const event = new CustomEvent("streamlit:componentEvent", {
