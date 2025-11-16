@@ -1,5 +1,8 @@
 let map = null;
 
+// ==========================
+// Cargar y renderizar el mapa
+// ==========================
 function loadMap(threatData, streamlitSendEvent) {
     if (map !== null) {
         map.remove();
@@ -10,12 +13,14 @@ function loadMap(threatData, streamlitSendEvent) {
         scrollWheelZoom: true
     }).setView([20, 0], 2);
 
-    // Tile base estilizado (Carto)
+    // Capa base estilizada (Carto Dark)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19
     }).addTo(map);
 
-    // Dibujar países con riesgo
+    // ==========================
+    // Dibujar países
+    // ==========================
     threatData.countries.forEach(country => {
         const riskColor =
             country.risk >= 80 ? "#FF0080" :
@@ -49,23 +54,37 @@ function loadMap(threatData, streamlitSendEvent) {
 
 
 
+// =======================================
+// Componente Streamlit (CORREGIDO)
+// =======================================
 function StreamlitComponent() {}
 
-StreamlitComponent.prototype.onRender = function(event) {
-    if (!event.detail.args.data) return;
+StreamlitComponent.prototype.onRender = function (event) {
+    // Cambiado: ahora el backend envía `threatData`, NO `data`
+    const raw = event.detail.args.threatData;
+    if (!raw) return;
 
-    const threatData = JSON.parse(event.detail.args.data);
+    const threatData = JSON.parse(raw);
 
     loadMap(threatData, (payload) => {
-        const event = new CustomEvent("streamlit:componentEvent", {
+        const ev = new CustomEvent("streamlit:componentEvent", {
             detail: payload
         });
-        window.parent.document.dispatchEvent(event);
+        window.parent.document.dispatchEvent(ev);
     });
 };
 
+
+// =======================================
+// Inicialización requerida para Streamlit
+// =======================================
+window.initialize = () => {};
+
 const component = new StreamlitComponent();
 
-window.addEventListener("load", function() {
-    window.parent.document.addEventListener("streamlit:render", component.onRender);
+window.addEventListener("load", function () {
+    window.parent.document.addEventListener(
+        "streamlit:render",
+        component.onRender.bind(component)
+    );
 });
