@@ -1,8 +1,8 @@
 let map = null;
 
-// ==========================
+// =======================================================
 // Renderizar el mapa Leaflet
-// ==========================
+// =======================================================
 function loadMap(threatData, streamlitSendEvent) {
 
     if (map !== null) {
@@ -14,12 +14,14 @@ function loadMap(threatData, streamlitSendEvent) {
         scrollWheelZoom: true
     }).setView([20, 0], 2);
 
-    // Capa base estilizada
+    // Capa base oscura tipo Carto
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
         maxZoom: 19
     }).addTo(map);
 
+    // =======================================================
     // Dibujar puntos por país
+    // =======================================================
     threatData.countries.forEach(country => {
 
         const riskColor =
@@ -41,6 +43,7 @@ function loadMap(threatData, streamlitSendEvent) {
             CVEs activas: ${country.cves}
         `);
 
+        // Evento para Streamlit
         marker.on("click", () => {
             streamlitSendEvent({
                 event: "country_clicked",
@@ -53,13 +56,14 @@ function loadMap(threatData, streamlitSendEvent) {
 }
 
 
-// =======================================
-// Componente Streamlit
-// =======================================
+// =======================================================
+// Componente Streamlit (OBLIGATORIO)
+// =======================================================
 function StreamlitComponent() {}
 
 StreamlitComponent.prototype.onRender = function(event) {
 
+    // Importante: coincide con threatData enviado desde Python
     const raw = event.detail.args.threatData;
     if (!raw) return;
 
@@ -74,12 +78,13 @@ StreamlitComponent.prototype.onRender = function(event) {
 };
 
 
-// Requerido por Streamlit
+// =======================================================
+// Inicialización requerida por Streamlit
+// =======================================================
 window.initialize = () => {};
 
 const component = new StreamlitComponent();
 
-// Escuchar render desde Streamlit
 window.addEventListener("load", function () {
     window.parent.document.addEventListener(
         "streamlit:render",
