@@ -3,7 +3,9 @@ import json
 import streamlit.components.v1 as components
 
 # Ruta al frontend
-COMPONENT_PATH = os.path.join(os.path.dirname(__file__), "frontend")
+COMPONENT_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "frontend")
+)
 
 # Declaración del componente (name = "ellit_leaflet")
 ellit_leaflet_component = components.declare_component(
