@@ -1,16 +1,50 @@
 import os
+import json
 import streamlit.components.v1 as components
 
-_component_dir = os.path.dirname(os.path.abspath(__file__))
-frontend_dir = os.path.join(_component_dir, "frontend")
+# Ruta del frontend (index.html, script.js, style.css)
+COMPONENT_PATH = os.path.join(os.path.dirname(__file__), "frontend")
 
-EllitLeaflet = components.declare_component(
+# Declaración del componente
+ellit_leaflet_component = components.declare_component(
     "ellit_leaflet",
-    path=frontend_dir
+    path=COMPONENT_PATH
 )
 
-def threat_map(data: dict, key: str = None):
+def ellit_leaflet_map(
+    threat_data: dict,
+    height: int = 600,
+    key: str = None
+):
     """
-    Renderiza el mapa global de amenazas geopolíticas & ciber.
+    Renderiza el mapa Leaflet profesional de inteligencia de amenazas.
+
+    Parámetros:
+    - threat_data: dict con estructura:
+        {
+            "countries": [
+                {
+                    "country": "España",
+                    "lat": 40.4,
+                    "lon": -3.7,
+                    "risk": 78,
+                    "cves": 43,
+                    "ransomware": 12,
+                    "supply_chain": 8,
+                    "critical": 5
+                },
+                ...
+            ]
+        }
+
+    - height: alto del contenedor (px)
+    - key: clave única streamlit
     """
-    return EllitLeaflet(data=data, key=key)
+
+    threat_json = json.dumps(threat_data)
+
+    return ellit_leaflet_component(
+        data=threat_json,
+        height=height,
+        key=key
+    )
