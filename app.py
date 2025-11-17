@@ -1553,27 +1553,28 @@ st.session_state["amenazas_emergentes"] = amenazas_emergentes
 st.session_state["tendencias_list"] = tendencias_list
 st.session_state["recomendaciones_list"] = recomendaciones_list
 
-    # ----------------------------------------------------------------------
-    # KPI Cards
-    # ----------------------------------------------------------------------
-    st.markdown('<div class="section-title">Indicadores clave de riesgo</div>', unsafe_allow_html=True)
-    k1, k2, k3, k4 = st.columns(4)
+# ----------------------------------------------------------------------
+# KPI Cards
+# ----------------------------------------------------------------------
+st.markdown('<div class="section-title">Indicadores clave de riesgo</div>', unsafe_allow_html=True)
+k1, k2, k3, k4 = st.columns(4)
 
-    indicadores_top = [
-        ("Riesgo sectorial estimado", f"{riesgo_sectorial_val:.0f}%"),
-        ("Madurez declarada", f"{madurez_p}/5"),
-        ("Coste medio sectorial (€)", f"{costo_promedio:,.0f}"),
-        ("Impacto potencial (€)", f"{impacto_estimado_val:,.0f}"),
-    ]
+indicadores_top = [
+    ("Riesgo sectorial estimado", f"{riesgo_sectorial_val:.0f}%"),
+    ("Madurez declarada", f"{madurez_p}/5"),
+    ("Coste medio sectorial (€)", f"{costo_promedio:,.0f}"),
+    ("Impacto potencial (€)", f"{impacto_estimado_val:,.0f}"),
+]
 
-    for col, (label, val) in zip([k1, k2, k3, k4], indicadores_top):
-        with col:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div class="metric-label">{label}</div>
-                <div class="metric-value">{val}</div>
-            </div>
-            """, unsafe_allow_html=True)
+for col, (label, val) in zip([k1, k2, k3, k4], indicadores_top):
+    with col:
+        st.markdown(f"""
+        <div class="metric-box">
+            <div class="metric-label">{label}</div>
+            <div class="metric-value">{val}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
 
 # ----------------------------------------------------------------------
 # Leaflet Map + Cognitive Core Intelligence
