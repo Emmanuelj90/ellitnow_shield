@@ -58,7 +58,7 @@ from core.cognitive_core import (
     analyze_radar_ia,
     generate_policy,
     generate_bcp_plan,
-    generate_predictive_analysis,
+    generate__analysis,
     compute_sgsi_maturity
 )
 from components.ellit_leaflet import show_map
@@ -1502,40 +1502,56 @@ Ellit Cognitive Core — Documento generado automáticamente
     tendencias_list = []
     recomendaciones_list = []
 
-    # ----------------------------------------------------------------------
-    # Predictive Intelligence Engine
-    # ----------------------------------------------------------------------
-    try:
-        with st.spinner("Generando análisis predictivo con Ellit Cognitive Core..."):
-            predictive_data = generate_predictive_analysis(client, predictive_input)
+# ----------------------------------------------------------------------
+# Predictive Intelligence Engine
+# ----------------------------------------------------------------------
+try:
+    with st.spinner("Generando análisis predictivo con Ellit Cognitive Core..."):
+        predictive_data = generate_predictive_analysis(client, predictive_input)
 
-        if predictive_data:
-            raw_riesgo = predictive_data.get("riesgo_sectorial", "")
-            nums = re.findall(r"\d+", str(raw_riesgo))
-            riesgo_sectorial_val = int(nums[0]) if nums else random.randint(60, 95)
+    if predictive_data:
+        raw_riesgo = predictive_data.get("riesgo_sectorial", "")
+        nums = re.findall(r"\d+", str(raw_riesgo))
+        riesgo_sectorial_val = int(nums[0]) if nums else random.randint(60, 95)
 
-            raw_impacto = predictive_data.get("impacto_estimado", "")
-            nums_i = re.findall(r"\d+", str(raw_impacto).replace(".", "").replace(",", ""))
+        raw_impacto = predictive_data.get("impacto_estimado", "")
+        nums_i = re.findall(r"\d+", str(raw_impacto).replace(".", "").replace(",", ""))
 
-            impacto_estimado_val = (
-                float(nums_i[0])
-                if nums_i
-                else costo_promedio * (riesgo_sectorial_val / 100) * (1.2 - (madurez_p / 10))
-            )
+        impacto_estimado_val = (
+            float(nums_i[0])
+            if nums_i
+            else costo_promedio * (riesgo_sectorial_val / 100) * (1.2 - (madurez_p / 10))
+        )
 
-            amenazas_emergentes = predictive_data.get("amenazas_emergentes", []) or []
-            tendencias_list = predictive_data.get("tendencias", []) or []
-            recomendaciones_list = predictive_data.get("recomendaciones", []) or []
+        amenazas_emergentes = predictive_data.get("amenazas_emergentes", []) or []
+        tendencias_list = predictive_data.get("tendencias", []) or []
+        recomendaciones_list = predictive_data.get("recomendaciones", []) or []
 
-        else:
-            riesgo_sectorial_val = random.randint(60, 95)
-            impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
-
-    except Exception:
+    else:
         riesgo_sectorial_val = random.randint(60, 95)
         impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
+        amenazas_emergentes = []
+        tendencias_list = []
+        recomendaciones_list = []
 
-    riesgo_sectorial_val = riesgo_sectorial_val or random.randint(60, 95)
+except Exception:
+    riesgo_sectorial_val = random.randint(60, 95)
+    impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
+    amenazas_emergentes = []
+    tendencias_list = []
+    recomendaciones_list = []
+
+# Fallback final
+riesgo_sectorial_val = riesgo_sectorial_val or random.randint(60, 95)
+
+# ----------------------------------------------------------------------
+# Guardar valores en Session State (evita NameError)
+# ----------------------------------------------------------------------
+st.session_state["riesgo_sectorial_val"] = riesgo_sectorial_val
+st.session_state["impacto_estimado_val"] = impacto_estimado_val
+st.session_state["amenazas_emergentes"] = amenazas_emergentes
+st.session_state["tendencias_list"] = tendencias_list
+st.session_state["recomendaciones_list"] = recomendaciones_list
 
     # ----------------------------------------------------------------------
     # KPI Cards
