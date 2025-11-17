@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Ellit Map Component</title>
+
+    <!-- Cargar tu JS -->
+    <script src="./main.js"></script>
+</head>
+
+<body style="margin: 0; padding: 0;">
+    <div id="root"></div>
+
+    <script>
+        // Esto hace que el componente pueda recibir datos desde Streamlit
+        window.streamlitReceive = (msg) => {
+            if (window.renderMap) {
+                window.renderMap(msg.data);
+            } else {
+                console.error("renderMap() no está definido en main.js");
+            }
+        };
+
+        // Notificar a Streamlit que estamos listos
+        Streamlit.setComponentReady();
+    </script>
+</body>
+</html>
