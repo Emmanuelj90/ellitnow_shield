@@ -62,7 +62,7 @@ from core.cognitive_core import (
     generate_predictive_analysis,
     compute_sgsi_maturity,
 )
-from components.ellit_leaflet import show_map
+from components.ellit_leaflet.ellit_leaflet import show_map
 
 # ==========================
 # MAPA GLOBAL ELLIT THREAT
@@ -77,8 +77,7 @@ with st.container():
         ]
     }
 
-    show_map(json.dumps(threat_data))
-
+    show_map(threat_data)
 
 
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
