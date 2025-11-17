@@ -61,7 +61,17 @@ from core.cognitive_core import (
     generate_predictive_analysis,
     compute_sgsi_maturity
 )
-from components.ellit_leaflet import ellit_leaflet_map
+from components.ellit_leaflet import show_map
+
+threat_json = {
+    "countries": [
+        {"country": "Spain", "lat": 40.4, "lng": -3.7, "risk": 70, "cves": 15},
+        {"country": "USA", "lat": 38.0, "lng": -97.0, "risk": 85, "cves": 22},
+    ]
+}
+
+show_map(threat_json)
+
 
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
 client = init_openai(st.secrets["OPENAI_API_KEY"])
