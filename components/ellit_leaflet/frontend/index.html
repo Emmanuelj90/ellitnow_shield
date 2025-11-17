@@ -2,21 +2,21 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <script src="https://unpkg.com/@streamlit/component-lib/dist/main.js"></script>
+    <script src="https://unpkg.com/@streamlit/component-lib/dist/index.js"></script>
 
     <!-- Leaflet CSS -->
     <link
       rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+      href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
     />
 
     <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
     <style>
       #map {
         width: 100%;
-        height: 500px;
+        height: 550px;
       }
     </style>
   </head>
@@ -25,50 +25,56 @@
     <div id="map"></div>
 
     <script>
-      class EllitMap extends StreamlitComponentBase {
-        onRender(event) {
-          const data = event.detail.args.data;
-
-          // Si el mapa ya existe, evitar recrearlo
-          if (this._map) {
-            this.updateMarkers(data);
-            return;
-          }
-
-          // Crear mapa
-          this._map = L.map("map").setView([20, 0], 2);
-
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 6,
-          }).addTo(this._map);
-
-          this.updateMarkers(data);
-
-          Streamlit.setFrameHeight(550);
+      function renderComponent(data) {
+        // Si el mapa ya existe, solo actualizar marcadores
+        if (window._ellitMap) {
+          updateMarkers(window._ellitMap, data);
+          Streamlit.setFrameHeight(600);
+          return;
         }
 
-        updateMarkers(data) {
-          if (!data || !data.countries) return;
+        // Crear mapa
+        window._ellitMap = L.map("map").setView([20, 0], 2);
 
-          // Eliminar marcadores previos
-          if (this._markers) {
-            this._markers.forEach((m) => this._map.removeLayer(m));
-          }
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 6,
+          minZoom: 2,
+        }).addTo(window._ellitMap);
 
-          this._markers = [];
-
-          data.countries.forEach((c) => {
-            const marker = L.marker([c.lat, c.lng]).addTo(this._map);
-            marker.bindPopup(
-              `<b>${c.country}</b><br/>Riesgo: ${c.risk}<br/>CVEs: ${c.cves}`
-            );
-
-            this._markers.push(marker);
-          });
-        }
+        updateMarkers(window._ellitMap, data);
+        Streamlit.setFrameHeight(600);
       }
 
-      Streamlit.mount(EllitMap);
+      function updateMarkers(map, data) {
+        if (!data || !data.countries) return;
+
+        // Borrar marcadores anteriores
+        if (window._ellitMarkers) {
+          window._ellitMarkers.forEach((m) => m.remove());
+        }
+        window._ellitMarkers = [];
+
+        data.countries.forEach((c) => {
+          try {
+            const m = L.marker([c.lat, c.lng]).addTo(map);
+            m.bindPopup(
+              `<b>${c.country}</b><br>Riesgo: ${c.risk}<br>CVEs: ${c.cves}`
+            );
+            window._ellitMarkers.push(m);
+          } catch (e) {
+            console.error("Error marker:", e);
+          }
+        });
+      }
+
+      Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, (event) => {
+        const args = event.detail.args;
+        renderComponent(args.data);
+      });
+
+      Streamlit.setComponentReady();
+      Streamlit.setFrameHeight(600);
     </script>
   </body>
 </html>
+
