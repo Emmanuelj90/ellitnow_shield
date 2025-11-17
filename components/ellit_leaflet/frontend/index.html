@@ -1,35 +1,39 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <meta charset="UTF-8" />
-    <title>Ellit Map Component</title>
+    <title>Ellit Threat Map</title>
 
     <!-- Leaflet CSS -->
-    <link 
-      rel="stylesheet" 
+    <link
+      rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
 
-    <!-- Leaflet JS -->
-    <script 
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-    </script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+      #root {
+        width: 100%;
+      }
+    </style>
+  </head>
 
-    <!-- Streamlit Component API -->
-    <script src="https://unpkg.com/@streamlit/component-lib@latest/dist/index.js"></script>
-
-    <!-- Tu JS real -->
-    <script src="./main.js"></script>
-</head>
-
-<body style="margin: 0; padding: 0;">
-    <!-- Donde renderizamos Leaflet -->
+  <body>
     <div id="root"></div>
 
-    <script>
-        // Notificar a Streamlit que estamos listos
-        Streamlit.setComponentReady();
-    </script>
-</body>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Streamlit Component API -->
+    <script src="https://unpkg.com/streamlit-component-lib/dist/index.js"></script>
+
+    <!-- Tu script -->
+    <script src="main.js"></script>
+  </body>
 </html>
+
 
