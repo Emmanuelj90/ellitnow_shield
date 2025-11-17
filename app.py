@@ -114,7 +114,7 @@ st.set_page_config(
 )
 
 # ==============================
-# ESTILO GLOBAL ELLIT SHIELD UI PRO
+# ESTILO GLOBAL ELLIT SHIELD UI PRO — COLORES CORREGIDOS
 # ==============================
 st.markdown("""
     <style>
@@ -123,15 +123,15 @@ st.markdown("""
     html, body, [class*="css"]  {
         font-family: 'Inter', sans-serif;
         background-color: #FFFFFF;
-        color: #0F172A;
+        color: #FFFFFF;
     }
 
     /* Sidebar corporativo fijo */
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg,#0048FF 0%,#001F7F 100%);
+        background: linear-gradient(180deg,#0B2A55 0%,#061A36 100%);
         color: white;
         padding-top: 25px;
-        border-right: 1px solid #eaeaea;
+        border-right: 1px solid #4C5D7A;
     }
     section[data-testid="stSidebar"] h1,
     section[data-testid="stSidebar"] h2,
@@ -145,37 +145,39 @@ st.markdown("""
 
     /* Contenedor principal */
     .main-container {
-        background: #FFFFFF;
+        background: #0B2A55;
         border-radius: 20px;
         padding: 35px;
         margin-top: 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        border: 1px solid #E2E8F0;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        border: 1px solid #4C5D7A;
+        color: #FFFFFF;
     }
 
     /* Cards de métricas */
     .metric-card {
-        background-color: #F8FAFC;
+        background-color: #0F355F;
         border-radius: 14px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        border: 1px solid #4C5D7A;
         padding: 20px;
         margin-bottom: 16px;
         text-align: center;
         transition: all 0.2s ease;
+        color: #FFFFFF;
     }
     .metric-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     }
     .metric-value {
         font-size: 26px;
         font-weight: 700;
-        color: #0048FF;
+        color: #D8278A;
     }
     .metric-label {
         font-size: 13px;
-        color: #475569;
+        color: #E2E8F0;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -183,25 +185,26 @@ st.markdown("""
     /* Títulos */
     h1, h2, h3, h4 {
         font-weight: 700 !important;
-        color: #0F172A !important;
+        color: #FFFFFF !important;
         margin-bottom: 10px;
     }
     .section-title {
         font-weight: 600;
         font-size: 18px;
-        color: #0F172A;
+        color: #FFFFFF;
         margin-bottom: 12px;
     }
 
     /* Botones */
     .stButton>button {
-        background: linear-gradient(135deg,#FF0080 0%,#00B4FF 100%) !important;
+        background: linear-gradient(135deg,#D8278A 0%,#0B2A55 100%) !important;
         color: white !important;
         border: none !important;
-        border-radius: 10px;
+        border-radius: 30px;
         font-weight: 600;
         transition: 0.2s ease;
-        padding: 10px 18px;
+        padding: 12px 28px;
+        font-size: 16px;
     }
     .stButton>button:hover {
         filter: brightness(1.1);
@@ -211,14 +214,16 @@ st.markdown("""
     /* Inputs y selects */
     .stTextInput>div>div>input, .stTextArea textarea {
         border-radius: 10px !important;
-        border: 1px solid #E2E8F0 !important;
-        background-color: #F8FAFC !important;
+        border: 1px solid #4C5D7A !important;
+        background-color: #0F355F !important;
+        color: #FFFFFF !important;
         padding: 10px 12px !important;
     }
     .stSelectbox>div>div {
-        background-color: #F8FAFC !important;
+        background-color: #0F355F !important;
         border-radius: 10px !important;
-        border: 1px solid #E2E8F0 !important;
+        border: 1px solid #4C5D7A !important;
+        color: #FFFFFF !important;
     }
 
     /* Tabs */
@@ -227,15 +232,16 @@ st.markdown("""
         justify-content: center;
     }
     .stTabs [data-baseweb="tab"] {
-        background: #F8FAFC;
+        background: #0F355F;
         border-radius: 10px;
-        color: #475569;
+        color: #E2E8F0;
         font-weight: 500;
         padding: 10px 18px;
         transition: 0.2s;
+        border: 1px solid #4C5D7A;
     }
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg,#FF0080 0%,#00B4FF 100%);
+        background: linear-gradient(135deg,#D8278A 0%,#0B2A55 100%);
         color: white !important;
         font-weight: 600;
     }
@@ -243,34 +249,36 @@ st.markdown("""
     /* Tablas */
     .stDataFrame, .stTable {
         border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        border: 1px solid #4C5D7A;
         overflow: hidden;
+        color: #FFFFFF;
     }
 
     /* Dashboard cards */
     .dashboard-card {
-        background: #FFFFFF;
+        background: #0F355F;
         border-radius: 18px;
         padding: 25px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
         margin-bottom: 25px;
-        border: 1px solid #E2E8F0;
+        border: 1px solid #4C5D7A;
+        color: #FFFFFF;
     }
     .dashboard-title {
         font-size: 24px;
         font-weight: 600;
-        color: #0F172A;
+        color: #FFFFFF;
     }
     .dashboard-sub {
         font-size: 14px;
-        color: #475569;
+        color: #E2E8F0;
         margin-top: -8px;
     }
 
     hr {
         border: none;
-        border-top: 1px solid #E2E8F0;
+        border-top: 1px solid #4C5D7A;
         margin: 25px 0;
     }
     </style>
