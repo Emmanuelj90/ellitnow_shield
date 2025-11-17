@@ -64,11 +64,13 @@ from core.cognitive_core import (
 )
 from components.ellit_leaflet.ellit_leaflet import show_map
 
-st.title("TEST DEL COMPONENTE")
+# st.title("TEST DEL COMPONENTE")
 
-show_map({"test": "funciona"}, key="test01")
+# show_map({"test": "funciona"}, key="test01")
 
-st.write("Si lees esto, la app no está congelada.")
+# st.write("Si lees esto, la app no está congelada.")
+st.subheader("Mapa de prueba")
+show_map({"mensaje": "Hola desde el test!"}, key="map1")
 
 
 # ==========================
@@ -84,7 +86,7 @@ st.write("Si lees esto, la app no está congelada.")
    #     ]
   #  }
 
-   # show_map({"countries": threat_countries}, key="threatmap01")
+   # ({"countries": threat_countries}, key="threatmap01")
 
 
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
