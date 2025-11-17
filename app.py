@@ -1648,11 +1648,7 @@ Ellit Cognitive Core — Documento generado automáticamente
 
         threat_data = {"countries": threat_countries}
 
-        ellit_leaflet_map(
-            threat_data=threat_data,
-            height=520,
-            key="ellit_global_threats"
-        )
+show_map(threat_data)
 
     with c2_p2:
 
