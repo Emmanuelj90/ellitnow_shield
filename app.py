@@ -1,9 +1,7 @@
-import streamlit as st
 from components.ellit_leaflet.component import show_map
 
-st.title("TEST SIMPLE DEL COMPONENTE")
+st.title("Test Componente")
 
-st.write("Si lees esto, la app NO está congelada.")
+show_map({"test": "hola"}, key="prueba01")
 
-st.subheader("Test con el componente")
-show_map({"msg": "hola"}, key="test1")
+st.write("Si ves esto, la app NO está congelada.")
