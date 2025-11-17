@@ -1,3 +1,4 @@
+import streamlit as st
 from components.ellit_leaflet.component import show_map
 
 st.title("Test Componente")
