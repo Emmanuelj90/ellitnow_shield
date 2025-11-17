@@ -2,15 +2,14 @@ import streamlit as st
 import streamlit.components.v1 as components
 from pathlib import Path
 
-# Path al frontend
-_component_path = Path(__file__).parent / "frontend"
+# Ruta al frontend
+_frontend = Path(__file__).parent / "frontend"
 
-# Declaración del componente
-ellit_map_component = components.declare_component(
-    "ellitmap",
-    path=str(_component_path)
+# Declaración del componente (seguro)
+ellit_test_component = components.declare_component(
+    "ellit_test",
+    path=str(_frontend)
 )
 
-# Función pública que usas en app.py
 def show_map(data: dict, key=None):
-    return ellit_map_component(data=data, key=key)
+    return ellit_test_component(data=data, key=key)
