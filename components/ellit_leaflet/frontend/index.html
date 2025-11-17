@@ -4,25 +4,32 @@
     <meta charset="UTF-8" />
     <title>Ellit Map Component</title>
 
-    <!-- Cargar tu JS -->
+    <!-- Leaflet CSS -->
+    <link 
+      rel="stylesheet" 
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <!-- Leaflet JS -->
+    <script 
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+    <!-- Streamlit Component API -->
+    <script src="https://unpkg.com/@streamlit/component-lib@latest/dist/index.js"></script>
+
+    <!-- Tu JS real -->
     <script src="./main.js"></script>
 </head>
 
 <body style="margin: 0; padding: 0;">
+    <!-- Donde renderizamos Leaflet -->
     <div id="root"></div>
 
     <script>
-        // Esto hace que el componente pueda recibir datos desde Streamlit
-        window.streamlitReceive = (msg) => {
-            if (window.renderMap) {
-                window.renderMap(msg.data);
-            } else {
-                console.error("renderMap() no está definido en main.js");
-            }
-        };
-
         // Notificar a Streamlit que estamos listos
         Streamlit.setComponentReady();
     </script>
 </body>
 </html>
+
