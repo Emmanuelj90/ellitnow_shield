@@ -79,6 +79,7 @@ with st.container():
     show_map(json.dumps(threat_data))
 
 
+
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
 client = init_openai(st.secrets["OPENAI_API_KEY"])
 
@@ -1558,206 +1559,223 @@ Ellit Cognitive Core — Documento generado automáticamente
             </div>
             """, unsafe_allow_html=True)
 
-    # ----------------------------------------------------------------------
-    # Leaflet Map + Cognitive Core Intelligence
-    # ----------------------------------------------------------------------
-    c1_p2, c2_p2 = st.columns([2, 1])
+# ----------------------------------------------------------------------
+# Leaflet Map + Cognitive Core Intelligence
+# ----------------------------------------------------------------------
+c1_p2, c2_p2 = st.columns([2, 1])
 
-    with c1_p2:
+# -----------------------------------------------------
+# 🔹 COLUMNA IZQUIERDA → MAPA GLOBAL DE AMENAZAS
+# -----------------------------------------------------
+with c1_p2:
 
-        st.markdown('<div class="section-title">Mapa global de inteligencia de amenazas</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="section-title">Mapa global de inteligencia de amenazas</div>',
+        unsafe_allow_html=True
+    )
 
-        threat_countries = [
-            {
-                "country": "España",
-                "lat": 40.4168,
-                "lng": -3.7038,
-                "risk": riesgo_sectorial_val,
-                "cves": random.randint(30, 90),
-                "ransomware": random.randint(5, 20),
-                "supply_chain": random.randint(3, 15),
-                "critical": random.randint(3, 12),
-            },
-            {
-                "country": "Estados Unidos",
-                "lat": 38.9072,
-                "lng": -77.0369,
-                "risk": random.randint(70, 95),
-                "cves": random.randint(110, 180),
-                "ransomware": random.randint(20, 40),
-                "supply_chain": random.randint(15, 30),
-                "critical": random.randint(15, 35),
-            },
-            {
-                "country": "Reino Unido",
-                "lat": 51.5074,
-                "lng": -0.1278,
-                "risk": random.randint(65, 90),
-                "cves": random.randint(60, 120),
-                "ransomware": random.randint(10, 25),
-                "supply_chain": random.randint(8, 20),
-                "critical": random.randint(6, 18),
-            },
-            {
-                "country": "Alemania",
-                "lat": 52.52,
-                "lng": 13.4050,
-                "risk": random.randint(60, 88),
-                "cves": random.randint(55, 110),
-                "ransomware": random.randint(8, 22),
-                "supply_chain": random.randint(7, 18),
-                "critical": random.randint(5, 16),
-            },
-            {
-                "country": "Brasil",
-                "lat": -15.7939,
-                "lng": -47.8828,
-                "risk": random.randint(55, 85),
-                "cves": random.randint(40, 90),
-                "ransomware": random.randint(10, 25),
-                "supply_chain": random.randint(5, 15),
-                "critical": random.randint(4, 14),
-            },
-            {
-                "country": "India",
-                "lat": 28.6139,
-                "lng": 77.2090,
-                "risk": random.randint(60, 92),
-                "cves": random.randint(70, 140),
-                "ransomware": random.randint(15, 30),
-                "supply_chain": random.randint(10, 22),
-                "critical": random.randint(8, 20),
-            },
-            {
-                "country": "Japón",
-                "lat": 35.6762,
-                "lng": 139.6503,
-                "risk": random.randint(55, 88),
-                "cves": random.randint(50, 110),
-                "ransomware": random.randint(7, 20),
-                "supply_chain": random.randint(6, 18),
-                "critical": random.randint(5, 15),
-            }
+    threat_countries = [
+        {
+            "country": "España",
+            "lat": 40.4168,
+            "lng": -3.7038,
+            "risk": riesgo_sectorial_val,
+            "cves": random.randint(30, 90),
+            "ransomware": random.randint(5, 20),
+            "supply_chain": random.randint(3, 15),
+            "critical": random.randint(3, 12),
+        },
+        {
+            "country": "Estados Unidos",
+            "lat": 38.9072,
+            "lng": -77.0369,
+            "risk": random.randint(70, 95),
+            "cves": random.randint(110, 180),
+            "ransomware": random.randint(20, 40),
+            "supply_chain": random.randint(15, 30),
+            "critical": random.randint(15, 35),
+        },
+        {
+            "country": "Reino Unido",
+            "lat": 51.5074,
+            "lng": -0.1278,
+            "risk": random.randint(65, 90),
+            "cves": random.randint(60, 120),
+            "ransomware": random.randint(10, 25),
+            "supply_chain": random.randint(8, 20),
+            "critical": random.randint(6, 18),
+        },
+        {
+            "country": "Alemania",
+            "lat": 52.5200,
+            "lng": 13.4050,
+            "risk": random.randint(60, 88),
+            "cves": random.randint(55, 110),
+            "ransomware": random.randint(8, 22),
+            "supply_chain": random.randint(7, 18),
+            "critical": random.randint(5, 16),
+        },
+        {
+            "country": "Brasil",
+            "lat": -15.7939,
+            "lng": -47.8828,
+            "risk": random.randint(55, 85),
+            "cves": random.randint(40, 90),
+            "ransomware": random.randint(10, 25),
+            "supply_chain": random.randint(5, 15),
+            "critical": random.randint(4, 14),
+        },
+        {
+            "country": "India",
+            "lat": 28.6139,
+            "lng": 77.2090,
+            "risk": random.randint(60, 92),
+            "cves": random.randint(70, 140),
+            "ransomware": random.randint(15, 30),
+            "supply_chain": random.randint(10, 22),
+            "critical": random.randint(8, 20),
+        },
+        {
+            "country": "Japón",
+            "lat": 35.6762,
+            "lng": 139.6503,
+            "risk": random.randint(55, 88),
+            "cves": random.randint(50, 110),
+            "ransomware": random.randint(7, 20),
+            "supply_chain": random.randint(6, 18),
+            "critical": random.randint(5, 15),
+        }
+    ]
+
+    # Si no está el país del usuario, se añade
+    if not any(pais.lower() == c["country"].lower() for c in threat_countries):
+        threat_countries.append({
+            "country": pais,
+            "lat": 40.0,
+            "lng": 0.0,
+            "risk": riesgo_sectorial_val,
+            "cves": random.randint(25, 80),
+            "ransomware": random.randint(5, 18),
+            "supply_chain": random.randint(3, 15),
+            "critical": random.randint(3, 12)
+        })
+
+    threat_data = {"countries": threat_countries}
+
+    # ⬅️ Render del MAPA Leaflet
+    show_map(threat_data)
+
+# -----------------------------------------------------
+# 🔹 COLUMNA DERECHA → INTELIGENCIA DEL COGNITIVE CORE
+# -----------------------------------------------------
+with c2_p2:
+
+    st.markdown(
+        '<div class="section-title">Inteligencia del Cognitive Core</div>',
+        unsafe_allow_html=True
+    )
+
+    if amenazas_emergentes:
+        st.markdown("**Amenazas emergentes sectoriales**")
+        for a in amenazas_emergentes:
+            st.markdown(f"- {a}")
+
+    if tendencias_list:
+        st.markdown("**Tendencias globales relevantes**")
+        for t in tendencias_list:
+            st.markdown(f"- {t}")
+
+    if recomendaciones_list:
+        st.markdown("**Recomendaciones estratégicas**")
+        for r in recomendaciones_list:
+            st.markdown(f"- {r}")
+
+st.markdown("---")
+
+# ----------------------------------------------------------------------
+# 🔮 Simulador predictivo
+# ----------------------------------------------------------------------
+c3_p3, c4_p3 = st.columns(2)
+
+with c3_p3:
+
+    st.markdown('<div class="section-title">Simulador de ataque predictivo</div>', unsafe_allow_html=True)
+
+    vector = st.selectbox(
+        "Vector de ataque",
+        [
+            "Ransomware dirigido",
+            "Exfiltración de datos",
+            "Ataque a la cadena de suministro",
+            "Phishing masivo",
+            "Insider Threat"
         ]
+    )
 
-        if not any(pais.lower() == c["country"].lower() for c in threat_countries):
-            threat_countries.append({
-                "country": pais,
-                "lat": 40.0,
-                "lng": 0.0,
-                "risk": riesgo_sectorial_val,
-                "cves": random.randint(25, 80),
-                "ransomware": random.randint(5, 18),
-                "supply_chain": random.randint(3, 15),
-                "critical": random.randint(3, 12)
-            })
+    intensidad = st.slider("Intensidad esperada", 1, 10, 6)
 
-        threat_data = {"countries": threat_countries}
+    if st.button("Ejecutar simulación IA"):
 
-show_map(threat_data)
+        probabilidad = riesgo_sectorial_val / 100
+        impacto_ajustado = impacto_estimado_val * (intensidad / 10)
 
-    with c2_p2:
+        st.success("Simulación completada.")
 
-        st.markdown('<div class="section-title">Inteligencia del Cognitive Core</div>', unsafe_allow_html=True)
-
-        if amenazas_emergentes:
-            st.markdown("**Amenazas emergentes sectoriales**")
-            for a in amenazas_emergentes:
-                st.markdown(f"- {a}")
-
-        if tendencias_list:
-            st.markdown("**Tendencias globales relevantes**")
-            for t in tendencias_list:
-                st.markdown(f"- {t}")
-
-        if recomendaciones_list:
-            st.markdown("**Recomendaciones estratégicas**")
-            for r in recomendaciones_list:
-                st.markdown(f"- {r}")
-
-    st.markdown("---")
-
-    # ----------------------------------------------------------------------
-    # Simulador predictivo
-    # ----------------------------------------------------------------------
-    c3_p3, c4_p3 = st.columns(2)
-
-    with c3_p3:
-
-        st.markdown('<div class="section-title">Simulador de ataque predictivo</div>', unsafe_allow_html=True)
-
-        vector = st.selectbox(
-            "Vector de ataque",
-            [
-                "Ransomware dirigido",
-                "Exfiltración de datos",
-                "Ataque a la cadena de suministro",
-                "Phishing masivo",
-                "Insider Threat"
-            ]
+        st.markdown(
+            f"**Vector seleccionado:** {vector}  \n"
+            f"**Probabilidad de ocurrencia:** {probabilidad*100:.1f}%  \n"
+            f"**Impacto económico estimado:** €{impacto_ajustado:,.0f}  \n"
+            f"**Nivel de madurez actual:** {madurez_p}/5  \n\n"
+            "**Recomendaciones estratégicas:**\n"
+            "- Fortalecimiento de perímetro bajo Zero Trust.\n"
+            "- Refuerzo en continuidad digital (ISO 22301 / ENS).\n"
+            "- Intensificar capacidades de detección SOC/SIEM.\n"
+            "- Evaluación reforzada de cadena de suministro.\n"
         )
 
-        intensidad = st.slider("Intensidad esperada", 1, 10, 6)
+# ----------------------------------------------------------------------
+# 📊 Benchmark ENS / ISO / NIST
+# ----------------------------------------------------------------------
+with c4_p3:
 
-        if st.button("Ejecutar simulación IA"):
+    st.markdown('<div class="section-title">Benchmark ENS / ISO / NIST</div>', unsafe_allow_html=True)
 
-            probabilidad = riesgo_sectorial_val / 100
-            impacto_ajustado = impacto_estimado_val * (intensidad / 10)
+    categories = ["ENS", "ISO 27001", "NIST CSF", "SOC 2", "PCI DSS"]
+    org_values = [
+        madurez_p * 15,
+        madurez_p * 18,
+        madurez_p * 14,
+        madurez_p * 12,
+        madurez_p * 10
+    ]
+    leader_values = [95, 90, 88, 85, 82]
 
-            st.success("Simulación completada.")
+    num_vars = len(categories)
+    angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
 
-            st.markdown(
-                f"**Vector seleccionado:** {vector}  \n"
-                f"**Probabilidad de ocurrencia:** {probabilidad*100:.1f}%  \n"
-                f"**Impacto económico estimado:** €{impacto_ajustado:,.0f}  \n"
-                f"**Nivel de madurez actual:** {madurez_p}/5  \n\n"
-                "**Recomendaciones estratégicas:**\n"
-                "- Fortalecimiento de perímetro bajo Zero Trust.\n"
-                "- Refuerzo en continuidad digital (ISO 22301 / ENS).\n"
-                "- Intensificar capacidades de detección SOC/SIEM.\n"
-                "- Evaluación reforzada de cadena de suministro.\n"
-            )
+    org_vals_plot = org_values + [org_values[0]]
+    leader_vals_plot = leader_values + [leader_values[0]]
+    angles_plot = angles + [angles[0]]
 
-    with c4_p3:
+    fig_radar, ax_radar = plt.subplots(
+        subplot_kw=dict(polar=True),
+        figsize=(4.5, 4.5)
+    )
 
-        st.markdown('<div class="section-title">Benchmark ENS / ISO / NIST</div>', unsafe_allow_html=True)
+    ax_radar.plot(angles_plot, leader_vals_plot, linewidth=2, color="#00B4FF")
+    ax_radar.fill(angles_plot, leader_vals_plot, alpha=0.15, color="#00B4FF")
 
-        categories = ["ENS", "ISO 27001", "NIST CSF", "SOC 2", "PCI DSS"]
-        org_values = [
-            madurez_p * 15,
-            madurez_p * 18,
-            madurez_p * 14,
-            madurez_p * 12,
-            madurez_p * 10
-        ]
-        leader_values = [95, 90, 88, 85, 82]
+    ax_radar.plot(angles_plot, org_vals_plot, linewidth=2, color="#FF0080")
+    ax_radar.fill(angles_plot, org_vals_plot, alpha=0.18, color="#FF0080")
 
-        num_vars = len(categories)
-        angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
+    ax_radar.set_xticks(angles)
+    ax_radar.set_xticklabels(categories, fontsize=9)
 
-        org_vals_plot = org_values + [org_values[0]]
-        leader_vals_plot = leader_values + [leader_values[0]]
-        angles_plot = angles + [angles[0]]
+    ax_radar.set_yticks([20, 40, 60, 80, 100])
+    ax_radar.set_ylim(0, 100)
+    ax_radar.grid(True, linewidth=0.5, color="#CBD5F5", alpha=0.8)
 
-        fig_radar, ax_radar = plt.subplots(
-            subplot_kw=dict(polar=True),
-            figsize=(4.5, 4.5)
-        )
-
-        ax_radar.plot(angles_plot, leader_vals_plot, linewidth=2, color="#00B4FF")
-        ax_radar.fill(angles_plot, leader_vals_plot, alpha=0.15, color="#00B4FF")
-
-        ax_radar.plot(angles_plot, org_vals_plot, linewidth=2, color="#FF0080")
-        ax_radar.fill(angles_plot, org_vals_plot, alpha=0.18, color="#FF0080")
-
-        ax_radar.set_xticks(angles)
-        ax_radar.set_xticklabels(categories, fontsize=9)
-
-        ax_radar.set_yticks([20, 40, 60, 80, 100])
-        ax_radar.set_ylim(0, 100)
-        ax_radar.grid(True, linewidth=0.5, color="#CBD5F5", alpha=0.8)
-
-        st.pyplot(fig_radar)
+    st.pyplot(fig_radar)
 
 
     # ------------------------------------------------------------------
