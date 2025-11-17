@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html>
   <body>
-    <h3>Ellit Map Component Running</h3>
-    <div id="data"></div>
+    <h3>Ellit Map (Componente cargado correctamente)</h3>
+    <pre id="data"></pre>
 
     <script>
       const data = window.streamlitData || {};
-      document.getElementById("data").innerHTML =
-        "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+      document.getElementById("data").textContent = JSON.stringify(data, null, 2);
+
+      // Notificar a Streamlit que está listo
+      Streamlit.setComponentReady();
+      Streamlit.setFrameHeight();
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/streamlit-component-lib@1.0.0/dist/index.js"></script>
   </body>
 </html>
