@@ -1393,9 +1393,10 @@ Ellit Cognitive Core — Documento generado automáticamente
                 """, unsafe_allow_html=True)
 
 
-    # ------------------------------------------------------------------
-    # TAB 4 — Ellit Predictive Intelligence (Leaflet + Cognitive Core)
-    # ------------------------------------------------------------------
+# ------------------------------------------------------------------
+# TAB 4 — Ellit Predictive Intelligence (Leaflet + Cognitive Core)
+# ------------------------------------------------------------------
+with tab4:
 
     st.markdown("""
     <style>
@@ -1472,7 +1473,6 @@ Ellit Cognitive Core — Documento generado automáticamente
     with col3_p:
         madurez_p = st.slider("Madurez ENS/ISO (percepción interna)", 1, 5, 3)
 
-    # Base del coste sectorial
     base_costos = {
         "Banca y Finanzas": 520000,
         "Salud": 480000,
@@ -1487,7 +1487,6 @@ Ellit Cognitive Core — Documento generado automáticamente
 
     costo_promedio = base_costos.get(sector_p, 350000)
 
-    # Data enviada al Cognitive Core
     predictive_input = {
         "sector": sector_p,
         "region": pais,
@@ -1502,318 +1501,134 @@ Ellit Cognitive Core — Documento generado automáticamente
     tendencias_list = []
     recomendaciones_list = []
 
-# ----------------------------------------------------------------------
-# Predictive Intelligence Engine
-# ----------------------------------------------------------------------
-try:
-    with st.spinner("Generando análisis predictivo con Ellit Cognitive Core..."):
-        predictive_data = generate_predictive_analysis(client, predictive_input)
+    # ----------------------------------------------------------------------
+    # Predictive Intelligence Engine
+    # ----------------------------------------------------------------------
+    try:
+        with st.spinner("Generando análisis predictivo con Ellit Cognitive Core..."):
+            predictive_data = generate_predictive_analysis(client, predictive_input)
 
-    if predictive_data:
-        raw_riesgo = predictive_data.get("riesgo_sectorial", "")
-        nums = re.findall(r"\d+", str(raw_riesgo))
-        riesgo_sectorial_val = int(nums[0]) if nums else random.randint(60, 95)
+        if predictive_data:
+            raw_riesgo = predictive_data.get("riesgo_sectorial", "")
+            nums = re.findall(r"\d+", str(raw_riesgo))
+            riesgo_sectorial_val = int(nums[0]) if nums else random.randint(60, 95)
 
-        raw_impacto = predictive_data.get("impacto_estimado", "")
-        nums_i = re.findall(r"\d+", str(raw_impacto).replace(".", "").replace(",", ""))
+            raw_impacto = predictive_data.get("impacto_estimado", "")
+            nums_i = re.findall(r"\d+", str(raw_impacto).replace(".", "").replace(",", ""))
 
-        impacto_estimado_val = (
-            float(nums_i[0])
-            if nums_i
-            else costo_promedio * (riesgo_sectorial_val / 100) * (1.2 - (madurez_p / 10))
-        )
+            impacto_estimado_val = (
+                float(nums_i[0])
+                if nums_i
+                else costo_promedio * (riesgo_sectorial_val / 100) * (1.2 - (madurez_p / 10))
+            )
 
-        amenazas_emergentes = predictive_data.get("amenazas_emergentes", []) or []
-        tendencias_list = predictive_data.get("tendencias", []) or []
-        recomendaciones_list = predictive_data.get("recomendaciones", []) or []
+            amenazas_emergentes = predictive_data.get("amenazas_emergentes", []) or []
+            tendencias_list = predictive_data.get("tendencias", []) or []
+            recomendaciones_list = predictive_data.get("recomendaciones", []) or []
 
-    else:
+        else:
+            riesgo_sectorial_val = random.randint(60, 95)
+            impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
+            amenazas_emergentes = []
+            tendencias_list = []
+            recomendaciones_list = []
+
+    except Exception:
         riesgo_sectorial_val = random.randint(60, 95)
         impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
         amenazas_emergentes = []
         tendencias_list = []
         recomendaciones_list = []
 
-except Exception:
-    riesgo_sectorial_val = random.randint(60, 95)
-    impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
-    amenazas_emergentes = []
-    tendencias_list = []
-    recomendaciones_list = []
+    riesgo_sectorial_val = riesgo_sectorial_val or random.randint(60, 95)
 
-# Fallback final
-riesgo_sectorial_val = riesgo_sectorial_val or random.randint(60, 95)
+    # ----------------------------------------------------------------------
+    # Session State
+    # ----------------------------------------------------------------------
+    st.session_state["riesgo_sectorial_val"] = riesgo_sectorial_val
+    st.session_state["impacto_estimado_val"] = impacto_estimado_val
+    st.session_state["amenazas_emergentes"] = amenazas_emergentes
+    st.session_state["tendencias_list"] = tendencias_list
+    st.session_state["recomendaciones_list"] = recomendaciones_list
 
-# ----------------------------------------------------------------------
-# Guardar valores en Session State (evita NameError)
-# ----------------------------------------------------------------------
-st.session_state["riesgo_sectorial_val"] = riesgo_sectorial_val
-st.session_state["impacto_estimado_val"] = impacto_estimado_val
-st.session_state["amenazas_emergentes"] = amenazas_emergentes
-st.session_state["tendencias_list"] = tendencias_list
-st.session_state["recomendaciones_list"] = recomendaciones_list
+    # ----------------------------------------------------------------------
+    # KPI Cards
+    # ----------------------------------------------------------------------
+    st.markdown('<div class="section-title">Indicadores clave de riesgo</div>', unsafe_allow_html=True)
+    k1, k2, k3, k4 = st.columns(4)
 
-# ----------------------------------------------------------------------
-# KPI Cards
-# ----------------------------------------------------------------------
-st.markdown('<div class="section-title">Indicadores clave de riesgo</div>', unsafe_allow_html=True)
-k1, k2, k3, k4 = st.columns(4)
-
-indicadores_top = [
-    ("Riesgo sectorial estimado", f"{riesgo_sectorial_val:.0f}%"),
-    ("Madurez declarada", f"{madurez_p}/5"),
-    ("Coste medio sectorial (€)", f"{costo_promedio:,.0f}"),
-    ("Impacto potencial (€)", f"{impacto_estimado_val:,.0f}"),
-]
-
-for col, (label, val) in zip([k1, k2, k3, k4], indicadores_top):
-    with col:
-        st.markdown(f"""
-        <div class="metric-box">
-            <div class="metric-label">{label}</div>
-            <div class="metric-value">{val}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-
-# ----------------------------------------------------------------------
-# Leaflet Map + Cognitive Core Intelligence
-# ----------------------------------------------------------------------
-c1_p2, c2_p2 = st.columns([2, 1])
-
-# -----------------------------------------------------
-# 🔹 COLUMNA IZQUIERDA → MAPA GLOBAL DE AMENAZAS
-# -----------------------------------------------------
-with c1_p2:
-
-    st.markdown(
-        '<div class="section-title">Mapa global de inteligencia de amenazas</div>',
-        unsafe_allow_html=True
-    )
-
-with c1_p2:
-
-    st.markdown(
-        '<div class="section-title">Mapa global de inteligencia de amenazas</div>',
-        unsafe_allow_html=True
-    )
-
-    threat_countries = [
-        {
-            "country": "España",
-            "lat": 40.4168,
-            "lng": -3.7038,
-            "risk": st.session_state.get("riesgo_sectorial_val", random.randint(40, 80)),
-            "cves": random.randint(30, 90),
-            "ransomware": random.randint(5, 20),
-            "supply_chain": random.randint(3, 15),
-            "critical": random.randint(3, 12),
-        },
-
-        {
-            "country": "Estados Unidos",
-            "lat": 38.9072,
-            "lng": -77.0369,
-            "risk": random.randint(70, 95),
-            "cves": random.randint(110, 180),
-            "ransomware": random.randint(20, 40),
-            "supply_chain": random.randint(15, 30),
-            "critical": random.randint(15, 35),
-        },
+    indicadores_top = [
+        ("Riesgo sectorial estimado", f"{riesgo_sectorial_val:.0f}%"),
+        ("Madurez declarada", f"{madurez_p}/5"),
+        ("Coste medio sectorial (€)", f"{costo_promedio:,.0f}"),
+        ("Impacto potencial (€)", f"{impacto_estimado_val:,.0f}"),
     ]
 
+    for col, (label, val) in zip([k1, k2, k3, k4], indicadores_top):
+        with col:
+            st.markdown(f"""
+            <div class="metric-box">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{val}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-        {
-            "country": "Estados Unidos",
-            "lat": 38.9072,
-            "lng": -77.0369,
-            "risk": random.randint(70, 95),
-            "cves": random.randint(110, 180),
-            "ransomware": random.randint(20, 40),
-            "supply_chain": random.randint(15, 30),
-            "critical": random.randint(15, 35),
-        },
-        {
-            "country": "Reino Unido",
-            "lat": 51.5074,
-            "lng": -0.1278,
-            "risk": random.randint(65, 90),
-            "cves": random.randint(60, 120),
-            "ransomware": random.randint(10, 25),
-            "supply_chain": random.randint(8, 20),
-            "critical": random.randint(6, 18),
-        },
-        {
-            "country": "Alemania",
-            "lat": 52.5200,
-            "lng": 13.4050,
-            "risk": random.randint(60, 88),
-            "cves": random.randint(55, 110),
-            "ransomware": random.randint(8, 22),
-            "supply_chain": random.randint(7, 18),
-            "critical": random.randint(5, 16),
-        },
-        {
-            "country": "Brasil",
-            "lat": -15.7939,
-            "lng": -47.8828,
-            "risk": random.randint(55, 85),
-            "cves": random.randint(40, 90),
-            "ransomware": random.randint(10, 25),
-            "supply_chain": random.randint(5, 15),
-            "critical": random.randint(4, 14),
-        },
-        {
-            "country": "India",
-            "lat": 28.6139,
-            "lng": 77.2090,
-            "risk": random.randint(60, 92),
-            "cves": random.randint(70, 140),
-            "ransomware": random.randint(15, 30),
-            "supply_chain": random.randint(10, 22),
-            "critical": random.randint(8, 20),
-        },
-        {
-            "country": "Japón",
-            "lat": 35.6762,
-            "lng": 139.6503,
-            "risk": random.randint(55, 88),
-            "cves": random.randint(50, 110),
-            "ransomware": random.randint(7, 20),
-            "supply_chain": random.randint(6, 18),
-            "critical": random.randint(5, 15),
-        }
-    ]
+    # ----------------------------------------------------------------------
+    # Leaflet + Cognitive Core Intelligence
+    # ----------------------------------------------------------------------
+    c1_p2, c2_p2 = st.columns([2, 1])
 
-    # Si no está el país del usuario, se añade
-    if not any(pais.lower() == c["country"].lower() for c in threat_countries):
-        threat_countries.append({
-            "country": pais,
-            "lat": 40.0,
-            "lng": 0.0,
-            "risk": riesgo_sectorial_val,
-            "cves": random.randint(25, 80),
-            "ransomware": random.randint(5, 18),
-            "supply_chain": random.randint(3, 15),
-            "critical": random.randint(3, 12)
-        })
-
-    threat_data = {"countries": threat_countries}
-
-    # ⬅️ Render del MAPA Leaflet
-    show_map(threat_data)
-
-# -----------------------------------------------------
-# 🔹 COLUMNA DERECHA → INTELIGENCIA DEL COGNITIVE CORE
-# -----------------------------------------------------
-with c2_p2:
-
-    st.markdown(
-        '<div class="section-title">Inteligencia del Cognitive Core</div>',
-        unsafe_allow_html=True
-    )
-
-    if amenazas_emergentes:
-        st.markdown("**Amenazas emergentes sectoriales**")
-        for a in amenazas_emergentes:
-            st.markdown(f"- {a}")
-
-    if tendencias_list:
-        st.markdown("**Tendencias globales relevantes**")
-        for t in tendencias_list:
-            st.markdown(f"- {t}")
-
-    if recomendaciones_list:
-        st.markdown("**Recomendaciones estratégicas**")
-        for r in recomendaciones_list:
-            st.markdown(f"- {r}")
-
-st.markdown("---")
-
-# ----------------------------------------------------------------------
-# 🔮 Simulador predictivo
-# ----------------------------------------------------------------------
-c3_p3, c4_p3 = st.columns(2)
-
-with c3_p3:
-
-    st.markdown('<div class="section-title">Simulador de ataque predictivo</div>', unsafe_allow_html=True)
-
-    vector = st.selectbox(
-        "Vector de ataque",
-        [
-            "Ransomware dirigido",
-            "Exfiltración de datos",
-            "Ataque a la cadena de suministro",
-            "Phishing masivo",
-            "Insider Threat"
-        ]
-    )
-
-    intensidad = st.slider("Intensidad esperada", 1, 10, 6)
-
-    if st.button("Ejecutar simulación IA"):
-
-        probabilidad = riesgo_sectorial_val / 100
-        impacto_ajustado = impacto_estimado_val * (intensidad / 10)
-
-        st.success("Simulación completada.")
-
+    with c1_p2:
         st.markdown(
-            f"**Vector seleccionado:** {vector}  \n"
-            f"**Probabilidad de ocurrencia:** {probabilidad*100:.1f}%  \n"
-            f"**Impacto económico estimado:** €{impacto_ajustado:,.0f}  \n"
-            f"**Nivel de madurez actual:** {madurez_p}/5  \n\n"
-            "**Recomendaciones estratégicas:**\n"
-            "- Fortalecimiento de perímetro bajo Zero Trust.\n"
-            "- Refuerzo en continuidad digital (ISO 22301 / ENS).\n"
-            "- Intensificar capacidades de detección SOC/SIEM.\n"
-            "- Evaluación reforzada de cadena de suministro.\n"
+            '<div class="section-title">Mapa global de inteligencia de amenazas</div>',
+            unsafe_allow_html=True
         )
 
-# ----------------------------------------------------------------------
-# 📊 Benchmark ENS / ISO / NIST
-# ----------------------------------------------------------------------
-with c4_p3:
+        threat_countries = [
+            {
+                "country": "España",
+                "lat": 40.4168,
+                "lng": -3.7038,
+                "risk": riesgo_sectorial_val,
+                "cves": random.randint(30, 90),
+                "ransomware": random.randint(5, 20),
+                "supply_chain": random.randint(3, 15),
+                "critical": random.randint(3, 12),
+            },
+            {
+                "country": "Estados Unidos",
+                "lat": 38.9072,
+                "lng": -77.0369,
+                "risk": random.randint(70, 95),
+                "cves": random.randint(110, 180),
+                "ransomware": random.randint(20, 40),
+                "supply_chain": random.randint(15, 30),
+                "critical": random.randint(15, 35),
+            }
+        ]
 
-    st.markdown('<div class="section-title">Benchmark ENS / ISO / NIST</div>', unsafe_allow_html=True)
+        show_map({"countries": threat_countries})
 
-    categories = ["ENS", "ISO 27001", "NIST CSF", "SOC 2", "PCI DSS"]
-    org_values = [
-        madurez_p * 15,
-        madurez_p * 18,
-        madurez_p * 14,
-        madurez_p * 12,
-        madurez_p * 10
-    ]
-    leader_values = [95, 90, 88, 85, 82]
+    with c2_p2:
+        st.markdown(
+            '<div class="section-title">Inteligencia del Cognitive Core</div>',
+            unsafe_allow_html=True
+        )
 
-    num_vars = len(categories)
-    angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
+        if amenazas_emergentes:
+            st.markdown("**Amenazas emergentes sectoriales**")
+            for a in amenazas_emergentes:
+                st.markdown(f"- {a}")
 
-    org_vals_plot = org_values + [org_values[0]]
-    leader_vals_plot = leader_values + [leader_values[0]]
-    angles_plot = angles + [angles[0]]
+        if tendencias_list:
+            st.markdown("**Tendencias globales relevantes**")
+            for t in tendencias_list:
+                st.markdown(f"- {t}")
 
-    fig_radar, ax_radar = plt.subplots(
-        subplot_kw=dict(polar=True),
-        figsize=(4.5, 4.5)
-    )
-
-    ax_radar.plot(angles_plot, leader_vals_plot, linewidth=2, color="#00B4FF")
-    ax_radar.fill(angles_plot, leader_vals_plot, alpha=0.15, color="#00B4FF")
-
-    ax_radar.plot(angles_plot, org_vals_plot, linewidth=2, color="#FF0080")
-    ax_radar.fill(angles_plot, org_vals_plot, alpha=0.18, color="#FF0080")
-
-    ax_radar.set_xticks(angles)
-    ax_radar.set_xticklabels(categories, fontsize=9)
-
-    ax_radar.set_yticks([20, 40, 60, 80, 100])
-    ax_radar.set_ylim(0, 100)
-    ax_radar.grid(True, linewidth=0.5, color="#CBD5F5", alpha=0.8)
-
-    st.pyplot(fig_radar)
+        if recomendaciones_list:
+            st.markdown("**Recomendaciones estratégicas**")
+            for r in recomendaciones_list:
+                st.markdown(f"- {r}")
 
 
     # ------------------------------------------------------------------
