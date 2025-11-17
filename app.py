@@ -67,9 +67,19 @@ from components.ellit_leaflet.ellit_leaflet import show_map
 st.subheader("Mapa de prueba")
 
 show_map(
-    {"mensaje": "Hola Ellit!"},
-    key="prueba_1"
+    {
+        "countries": [
+            {
+                "country": "España",
+                "lat": 40.4168,
+                "lng": -3.7038,
+                "risk": 50,
+                "cves": 10
+            }
+        ]
+    }
 )
+
 
 
 # ==========================
