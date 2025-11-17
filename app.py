@@ -801,7 +801,7 @@ def render_role_controls():
 
 
 # ==============================
-# PANEL PRINCIPAL
+# PANEL PRINCIPAL 
 # ==============================
 def render_panel():
     role = st.session_state.get("auth_status", "demo")
