@@ -68,9 +68,10 @@ from components.ellit_leaflet.ellit_leaflet import show_map
 
 # show_map({"test": "funciona"}, key="test01")
 
-# st.write("Si lees esto, la app no está congelada.")
 st.subheader("Mapa de prueba")
 show_map({"mensaje": "Hola desde el test!"}, key="map1")
+
+st.write("Si ves esto, la app no está congelada.")
 
 
 # ==========================
