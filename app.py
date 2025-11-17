@@ -55,11 +55,12 @@ from io import BytesIO
 import datetime as _dt
 from core.cognitive_core import (
     init_openai,
+    extract_json,
     analyze_radar_ia,
     generate_policy,
     generate_bcp_plan,
-    generate__analysis,
-    compute_sgsi_maturity
+    generate_predictive_analysis,
+    compute_sgsi_maturity,
 )
 from components.ellit_leaflet import show_map
 
