@@ -64,42 +64,27 @@ from core.cognitive_core import (
 )
 from components.ellit_leaflet.ellit_leaflet import show_map
 
-st.subheader("Mapa de prueba")
+st.title("TEST DEL COMPONENTE")
 
-threat_countries = [
-    {
-        "country": "España",
-        "lat": 40.4168,
-        "lng": -3.7038,
-        "risk": 50,
-        "cves": 10
-    },
-    {
-        "country": "Estados Unidos",
-        "lat": 38.9072,
-        "lng": -77.0369,
-        "risk": 80,
-        "cves": 25
-    }
-]
+show_map({"test": "funciona"}, key="test01")
 
-show_map({"countries": threat_countries}, key="threatmap01")
+st.write("Si lees esto, la app no está congelada.")
 
 
 # ==========================
 # MAPA GLOBAL ELLIT THREAT
 # ==========================
-with st.container():
-    st.subheader("🌍 Ellit Global Threat Intelligence Map")
+#with st.container():
+#    st.subheader("🌍 Ellit Global Threat Intelligence Map")
 
-    threat_data = {
-        "countries": [
-            {"country": "Spain", "lat": 40.4, "lng": -3.7, "risk": 70, "cves": 15},
-            {"country": "USA", "lat": 38.0, "lng": -97.0, "risk": 85, "cves": 22},
-        ]
-    }
+#    threat_data = {
+ #       "countries": [
+ #           {"country": "Spain", "lat": 40.4, "lng": -3.7, "risk": 70, "cves": 15},
+  #          {"country": "USA", "lat": 38.0, "lng": -97.0, "risk": 85, "cves": 22},
+   #     ]
+  #  }
 
-    show_map({"countries": threat_countries}, key="threatmap01")
+   # show_map({"countries": threat_countries}, key="threatmap01")
 
 
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
@@ -1593,36 +1578,37 @@ Ellit Cognitive Core — Documento generado automáticamente
         # ----------------------------------------------------------------------
         c1_p2, c2_p2 = st.columns([2, 1])
 
-        with c1_p2:
-            st.markdown(
-                '<div class="section-title">Mapa global de inteligencia de amenazas</div>',
-                unsafe_allow_html=True
-            )
+# with c1_p2:
+#     st.markdown(
+#         '<div class="section-title">Mapa global de inteligencia de amenazas</div>',
+#         unsafe_allow_html=True
+#     )
 
-            threat_countries = [
-                {
-                    "country": "España",
-                    "lat": 40.4168,
-                    "lng": -3.7038,
-                    "risk": riesgo_sectorial_val,
-                    "cves": random.randint(30, 90),
-                    "ransomware": random.randint(5, 20),
-                    "supply_chain": random.randint(3, 15),
-                    "critical": random.randint(3, 12),
-                },
-                {
-                    "country": "Estados Unidos",
-                    "lat": 38.9072,
-                    "lng": -77.0369,
-                    "risk": random.randint(70, 95),
-                    "cves": random.randint(110, 180),
-                    "ransomware": random.randint(20, 40),
-                    "supply_chain": random.randint(15, 30),
-                    "critical": random.randint(15, 35),
-                }
-            ]
+#     threat_countries = [
+#         {
+#             "country": "España",
+#             "lat": 40.4168,
+#             "lng": -3.7038,
+#             "risk": riesgo_sectorial_val,
+#             "cves": random.randint(30, 90),
+#             "ransomware": random.randint(5, 20),
+#             "supply_chain": random.randint(3, 15),
+#             "critical": random.randint(3, 12),
+#         },
+#         {
+#             "country": "Estados Unidos",
+#             "lat": 38.9072,
+#             "lng": -77.0369,
+#             "risk": random.randint(70, 95),
+#             "cves": random.randint(110, 180),
+#             "ransomware": random.randint(20, 40),
+#             "supply_chain": random.randint(15, 30),
+#             "critical": random.randint(15, 35),
+#         }
+#     ]
 
-            show_map({"countries": threat_countries}, key="ellit_map_sectorial")
+#     show_map({"countries": threat_countries}, key="ellit_map_sectorial")
+
 
         with c2_p2:
             st.markdown(
