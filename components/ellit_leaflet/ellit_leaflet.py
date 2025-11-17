@@ -6,9 +6,9 @@ from pathlib import Path
 _component_path = Path(__file__).parent / "frontend"
 
 # Declarar componente con nombre único
-ellitmap_component = components.declare_component(
-    name="ellitmap",   # ⚠️ ESTE es el nombre real del componente
-    path=str(_component_path)
+ellit_map_component = components.declare_component(
+    "ellitmap",
+    path=str(Path(__file__).parent / "frontend")
 )
 
 # Función pública para usar en app.py
