@@ -65,7 +65,25 @@ from core.cognitive_core import (
 from components.ellit_leaflet.ellit_leaflet import show_map
 
 st.subheader("Mapa de prueba")
-show_map({"mensaje": "hola"}, key="demo1")
+
+threat_countries = [
+    {
+        "country": "España",
+        "lat": 40.4168,
+        "lng": -3.7038,
+        "risk": 50,
+        "cves": 10
+    },
+    {
+        "country": "Estados Unidos",
+        "lat": 38.9072,
+        "lng": -77.0369,
+        "risk": 80,
+        "cves": 25
+    }
+]
+
+show_map({"countries": threat_countries}, key="threatmap01")
 
 
 # ==========================
