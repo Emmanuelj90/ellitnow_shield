@@ -1,46 +1,33 @@
-
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8" />
-    <title>Ellit Leaflet Map</title>
+  <body>
+    <h2>Ellit Leaflet Test</h2>
+    <p>El componente está cargando correctamente.</p>
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script>
+      // Aviso para asegurar que funciona
+      console.log("Ellit Leaflet component loaded!");
 
-    <style>
-        html, body, #map { height: 100%; margin: 0; padding: 0; }
-    </style>
-</head>
-<body>
+      // Streamlit integration básica
+      const setFrameHeight = () => {
+        const height = document.body.scrollHeight;
+        Streamlit.setFrameHeight(height);
+      };
 
-<div id="map"></div>
+      window.addEventListener("load", setFrameHeight);
+      window.addEventListener("resize", setFrameHeight);
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+      // Recibir datos desde Python
+      Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, (event) => {
+        const data = event.detail.args.data;
+        console.log("Datos recibidos desde Python:", data);
+        setFrameHeight();
+      });
 
-<script>
-    // Espera datos desde Streamlit
-    window.streamlitComponent = {
-        setData: function(payload) {
-            const countries = payload.data.countries || [];
+      Streamlit.setComponentReady();
+    </script>
 
-            const map = L.map('map').setView([20, 0], 2);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 18
-            }).addTo(map);
-
-            countries.forEach(function(ct) {
-                L.circleMarker([ct.lat, ct.lng], {
-                    radius: 10,
-                    color: "red"
-                }).addTo(map)
-                .bindPopup(`<b>${ct.country}</b><br>Riesgo: ${ct.risk}%`);
-            });
-        }
-    };
-</script>
-
-</body>
+    <script src="https://unpkg.com/streamlit-component-lib/dist/index.js"></script>
+  </body>
 </html>
+
