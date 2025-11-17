@@ -1,6 +1,0 @@
-{
-  "files": {
-    "main.js": "index.html"
-  },
-  "entrypoints": ["index.html"]
-}
