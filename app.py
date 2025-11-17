@@ -64,6 +64,14 @@ from core.cognitive_core import (
 )
 from components.ellit_leaflet.ellit_leaflet import show_map
 
+st.subheader("Mapa de prueba")
+
+show_map(
+    {"mensaje": "Hola Ellit!"},
+    key="prueba_1"
+)
+
+
 # ==========================
 # MAPA GLOBAL ELLIT THREAT
 # ==========================
