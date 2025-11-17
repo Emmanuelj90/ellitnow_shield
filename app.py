@@ -63,14 +63,20 @@ from core.cognitive_core import (
 )
 from components.ellit_leaflet import show_map
 
-threat_json = {
-    "countries": [
-        {"country": "Spain", "lat": 40.4, "lng": -3.7, "risk": 70, "cves": 15},
-        {"country": "USA", "lat": 38.0, "lng": -97.0, "risk": 85, "cves": 22},
-    ]
-}
+# ==========================
+# MAPA GLOBAL ELLIT THREAT
+# ==========================
+with st.container():
+    st.subheader("🌍 Ellit Global Threat Intelligence Map")
 
-show_map(threat_json)
+    threat_data = {
+        "countries": [
+            {"country": "Spain", "lat": 40.4, "lng": -3.7, "risk": 70, "cves": 15},
+            {"country": "USA", "lat": 38.0, "lng": -97.0, "risk": 85, "cves": 22},
+        ]
+    }
+
+    show_map(json.dumps(threat_data))
 
 
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
