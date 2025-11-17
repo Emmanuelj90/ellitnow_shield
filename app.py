@@ -62,7 +62,7 @@ from core.cognitive_core import (
     generate_predictive_analysis,
     compute_sgsi_maturity,
 )
-from components.ellit_leaflet.ellit_leaflet import show_map
+from components.ellit_leaflet.component import show_map
 
 # st.title("TEST DEL COMPONENTE")
 
