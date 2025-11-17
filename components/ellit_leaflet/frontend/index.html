@@ -1,13 +1,55 @@
 <!DOCTYPE html>
 <html>
-  <body>
-    <h2>El mapa se está cargando...</h2>
-    <div id="root"></div>
+<head>
+    <meta charset="UTF-8" />
+    <title>Ellit Map</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script src="https://unpkg.com/streamlit-component-lib@latest/dist/index.js"></script>
+
+    <style>
+        #map {
+            width: 100%;
+            height: 600px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
 
     <script>
-      const data = JSON.parse(window.parent.postMessageData || "{}");
-      document.getElementById("root").innerHTML = 
-        "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+        function render(data) {
+            document.getElementById("map").innerHTML = "";
+
+            const map = L.map("map").setView([20, 0], 2);
+
+            L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 18,
+            }).addTo(map);
+
+            if (data && data.countries) {
+                data.countries.forEach((c) => {
+                    L.circleMarker([c.lat, c.lng], {
+                        radius: 10,
+                        color: "red",
+                        fillOpacity: 0.6
+                    })
+                    .addTo(map)
+                    .bindPopup(
+                        `<b>${c.country}</b><br>
+                         Riesgo: ${c.risk}<br>
+                         CVEs: ${c.cves ?? "N/A"}`
+                    );
+                });
+            }
+        }
+
+        Streamlit.onRender(render);
+        Streamlit.setComponentReady();
+        Streamlit.setFrameHeight(650);
     </script>
-  </body>
+</body>
 </html>
