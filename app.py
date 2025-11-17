@@ -1392,244 +1392,236 @@ Ellit Cognitive Core — Documento generado automáticamente
                 </div>
                 """, unsafe_allow_html=True)
 
+    # ------------------------------------------------------------------
+    # TAB 4 — Ellit Predictive Intelligence (Leaflet + Cognitive Core)
+    # ------------------------------------------------------------------
+    with tab4:
 
-# ------------------------------------------------------------------
-# TAB 4 — Ellit Predictive Intelligence (Leaflet + Cognitive Core)
-# ------------------------------------------------------------------
-with tab4:
+        st.markdown("""
+        <style>
+        .dashboard-card {
+            background: #FFFFFF;
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            border: 1px solid #E2E8F0;
+        }
+        .dashboard-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #0F172A;
+            margin-bottom: 5px;
+        }
+        .dashboard-sub {
+            font-size: 14px;
+            color: #475569;
+            margin-top: -8px;
+        }
+        .metric-box {
+            background: #F8FAFC;
+            border-radius: 14px;
+            padding: 18px;
+            text-align: center;
+            border: 1px solid #E2E8F0;
+        }
+        .metric-label {
+            color: #64748B;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .metric-value {
+            font-size: 22px;
+            font-weight: 600;
+            color: #0F172A;
+            margin-top: 4px;
+        }
+        .section-title {
+            font-weight: 600;
+            font-size: 18px;
+            color: #0F172A;
+            margin-bottom: 12px;
+        }
+        </style>
+        <div class="dashboard-card">
+            <div class="dashboard-title">Ellit Predictive Intelligence</div>
+            <div class="dashboard-sub">Panel ejecutivo de inteligencia viva para CISOs</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <style>
-    .dashboard-card {
-        background: #FFFFFF;
-        border-radius: 18px;
-        padding: 25px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        margin-bottom: 25px;
-        border: 1px solid #E2E8F0;
-    }
-    .dashboard-title {
-        font-size: 24px;
-        font-weight: 600;
-        color: #0F172A;
-        margin-bottom: 5px;
-    }
-    .dashboard-sub {
-        font-size: 14px;
-        color: #475569;
-        margin-top: -8px;
-    }
-    .metric-box {
-        background: #F8FAFC;
-        border-radius: 14px;
-        padding: 18px;
-        text-align: center;
-        border: 1px solid #E2E8F0;
-    }
-    .metric-label {
-        color: #64748B;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-    }
-    .metric-value {
-        font-size: 22px;
-        font-weight: 600;
-        color: #0F172A;
-        margin-top: 4px;
-    }
-    .section-title {
-        font-weight: 600;
-        font-size: 18px;
-        color: #0F172A;
-        margin-bottom: 12px;
-    }
-    </style>
-    <div class="dashboard-card">
-        <div class="dashboard-title">Ellit Predictive Intelligence</div>
-        <div class="dashboard-sub">Panel ejecutivo de inteligencia viva para CISOs</div>
-    </div>
-    """, unsafe_allow_html=True)
+        # ----------------------------------------------------------------------
+        # Filters
+        # ----------------------------------------------------------------------
+        col1_p, col2_p, col3_p = st.columns(3)
 
-    # ----------------------------------------------------------------------
-    # Filters
-    # ----------------------------------------------------------------------
-    col1_p, col2_p, col3_p = st.columns(3)
-
-    with col1_p:
-        sector_p = st.selectbox(
-            "Sector",
-            [
-                "Banca y Finanzas", "Salud", "Educación",
-                "Energía", "Retail y E-commerce",
-                "Tecnología", "Industria",
-                "Defensa", "Sector Público"
-            ]
-        )
-
-    with col2_p:
-        pais = st.text_input("País / Región", "España")
-
-    with col3_p:
-        madurez_p = st.slider("Madurez ENS/ISO (percepción interna)", 1, 5, 3)
-
-    base_costos = {
-        "Banca y Finanzas": 520000,
-        "Salud": 480000,
-        "Educación": 250000,
-        "Energía": 600000,
-        "Retail y E-commerce": 310000,
-        "Tecnología": 400000,
-        "Industria": 350000,
-        "Defensa": 700000,
-        "Sector Público": 300000,
-    }
-
-    costo_promedio = base_costos.get(sector_p, 350000)
-
-    predictive_input = {
-        "sector": sector_p,
-        "region": pais,
-        "madurez": madurez_p,
-        "costo_medio_sector": costo_promedio,
-        "tenant": tenant_name,
-    }
-
-    riesgo_sectorial_val = None
-    impacto_estimado_val = None
-    amenazas_emergentes = []
-    tendencias_list = []
-    recomendaciones_list = []
-
-    # ----------------------------------------------------------------------
-    # Predictive Intelligence Engine
-    # ----------------------------------------------------------------------
-    try:
-        with st.spinner("Generando análisis predictivo con Ellit Cognitive Core..."):
-            predictive_data = generate_predictive_analysis(client, predictive_input)
-
-        if predictive_data:
-            raw_riesgo = predictive_data.get("riesgo_sectorial", "")
-            nums = re.findall(r"\d+", str(raw_riesgo))
-            riesgo_sectorial_val = int(nums[0]) if nums else random.randint(60, 95)
-
-            raw_impacto = predictive_data.get("impacto_estimado", "")
-            nums_i = re.findall(r"\d+", str(raw_impacto).replace(".", "").replace(",", ""))
-
-            impacto_estimado_val = (
-                float(nums_i[0])
-                if nums_i
-                else costo_promedio * (riesgo_sectorial_val / 100) * (1.2 - (madurez_p / 10))
+        with col1_p:
+            sector_p = st.selectbox(
+                "Sector",
+                [
+                    "Banca y Finanzas", "Salud", "Educación",
+                    "Energía", "Retail y E-commerce",
+                    "Tecnología", "Industria",
+                    "Defensa", "Sector Público"
+                ]
             )
 
-            amenazas_emergentes = predictive_data.get("amenazas_emergentes", []) or []
-            tendencias_list = predictive_data.get("tendencias", []) or []
-            recomendaciones_list = predictive_data.get("recomendaciones", []) or []
+        with col2_p:
+            pais = st.text_input("País / Región", "España")
 
-        else:
-            riesgo_sectorial_val = random.randint(60, 95)
-            impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
-            amenazas_emergentes = []
-            tendencias_list = []
-            recomendaciones_list = []
+        with col3_p:
+            madurez_p = st.slider("Madurez ENS/ISO (percepción interna)", 1, 5, 3)
 
-    except Exception:
-        riesgo_sectorial_val = random.randint(60, 95)
-        impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
+        base_costos = {
+            "Banca y Finanzas": 520000,
+            "Salud": 480000,
+            "Educación": 250000,
+            "Energía": 600000,
+            "Retail y E-commerce": 310000,
+            "Tecnología": 400000,
+            "Industria": 350000,
+            "Defensa": 700000,
+            "Sector Público": 300000,
+        }
+
+        costo_promedio = base_costos.get(sector_p, 350000)
+
+        predictive_input = {
+            "sector": sector_p,
+            "region": pais,
+            "madurez": madurez_p,
+            "costo_medio_sector": costo_promedio,
+            "tenant": tenant_name,
+        }
+
+        riesgo_sectorial_val = None
+        impacto_estimado_val = None
         amenazas_emergentes = []
         tendencias_list = []
         recomendaciones_list = []
 
-    riesgo_sectorial_val = riesgo_sectorial_val or random.randint(60, 95)
+        # ----------------------------------------------------------------------
+        # Predictive Intelligence Engine
+        # ----------------------------------------------------------------------
+        try:
+            with st.spinner("Generando análisis predictivo con Ellit Cognitive Core..."):
+                predictive_data = generate_predictive_analysis(client, predictive_input)
 
-    # ----------------------------------------------------------------------
-    # Session State
-    # ----------------------------------------------------------------------
-    st.session_state["riesgo_sectorial_val"] = riesgo_sectorial_val
-    st.session_state["impacto_estimado_val"] = impacto_estimado_val
-    st.session_state["amenazas_emergentes"] = amenazas_emergentes
-    st.session_state["tendencias_list"] = tendencias_list
-    st.session_state["recomendaciones_list"] = recomendaciones_list
+            if predictive_data:
+                raw_riesgo = predictive_data.get("riesgo_sectorial", "")
+                nums = re.findall(r"\d+", str(raw_riesgo))
+                riesgo_sectorial_val = int(nums[0]) if nums else random.randint(60, 95)
 
-    # ----------------------------------------------------------------------
-    # KPI Cards
-    # ----------------------------------------------------------------------
-    st.markdown('<div class="section-title">Indicadores clave de riesgo</div>', unsafe_allow_html=True)
-    k1, k2, k3, k4 = st.columns(4)
+                raw_impacto = predictive_data.get("impacto_estimado", "")
+                nums_i = re.findall(r"\d+", str(raw_impacto).replace(".", "").replace(",", ""))
 
-    indicadores_top = [
-        ("Riesgo sectorial estimado", f"{riesgo_sectorial_val:.0f}%"),
-        ("Madurez declarada", f"{madurez_p}/5"),
-        ("Coste medio sectorial (€)", f"{costo_promedio:,.0f}"),
-        ("Impacto potencial (€)", f"{impacto_estimado_val:,.0f}"),
-    ]
+                impacto_estimado_val = (
+                    float(nums_i[0])
+                    if nums_i
+                    else costo_promedio * (riesgo_sectorial_val / 100) * (1.2 - (madurez_p / 10))
+                )
 
-    for col, (label, val) in zip([k1, k2, k3, k4], indicadores_top):
-        with col:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div class="metric-label">{label}</div>
-                <div class="metric-value">{val}</div>
-            </div>
-            """, unsafe_allow_html=True)
+                amenazas_emergentes = predictive_data.get("amenazas_emergentes", []) or []
+                tendencias_list = predictive_data.get("tendencias", []) or []
+                recomendaciones_list = predictive_data.get("recomendaciones", []) or []
 
-    # ----------------------------------------------------------------------
-    # Leaflet + Cognitive Core Intelligence
-    # ----------------------------------------------------------------------
-    c1_p2, c2_p2 = st.columns([2, 1])
+            else:
+                riesgo_sectorial_val = random.randint(60, 95)
+                impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
 
-    with c1_p2:
-        st.markdown(
-            '<div class="section-title">Mapa global de inteligencia de amenazas</div>',
-            unsafe_allow_html=True
-        )
+        except Exception:
+            riesgo_sectorial_val = random.randint(60, 95)
+            impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
 
-        threat_countries = [
-            {
-                "country": "España",
-                "lat": 40.4168,
-                "lng": -3.7038,
-                "risk": riesgo_sectorial_val,
-                "cves": random.randint(30, 90),
-                "ransomware": random.randint(5, 20),
-                "supply_chain": random.randint(3, 15),
-                "critical": random.randint(3, 12),
-            },
-            {
-                "country": "Estados Unidos",
-                "lat": 38.9072,
-                "lng": -77.0369,
-                "risk": random.randint(70, 95),
-                "cves": random.randint(110, 180),
-                "ransomware": random.randint(20, 40),
-                "supply_chain": random.randint(15, 30),
-                "critical": random.randint(15, 35),
-            }
+        riesgo_sectorial_val = riesgo_sectorial_val or random.randint(60, 95)
+
+        # ----------------------------------------------------------------------
+        # Session State
+        # ----------------------------------------------------------------------
+        st.session_state["riesgo_sectorial_val"] = riesgo_sectorial_val
+        st.session_state["impacto_estimado_val"] = impacto_estimado_val
+        st.session_state["amenazas_emergentes"] = amenazas_emergentes
+        st.session_state["tendencias_list"] = tendencias_list
+        st.session_state["recomendaciones_list"] = recomendaciones_list
+
+        # ----------------------------------------------------------------------
+        # KPI Cards
+        # ----------------------------------------------------------------------
+        st.markdown('<div class="section-title">Indicadores clave de riesgo</div>', unsafe_allow_html=True)
+        k1, k2, k3, k4 = st.columns(4)
+
+        indicadores_top = [
+            ("Riesgo sectorial estimado", f"{riesgo_sectorial_val:.0f}%"),
+            ("Madurez declarada", f"{madurez_p}/5"),
+            ("Coste medio sectorial (€)", f"{costo_promedio:,.0f}"),
+            ("Impacto potencial (€)", f"{impacto_estimado_val:,.0f}"),
         ]
 
-        show_map({"countries": threat_countries})
+        for col, (label, val) in zip([k1, k2, k3, k4], indicadores_top):
+            with col:
+                st.markdown(f"""
+                <div class="metric-box">
+                    <div class="metric-label">{label}</div>
+                    <div class="metric-value">{val}</div>
+                </div>
+                """, unsafe_allow_html=True)
 
-    with c2_p2:
-        st.markdown(
-            '<div class="section-title">Inteligencia del Cognitive Core</div>',
-            unsafe_allow_html=True
-        )
+        # ----------------------------------------------------------------------
+        # Leaflet + Cognitive Core Intelligence
+        # ----------------------------------------------------------------------
+        c1_p2, c2_p2 = st.columns([2, 1])
 
-        if amenazas_emergentes:
-            st.markdown("**Amenazas emergentes sectoriales**")
-            for a in amenazas_emergentes:
-                st.markdown(f"- {a}")
+        with c1_p2:
+            st.markdown(
+                '<div class="section-title">Mapa global de inteligencia de amenazas</div>',
+                unsafe_allow_html=True
+            )
 
-        if tendencias_list:
-            st.markdown("**Tendencias globales relevantes**")
-            for t in tendencias_list:
-                st.markdown(f"- {t}")
+            threat_countries = [
+                {
+                    "country": "España",
+                    "lat": 40.4168,
+                    "lng": -3.7038,
+                    "risk": riesgo_sectorial_val,
+                    "cves": random.randint(30, 90),
+                    "ransomware": random.randint(5, 20),
+                    "supply_chain": random.randint(3, 15),
+                    "critical": random.randint(3, 12),
+                },
+                {
+                    "country": "Estados Unidos",
+                    "lat": 38.9072,
+                    "lng": -77.0369,
+                    "risk": random.randint(70, 95),
+                    "cves": random.randint(110, 180),
+                    "ransomware": random.randint(20, 40),
+                    "supply_chain": random.randint(15, 30),
+                    "critical": random.randint(15, 35),
+                }
+            ]
 
-        if recomendaciones_list:
-            st.markdown("**Recomendaciones estratégicas**")
-            for r in recomendaciones_list:
-                st.markdown(f"- {r}")
+            show_map({"countries": threat_countries})
 
+        with c2_p2:
+            st.markdown(
+                '<div class="section-title">Inteligencia del Cognitive Core</div>',
+                unsafe_allow_html=True
+            )
+
+            if amenazas_emergentes:
+                st.markdown("**Amenazas emergentes sectoriales**")
+                for a in amenazas_emergentes:
+                    st.markdown(f"- {a}")
+
+            if tendencias_list:
+                st.markdown("**Tendencias globales relevantes**")
+                for t in tendencias_list:
+                    st.markdown(f"- {t}")
+
+            if recomendaciones_list:
+                st.markdown("**Recomendaciones estratégicas**")
+                for r in recomendaciones_list:
+                    st.markdown(f"- {r}")
 
     # ------------------------------------------------------------------
     # TAB 5 — Licencias y Suscripciones
