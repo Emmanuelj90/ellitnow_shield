@@ -2,31 +2,22 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Ellit Map Component</title>
+    <title>Ellit Leaflet Map</title>
   </head>
 
   <body>
-    <h3>Ellit Leaflet Component Loaded ✔️</h3>
-
-    <div id="data-box"
-         style="padding:15px; background:#f3f3f3; border-radius:8px;">
-      Loading data...
-    </div>
+    <h3>🗺️ Ellit Map Component Running</h3>
+    <div id="data"></div>
 
     <script>
-      // Espera datos enviados desde Streamlit
-      window.addEventListener("message", (event) => {
-        const payload = event.data;
+      // Recibir datos desde Streamlit
+      const data = window.streamlitData || {};
 
-        // Datos enviados por Streamlit
-        if (payload.type === "streamlit:render") {
-          const data = payload.args.data;
+      document.getElementById("data").innerHTML =
+        "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
 
-          document.getElementById("data-box").innerHTML =
-            "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
-        }
-      });
+      // Notificar a Streamlit que terminó de renderizar
+      window.parent.postMessage({ isReady: true }, "*");
     </script>
   </body>
 </html>
-
