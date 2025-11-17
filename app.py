@@ -65,11 +65,7 @@ from core.cognitive_core import (
 from components.ellit_leaflet.ellit_leaflet import show_map
 
 st.subheader("Mapa de prueba")
-
-show_map(
-    {"mensaje": "Hola! soy Ellit"},
-    key="mapa_prueba"
-)
+show_map({"mensaje": "hola"}, key="demo1")
 
 
 # ==========================
@@ -85,7 +81,7 @@ with st.container():
         ]
     }
 
-    show_map(threat_data, key="ellit_threat_map")
+    show_map({"countries": threat_countries}, key="threatmap01")
 
 
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
