@@ -1,18 +1,26 @@
 <!DOCTYPE html>
 <html>
-  <body>
-    <h3>Ellit Map (Componente cargado correctamente)</h3>
-    <pre id="data"></pre>
+<head>
+    <meta charset="UTF-8" />
+    <title>Ellit Map Component</title>
 
-    <script>
-      const data = window.streamlitData || {};
-      document.getElementById("data").textContent = JSON.stringify(data, null, 2);
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-      // Notificar a Streamlit que está listo
-      Streamlit.setComponentReady();
-      Streamlit.setFrameHeight();
-    </script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+        }
+    </style>
+</head>
 
-    <script src="https://cdn.jsdelivr.net/npm/streamlit-component-lib@1.0.0/dist/index.js"></script>
-  </body>
+<body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/streamlit-component-lib@1.3.0/dist/index.js"></script>
+
+    <script src="main.js"></script>
+</body>
 </html>
