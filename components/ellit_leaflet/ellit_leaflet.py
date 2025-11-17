@@ -1,10 +1,28 @@
+import streamlit as st
 import streamlit.components.v1 as components
-import os
+from pathlib import Path
+import json
 
-_component_func = components.declare_component(
-    "ellit_leaflet",
-    path=os.path.join(os.path.dirname(__file__), "frontend")
+# ==========================================================
+# DECLARACIÓN DEL COMPONENTE ELLIT MAP
+# ==========================================================
+
+# Ruta absoluta a la carpeta frontend
+_component_path = Path(__file__).parent / "frontend"
+
+ellit_map_component = components.declare_component(
+    name="ellitmap",  # nombre interno del componente
+    path=str(_component_path)  # carpeta donde está index.html
 )
 
-def show_map(data: dict, key=None):
-    return _component_func(data=data, key=key)
+# ==========================================================
+# FUNCIÓN PARA MOSTRAR EL MAPA
+# ==========================================================
+def show_map(data: dict, key: str = None):
+    """
+    Envía un diccionario JSON al componente frontend.
+    """
+    return ellit_map_component(
+        data=data,
+        key=key
+    )
