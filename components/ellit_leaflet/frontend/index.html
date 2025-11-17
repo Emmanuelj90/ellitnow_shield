@@ -1,33 +1,13 @@
 <!DOCTYPE html>
 <html>
   <body>
-    <h2>Ellit Leaflet Test</h2>
-    <p>El componente está cargando correctamente.</p>
+    <h2>El mapa se está cargando...</h2>
+    <div id="root"></div>
 
     <script>
-      // Aviso para asegurar que funciona
-      console.log("Ellit Leaflet component loaded!");
-
-      // Streamlit integration básica
-      const setFrameHeight = () => {
-        const height = document.body.scrollHeight;
-        Streamlit.setFrameHeight(height);
-      };
-
-      window.addEventListener("load", setFrameHeight);
-      window.addEventListener("resize", setFrameHeight);
-
-      // Recibir datos desde Python
-      Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, (event) => {
-        const data = event.detail.args.data;
-        console.log("Datos recibidos desde Python:", data);
-        setFrameHeight();
-      });
-
-      Streamlit.setComponentReady();
+      const data = JSON.parse(window.parent.postMessageData || "{}");
+      document.getElementById("root").innerHTML = 
+        "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
     </script>
-
-    <script src="https://unpkg.com/streamlit-component-lib/dist/index.js"></script>
   </body>
 </html>
-
