@@ -5,14 +5,19 @@
     <div id="root">Cargando datos...</div>
 
     <script>
-      // Streamlit provee window.streamlitApi
+      // Esto hace que Streamlit envíe los datos al frontend
       function onData(event) {
         const payload = event.data;
 
+        // Streamlit envía "streamlit:render" cuando llama al componente
         if (payload.type === "streamlit:render") {
           const data = payload.args.data;
+
           document.getElementById("root").innerHTML =
             "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+
+          // Enviar respuesta al backend para que NO se congele
+          window.parent.postMessage({ type: "streamlit:componentReady" }, "*");
         }
       }
 
