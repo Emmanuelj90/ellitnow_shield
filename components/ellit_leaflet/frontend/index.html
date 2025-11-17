@@ -1,1 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ellit Map Component</title>
+  </head>
+
+  <body>
+    <h3>Ellit Leaflet Component Loaded ✔️</h3>
+
+    <div id="data-box"
+         style="padding:15px; background:#f3f3f3; border-radius:8px;">
+      Loading data...
+    </div>
+
+    <script>
+      // Espera datos enviados desde Streamlit
+      window.addEventListener("message", (event) => {
+        const payload = event.data;
+
+        // Datos enviados por Streamlit
+        if (payload.type === "streamlit:render") {
+          const data = payload.args.data;
+
+          document.getElementById("data-box").innerHTML =
+            "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+        }
+      });
+    </script>
+  </body>
+</html>
 
