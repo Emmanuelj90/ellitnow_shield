@@ -171,114 +171,563 @@ section[data-testid="stSidebar"] label {{
 </style>
 """, unsafe_allow_html=True)
 
-# ============================================================
-# BASE DE DATOS (LOGIN SEGURO)
-# ============================================================
+# ==============================
+# CONSTANTES / SESIÓN
+# ==============================
+SUPERADMIN_EMAIL = "admin@ellitnow.com"
+SUPERADMIN_NAME = "Ellit Super Admin"
+DEMO_EMAIL = "demo@ellitnow.com"
+DEMO_PASSWORD = "Demo2025!g*E"
+DEMO_TENANT_NAME = "DEMO - Ellit Shield"
+
+for k, v in {
+    "auth_status": None,      # super_admin, partner, client, demo, impersonated
+    "user_role": None,        # rol real: super_admin, partner, client_admin, client_user, demo
+    "user_id": None,
+    "tenant_id": None,
+    "tenant_name": None,
+    "user_email": None,
+    "primary_color": "#FF0080",
+}.items():
+    st.session_state.setdefault(k, v)
+
+# ==============================
+# BASE DE DATOS
+# ==============================
+TENANTS_DB = os.path.join(os.path.expanduser("~"), "ellit_tenants.db")
+
+def get_conn():
+    return sqlite3.connect(TENANTS_DB, check_same_thread=False)
 
 def init_db():
-    conn = sqlite3.connect("ellit_users.db")
+    conn = get_conn()
     c = conn.cursor()
+    c.execute("PRAGMA foreign_keys = ON;")
+
+    # Tenants
     c.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        CREATE TABLE IF NOT EXISTS tenants (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
             email TEXT UNIQUE,
-            password BLOB,
-            tenant TEXT
+            active INTEGER DEFAULT 1,
+            predictive INTEGER DEFAULT 0,
+            primary_color TEXT DEFAULT '#FF0080',
+            parent_tenant_id TEXT,
+            created_at TEXT DEFAULT (datetime('now'))
         )
     """)
+
+    # Users
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            tenant_id TEXT,
+            email TEXT UNIQUE NOT NULL,
+            name TEXT,
+            role TEXT NOT NULL,
+            password_hash TEXT,
+            is_active INTEGER DEFAULT 1,
+            first_access_token TEXT,
+            reset_token TEXT,
+            reset_token_expiry TEXT,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+        )
+    """)
+
+    conn.commit()
+
+    # Super Admin: solo se gestiona por SUPER_ADMIN_KEY, pero creamos tenant interno si no existe
+    c.execute("SELECT id FROM tenants WHERE email = ?", (SUPERADMIN_EMAIL,))
+    row = c.fetchone()
+    if not row:
+        super_tenant_id = str(uuid.uuid4())
+        c.execute("""
+            INSERT INTO tenants (id, name, email, active, predictive, primary_color)
+            VALUES (?, ?, ?, 1, 1, '#FF0080')
+        """, (super_tenant_id, SUPERADMIN_NAME, SUPERADMIN_EMAIL))
+
+    # Tenant y usuario DEMO
+    c.execute("SELECT id FROM tenants WHERE email = ?", (DEMO_EMAIL,))
+    row = c.fetchone()
+    if row:
+        demo_tenant_id = row[0]
+    else:
+        demo_tenant_id = str(uuid.uuid4())
+        c.execute("""
+            INSERT INTO tenants (id, name, email, active, predictive, primary_color)
+            VALUES (?, ?, ?, 1, 1, '#0048FF')
+        """, (demo_tenant_id, DEMO_TENANT_NAME, DEMO_EMAIL))
+
+    c.execute("SELECT id FROM users WHERE email = ?", (DEMO_EMAIL,))
+    row = c.fetchone()
+    if not row:
+        pwd_hash = bcrypt.hashpw(DEMO_PASSWORD.encode(), bcrypt.gensalt(12)).decode()
+        demo_user_id = str(uuid.uuid4())
+        c.execute("""
+            INSERT INTO users (id, tenant_id, email, name, role, password_hash, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, 1)
+        """, (demo_user_id, demo_tenant_id, DEMO_EMAIL, "Demo Comercial", "demo", pwd_hash))
+
     conn.commit()
     conn.close()
 
+# Inicializar DB
 init_db()
 
-def register_user(email, password, tenant):
-    conn = sqlite3.connect("ellit_users.db")
-    c = conn.cursor()
-    hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-    try:
-        c.execute("INSERT INTO users (email, password, tenant) VALUES (?, ?, ?)",
-                  (email, hashed, tenant))
-        conn.commit()
-        return True
-    except:
-        return False
-    finally:
-        conn.close()
+# ==============================
+# UTILIDADES PDF CORPORATIVO
+# ==============================
+def generate_corporate_pdf(title: str, tenant_name: str, content: str, filename: str = "EllitNow_Report.pdf"):
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
 
-def login_user(email, password):
-    conn = sqlite3.connect("ellit_users.db")
+    fuchsia = Color(1, 0, 0.5)
+    blue = Color(0, 0.7, 1)
+
+    # Fondo degradado
+    for i in range(100):
+        c = Color(1 - i/120, 0 + i/150, 0.5 + i/200)
+        pdf.setFillColor(c)
+        pdf.rect(0, (i/100)*height, width, height/100, stroke=0, fill=1)
+
+    # Logo / branding
+    logo_url = "https://i.imgur.com/b8U3pAL.png"
+    try:
+        logo = ImageReader(logo_url)
+        pdf.drawImage(logo, 40, height - 100, width=80, preserveAspectRatio=True)
+    except Exception:
+        pdf.setFillColor(fuchsia)
+        pdf.setFont("Helvetica-Bold", 20)
+        pdf.drawString(40, height - 100, "EllitNow Shield")
+
+    pdf.setFont("Helvetica-Bold", 20)
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.drawString(140, height - 60, "EllitNow Shield")
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(140, height - 80, "AI Executive Security Platform")
+
+    # Título
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.setFillColor(fuchsia)
+    pdf.drawString(40, height - 150, title)
+    pdf.setFont("Helvetica", 11)
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.drawString(40, height - 170, f"Cliente: {tenant_name}")
+    pdf.drawString(40, height - 185, f"Fecha: {_dt.datetime.now().strftime('%d/%m/%Y %H:%M')}")
+
+    # Contenido
+    pdf.setFont("Helvetica", 11)
+    text_obj = pdf.beginText(40, height - 220)
+    text_obj.setFillColorRGB(1, 1, 1)
+    text_obj.setLeading(16)
+    for line in content.split("\n"):
+        text_obj.textLine(line)
+    pdf.drawText(text_obj)
+
+    pdf.setFont("Helvetica-Oblique", 9)
+    pdf.setFillColor(blue)
+    pdf.drawString(40, 40, "© 2025 EllitNow Cognitive Core — Confidential Document")
+    pdf.drawRightString(width - 40, 40, "Página 1 de 1")
+
+    pdf.showPage()
+    pdf.save()
+    buffer.seek(0)
+    return buffer
+
+def download_pdf_button(title, tenant_name, content, filename):
+    pdf_buffer = generate_corporate_pdf(title, tenant_name, content, filename)
+    st.download_button(
+        label=f"Descargar {title}",
+        data=pdf_buffer,
+        file_name=filename,
+        mime="application/pdf",
+    )
+
+# ==============================
+# AUTENTICACIÓN / USUARIOS
+# ==============================
+def get_user_by_email(email: str):
+    conn = get_conn()
     c = conn.cursor()
-    c.execute("SELECT password, tenant FROM users WHERE email = ?", (email,))
+    c.execute("""
+        SELECT u.id, u.email, u.name, u.role, u.tenant_id, u.password_hash, u.is_active,
+               t.name, t.primary_color
+        FROM users u
+        LEFT JOIN tenants t ON u.tenant_id = t.id
+        WHERE u.email = ?
+        LIMIT 1
+    """, (email,))
     row = c.fetchone()
     conn.close()
+    if not row:
+        return None
+    return {
+        "id": row[0],
+        "email": row[1],
+        "name": row[2],
+        "role": row[3],
+        "tenant_id": row[4],
+        "password_hash": row[5],
+        "is_active": bool(row[6]),
+        "tenant_name": row[7] or "AI Executive Shield",
+        "primary_color": row[8] or "#FF0080",
+    }
 
-    if row:
-        stored, tenant = row
-        if bcrypt.checkpw(password.encode(), stored):
-            return True, tenant
-    return False, None
+def create_tenant_with_admin(name: str, email: str, tenant_type: str, parent_tenant_id: str | None = None):
+    """
+    Crea un tenant y un usuario admin asociado
+    tenant_type: 'partner' o 'client'
+    """
+    conn = get_conn()
+    c = conn.cursor()
+    tenant_id = str(uuid.uuid4())
+    primary_color = "#0048FF" if tenant_type == "partner" else "#FF0080"
+    c.execute("""
+        INSERT INTO tenants (id, name, email, active, predictive, primary_color, parent_tenant_id)
+        VALUES (?, ?, ?, 1, 0, ?, ?)
+    """, (tenant_id, name, email, primary_color, parent_tenant_id))
 
-# ============================================================
-# LOGIN / REGISTER UI
-# ============================================================
+    user_id = str(uuid.uuid4())
+    first_token = secrets.token_urlsafe(16)
+    role = "partner" if tenant_type == "partner" else "client_admin"
+    c.execute("""
+        INSERT INTO users (id, tenant_id, email, name, role, is_active, first_access_token)
+        VALUES (?, ?, ?, ?, ?, 0, ?)
+    """, (user_id, tenant_id, email, f"Admin {name}", role, first_token))
 
-if "logged" not in st.session_state:
-    st.session_state["logged"] = False
+    conn.commit()
+    conn.close()
+    return tenant_id, user_id, first_token
 
-if not st.session_state["logged"]:
-    menu = st.sidebar.selectbox("Acceso", ["Iniciar sesión", "Registrarse"])
+def activate_user_first_access(email: str, token: str, new_password: str) -> bool:
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("""
+        SELECT id, first_access_token FROM users
+        WHERE email = ? AND is_active = 0
+    """, (email,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return False
+    user_id, stored_token = row
+    if not stored_token or stored_token != token:
+        conn.close()
+        return False
+    pwd_hash = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt(12)).decode()
+    c.execute("""
+        UPDATE users
+        SET password_hash = ?, is_active = 1, first_access_token = NULL
+        WHERE id = ?
+    """, (pwd_hash, user_id))
+    conn.commit()
+    conn.close()
+    return True
 
-    if menu == "Registrarse":
-        st.title("Crear cuenta EllitNow Shield")
-        email = st.text_input("Correo corporativo")
-        pwd = st.text_input("Contraseña", type="password")
-        tenant = st.text_input("Nombre de empresa")
+def map_role_to_auth_status(role: str) -> str:
+    if role == "super_admin":
+        return "super_admin"
+    if role == "partner":
+        return "partner"
+    if role in ("client_admin", "client_user"):
+        return "client"
+    if role == "demo":
+        return "demo"
+    return "demo"
 
-        if st.button("Registrar", use_container_width=True):
-            if register_user(email, pwd, tenant):
-                st.success("Cuenta creada. Ahora inicia sesión.")
+# ==============================
+# LOGIN SCREEN
+# ==============================
+def login_screen():
+    st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, #FF0080 0%, #00B4FF 100%);
+            padding: 40px;
+            border-radius: 18px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            margin-top: 20px;
+            margin-bottom: 20px;">
+            <h2>Ellit Cognitive Core — Acceso Seguro</h2>
+            <p>Acceso para Super Admin, partners, clientes y entorno demo.</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    tab_login, tab_first, tab_reset = st.tabs(["Acceso Ellit", "Primer acceso", "Recuperar contraseña"])
+
+    # Acceso normal
+    with tab_login:
+        col1, col2 = st.columns(2)
+
+        # Super Admin por SUPER_ADMIN_KEY
+        with col1:
+            st.subheader("Super Admin")
+            super_key = st.text_input("SUPER_ADMIN_KEY", type="password")
+            if st.button("Entrar como Super Admin"):
+                secret_key = st.secrets.get("SUPER_ADMIN_KEY", "")
+                if super_key and super_key == secret_key:
+                    st.session_state.update({
+                        "auth_status": "super_admin",
+                        "user_role": "super_admin",
+                        "user_id": "superadmin",
+                        "tenant_id": None,
+                        "tenant_name": "Ellit Super Admin",
+                        "user_email": SUPERADMIN_EMAIL,
+                        "primary_color": "#FF0080",
+                    })
+                    st.success("Acceso concedido como Super Admin.")
+                    st.rerun()
+                else:
+                    st.error("Clave de Super Admin incorrecta.")
+
+        # Usuarios normales
+        with col2:
+            st.subheader("Usuarios Ellit (partners, clientes, demo)")
+
+            with st.form("login_user_form"):
+                email = st.text_input("Email corporativo")
+                password = st.text_input("Contraseña", type="password")
+                submitted = st.form_submit_button("Entrar")
+
+            if submitted:
+                if not email or not password:
+                    st.error("Introduce email y contraseña.")
+                else:
+                    user = get_user_by_email(email.strip())
+                    if not user:
+                        st.error("Usuario no encontrado.")
+                    elif not user["is_active"] or not user["password_hash"]:
+                        st.error("Usuario no activado o sin contraseña. Usa 'Primer acceso'.")
+                    else:
+                        try:
+                            if bcrypt.checkpw(password.encode(), user["password_hash"].encode()):
+                                auth_status = map_role_to_auth_status(user["role"])
+                                st.session_state.update({
+                                    "auth_status": auth_status,
+                                    "user_role": user["role"],
+                                    "user_id": user["id"],
+                                    "tenant_id": user["tenant_id"],
+                                    "tenant_name": user["tenant_name"],
+                                    "user_email": user["email"],
+                                    "primary_color": user["primary_color"],
+                                })
+                                st.success("Acceso correcto.")
+                                st.rerun()
+                            else:
+                                st.error("Contraseña incorrecta.")
+                        except Exception:
+                            st.error("Error verificando contraseña.")
+
+    # Primer acceso
+    with tab_first:
+        st.subheader("Activar usuario por primera vez")
+        st.write("Introduce el email y el token de primer acceso proporcionado por tu administrador.")
+        with st.form("first_access_form"):
+            email_f = st.text_input("Email corporativo")
+            token_f = st.text_input("Token de primer acceso")
+            new_pwd = st.text_input("Nueva contraseña", type="password")
+            new_pwd2 = st.text_input("Repite la nueva contraseña", type="password")
+            submitted_f = st.form_submit_button("Activar cuenta")
+
+        if submitted_f:
+            if not email_f or not token_f or not new_pwd or not new_pwd2:
+                st.error("Rellena todos los campos.")
+            elif new_pwd != new_pwd2:
+                st.error("Las contraseñas no coinciden.")
             else:
-                st.error("Error: este correo ya existe.")
+                ok = activate_user_first_access(email_f.strip(), token_f.strip(), new_pwd)
+                if ok:
+                    st.success("Cuenta activada correctamente. Ahora puedes iniciar sesión desde la pestaña 'Acceso Ellit'.")
+                else:
+                    st.error("No se pudo activar la cuenta. Revisa email y token.")
 
+    # Reset de contraseña (stub simple)
+    with tab_reset:
+        st.subheader("Recuperar contraseña")
+        st.info("La recuperación de contraseña se implementará enviando un token al correo corporativo. Por ahora, contacta con el administrador para un nuevo token de primer acceso.")
+
+
+# ==============================
+# ROLES / IMPERSONACIÓN
+# ==============================
+def get_partner_clients(partner_id):
+    conn = get_conn()
+    c = conn.cursor()
+    try:
+        c.execute("""
+            SELECT id, name, email, active, created_at
+            FROM tenants
+            WHERE parent_tenant_id = ?
+            ORDER BY created_at DESC
+        """, (partner_id,))
+        clients = c.fetchall()
+    finally:
+        conn.close()
+    return clients
+
+def impersonate_tenant(target_tenant_id):
+    if st.session_state.get("auth_status") != "super_admin":
+        st.error("No tienes permiso para impersonar tenants.")
+        return
+
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT id, name, email, primary_color FROM tenants WHERE id = ?", (target_tenant_id,))
+    tenant = c.fetchone()
+    conn.close()
+
+    if tenant:
+        st.session_state["impersonated_tenant"] = {
+            "id": tenant[0],
+            "name": tenant[1],
+            "email": tenant[2],
+            "primary_color": tenant[3] or "#FF0080",
+        }
+        st.session_state["auth_status"] = "impersonated"
+        st.session_state["tenant_id"] = tenant[0]
+        st.session_state["tenant_name"] = tenant[1]
+        st.session_state["primary_color"] = tenant[3] or "#FF0080"
+        st.success(f"Ahora estás viendo como: {tenant[1]}")
+        st.rerun()
     else:
-        st.title("Acceso a EllitNow Shield")
-        email = st.text_input("Correo")
-        pwd = st.text_input("Contraseña", type="password")
+        st.error("Tenant no encontrado.")
 
-        if st.button("Iniciar sesión", use_container_width=True):
-            ok, tenant = login_user(email, pwd)
-            if ok:
-                st.session_state["logged"] = True
-                st.session_state["tenant"] = tenant
-                st.rerun()
+def stop_impersonation():
+    if "impersonated_tenant" in st.session_state:
+        del st.session_state["impersonated_tenant"]
+    st.session_state["auth_status"] = "super_admin"
+    st.sidebar.success("Volviste al modo Super Admin")
+    st.rerun()
+
+def render_role_controls():
+    role = st.session_state.get("auth_status")
+    st.sidebar.markdown("---")
+
+    # SUPER ADMIN
+    if role == "super_admin":
+        st.sidebar.markdown("### Impersonación de Tenants")
+        conn = get_conn()
+        tenants_df = pd.read_sql_query("SELECT id, name FROM tenants ORDER BY name ASC", conn)
+        conn.close()
+
+        if tenants_df.empty:
+            st.sidebar.info("No hay tenants disponibles.")
+        else:
+            tenant_options = {row["name"]: row["id"] for _, row in tenants_df.iterrows()}
+            target = st.sidebar.selectbox(
+                "Selecciona un tenant para ver como",
+                list(tenant_options.keys()),
+                key=f"impersonation_selectbox_{uuid.uuid4()}"
+            )
+            if st.sidebar.button("Ver como este tenant"):
+                impersonate_tenant(tenant_options[target])
+
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("### Crear nuevo tenant")
+
+        with st.sidebar.form("create_tenant_form"):
+            tipo_tenant = st.selectbox("Tipo", ["Partner", "Cliente directo"])
+            nombre = st.text_input("Nombre del cliente")
+            email = st.text_input("Email administrador")
+            submitted = st.form_submit_button("Crear tenant")
+
+        if submitted:
+            if not nombre or not email:
+                st.sidebar.error("Nombre y email son obligatorios.")
             else:
-                st.error("Credenciales incorrectas")
+                tenant_type = "partner" if tipo_tenant == "Partner" else "client"
+                parent_id = None
+                tenant_id, user_id, token = create_tenant_with_admin(nombre, email, tenant_type, parent_id)
+                st.sidebar.success(f"Tenant '{nombre}' creado correctamente.")
+                st.sidebar.write("Token de primer acceso para el administrador:")
+                st.sidebar.code(token, language="bash")
 
-    st.stop()
+    # IMPERSONATED
+    elif role == "impersonated":
+        tenant = st.session_state.get("impersonated_tenant", {})
+        st.sidebar.markdown(f"### Modo Impersonación\nViendo como: **{tenant.get('name','')}**")
+        if st.sidebar.button("Volver a Super Admin"):
+            stop_impersonation()
 
-tenant_name = st.session_state.get("tenant", "Organización")
+    # PARTNER
+    elif role == "partner":
+        st.sidebar.markdown("### Tus clientes")
+        partner_id = st.session_state.get("tenant_id")
+        clients = get_partner_clients(partner_id)
+        if clients:
+            for c in clients:
+                status = "Activo" if c[3] == 1 else "Inactivo"
+                st.sidebar.write(f"{c[1]} — {status}")
+        else:
+            st.sidebar.info("Aún no tienes clientes asociados.")
 
-# ============================================================
-# HERO CORPORATIVO INICIAL (como tu imagen)
-# ============================================================
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("Crear cliente")
+        with st.sidebar.form("create_client_form"):
+            name = st.text_input("Nombre del cliente")
+            email = st.text_input("Correo administrador")
+            submitted = st.form_submit_button("Crear cliente")
+        if submitted and name and email:
+            tenant_id, user_id, token = create_tenant_with_admin(name, email, "client", parent_tenant_id=partner_id)
+            st.sidebar.success(f"Cliente '{name}' creado correctamente.")
+            st.sidebar.write("Token de primer acceso del administrador:")
+            st.sidebar.code(token, language="bash")
 
-st.markdown(f"""
-<div class="ellit-hero">
-    <h1>CYBERSECURITY & COMPLIANCE</h1>
-    <p>We help your organization implement and maintain security frameworks such as ISO 27001, ENS, NIST and best practices.</p>
-</div>
-""", unsafe_allow_html=True)
+    # DEMO
+    elif role == "demo":
+        st.sidebar.markdown("### Modo demo")
+        st.sidebar.info("Estás usando el entorno de demostración comercial.")
+        if st.sidebar.button("Cerrar sesión demo"):
+            for k in ["auth_status", "user_role", "user_id", "tenant_id", "tenant_name", "user_email"]:
+                st.session_state[k] = None
+            st.rerun()
 
-# ============================================================
-# TABS PRINCIPALES
-# ============================================================
 
-tab1, tab2, tab3, tab4 = st.tabs([
-    "Executive Overview",
-    "Continuidad & Políticas",
-    "Radar de Ciberinteligencia",
-    "Predictive Intelligence"
-])
+# ==============================
+# PANEL PRINCIPAL
+# ==============================
+def render_panel():
+    role = st.session_state.get("auth_status", "demo")
+    tenant_name = st.session_state.get("tenant_name", "AI Executive Shield")
+    primary_color = st.session_state.get("primary_color", "#FF0080")
+
+    # Super Admin: selector de tenant activo
+    if role == "super_admin":
+        conn = get_conn()
+        tenants = conn.execute("SELECT id, name FROM tenants ORDER BY name ASC").fetchall()
+        conn.close()
+        if tenants:
+            tenant_map = {t[1]: t[0] for t in tenants}
+            st.markdown("### Seleccionar tenant activo (modo Super Admin)")
+            chosen_tenant = st.selectbox("Tenant activo", list(tenant_map.keys()))
+            st.session_state["tenant_id"] = tenant_map[chosen_tenant]
+            st.session_state["tenant_name"] = chosen_tenant
+            tenant_name = chosen_tenant
+        else:
+            st.warning("No existen tenants disponibles. Crea uno desde el panel de administración.")
+
+    # Encabezado
+    st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, {primary_color} 0%, #00B4FF 100%);
+            color:white; padding:25px; text-align:center; border-radius:15px;">
+            <h1>{tenant_name}</h1>
+            <p>{role.title()} • Ellit Cognitive Core 2025</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "Radar IA", 
+        "Panel de Continuidad de Negocio", 
+        "Políticas IA", 
+        "Predictive", 
+        "Licencias"
+    ])
+
 
 # ============================================================
 # TAB 1 — Executive Overview (🟦 incluye Evaluación SGSI)
