@@ -1574,17 +1574,38 @@ with c1_p2:
         unsafe_allow_html=True
     )
 
+with c1_p2:
+
+    st.markdown(
+        '<div class="section-title">Mapa global de inteligencia de amenazas</div>',
+        unsafe_allow_html=True
+    )
+
     threat_countries = [
         {
             "country": "España",
             "lat": 40.4168,
             "lng": -3.7038,
-            "risk": riesgo_sectorial_val,
+            "risk": st.session_state.get("riesgo_sectorial_val", random.randint(40, 80)),
             "cves": random.randint(30, 90),
             "ransomware": random.randint(5, 20),
             "supply_chain": random.randint(3, 15),
             "critical": random.randint(3, 12),
         },
+
+        {
+            "country": "Estados Unidos",
+            "lat": 38.9072,
+            "lng": -77.0369,
+            "risk": random.randint(70, 95),
+            "cves": random.randint(110, 180),
+            "ransomware": random.randint(20, 40),
+            "supply_chain": random.randint(15, 30),
+            "critical": random.randint(15, 35),
+        },
+    ]
+
+
         {
             "country": "Estados Unidos",
             "lat": 38.9072,
