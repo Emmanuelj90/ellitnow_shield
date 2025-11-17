@@ -7,20 +7,20 @@ import json
 # DECLARACIÓN DEL COMPONENTE ELLIT MAP
 # ==========================================================
 
-# Ruta absoluta a la carpeta frontend
+# Ruta a la carpeta donde está index.html
 _component_path = Path(__file__).parent / "frontend"
 
 ellit_map_component = components.declare_component(
-    name="ellitmap",  # nombre interno del componente
-    path=str(_component_path)  # carpeta donde está index.html
+    name="ellitmap",      # nombre interno del componente
+    path=str(_component_path)   # carpeta frontend
 )
 
 # ==========================================================
-# FUNCIÓN PARA MOSTRAR EL MAPA
+# FUNCIÓN PARA MOSTRAR EL MAPA (ÚNICA)
 # ==========================================================
 def show_map(data: dict, key: str = None):
     """
-    Envía un diccionario JSON al componente frontend.
+    Envía datos JSON al componente frontend.
     """
     return ellit_map_component(
         data=data,
