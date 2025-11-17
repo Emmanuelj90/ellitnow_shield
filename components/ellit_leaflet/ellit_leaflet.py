@@ -1,24 +1,16 @@
-import os
 import streamlit.components.v1 as components
+from pathlib import Path
 
-# Ruta absoluta hacia la carpeta "build" del componente
-_component_dir = os.path.dirname(os.path.abspath(__file__))
-_build_dir = os.path.join(_component_dir, "frontend", "build")
+# Path al frontend del componente
+COMPONENT_DIR = Path(__file__).parent / "frontend"
 
-# Carga el componente (modo producción)
-ellit_leaflet_component = components.declare_component(
+ellit_leaflet = components.declare_component(
     "ellit_leaflet",
-    path=_build_dir
+    path=str(COMPONENT_DIR)
 )
 
-
-def ellit_leaflet_map(threat_data, height=500, key=None):
+def show_map(data: dict):
     """
-    Wrapper para usar el componente desde Streamlit.
-    Envía 'threat_data' al frontend.
+    Renderiza el mapa Leaflet enviando datos desde Streamlit.
     """
-    return ellit_leaflet_component(
-        threatData=threat_data,
-        height=height,
-        key=key
-    )
+    return ellit_leaflet(data=data, default={})
