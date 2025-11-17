@@ -67,18 +67,8 @@ from components.ellit_leaflet.ellit_leaflet import show_map
 st.subheader("Mapa de prueba")
 
 show_map(
-    {
-        "countries": [
-            {
-                "country": "España",
-                "lat": 40.4168,
-                "lng": -3.7038,
-                "risk": 50,
-                "cves": 10
-            }
-        ]
-    },
-    key="prueba_1"
+    {"mensaje": "Hola! soy Ellit"},
+    key="mapa_prueba"
 )
 
 
@@ -95,7 +85,7 @@ with st.container():
         ]
     }
 
-    show_map(threat_data)
+    show_map(threat_data, key="ellit_threat_map")
 
 
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
@@ -1618,7 +1608,7 @@ Ellit Cognitive Core — Documento generado automáticamente
                 }
             ]
 
-            show_map({"countries": threat_countries})
+            show_map({"countries": threat_countries}, key="ellit_map_sectorial")
 
         with c2_p2:
             st.markdown(
