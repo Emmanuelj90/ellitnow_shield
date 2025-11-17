@@ -1,1 +1,46 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Ellit Leaflet Map</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <style>
+        html, body, #map { height: 100%; margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Espera datos desde Streamlit
+    window.streamlitComponent = {
+        setData: function(payload) {
+            const countries = payload.data.countries || [];
+
+            const map = L.map('map').setView([20, 0], 2);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18
+            }).addTo(map);
+
+            countries.forEach(function(ct) {
+                L.circleMarker([ct.lat, ct.lng], {
+                    radius: 10,
+                    color: "red"
+                }).addTo(map)
+                .bindPopup(`<b>${ct.country}</b><br>Riesgo: ${ct.risk}%`);
+            });
+        }
+    };
+</script>
+
+</body>
+</html>
