@@ -1,14 +1,13 @@
+import streamlit as st
 import streamlit.components.v1 as components
-import json
 from pathlib import Path
+import json
 
-_component_func = components.declare_component(
-    "ellit_leaflet",
-    path=str(Path(__file__).parent / "frontend")
+# Declaración CORRECTA del componente
+ellit_map_component = components.declare_component(
+    "ellitmap",  # 🔥 nombre único, NO igual al archivo ni carpeta
+    path=str(Path(__file__).parent / "frontend")  # ruta al index.html
 )
 
-def ellit_leaflet(data, key=None):
-    return _component_func(data=json.dumps(data), key=key)
-
-def show_map(data, key="ellit_map"):
-    return ellit_leaflet(data, key=key)
+def show_map(data: dict):
+    return ellit_map_component(data=data)
