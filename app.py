@@ -62,33 +62,8 @@ from core.cognitive_core import (
     generate_predictive_analysis,
     compute_sgsi_maturity,
 )
-from components.ellit_leaflet.component import show_map
-
-# st.title("TEST DEL COMPONENTE")
-
-# show_map({"test": "funciona"}, key="test01")
-
-st.subheader("Mapa de prueba")
-show_map({"mensaje": "Hola desde el test!"}, key="map1")
-
-st.write("Si ves esto, la app no está congelada.")
-
-
-# ==========================
-# MAPA GLOBAL ELLIT THREAT
-# ==========================
-#with st.container():
-#    st.subheader("🌍 Ellit Global Threat Intelligence Map")
-
-#    threat_data = {
- #       "countries": [
- #           {"country": "Spain", "lat": 40.4, "lng": -3.7, "risk": 70, "cves": 15},
-  #          {"country": "USA", "lat": 38.0, "lng": -97.0, "risk": 85, "cves": 22},
-   #     ]
-  #  }
-
-   # ({"countries": threat_countries}, key="threatmap01")
-
+# Desactivar carga de componentes externos antiguos
+st.components.v1.declare_component = lambda *args, **kwargs: None
 
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
 client = init_openai(st.secrets["OPENAI_API_KEY"])
@@ -1403,7 +1378,7 @@ Ellit Cognitive Core — Documento generado automáticamente
                 """, unsafe_allow_html=True)
 
     # ------------------------------------------------------------------
-    # TAB 4 — Ellit Predictive Intelligence (Leaflet + Cognitive Core)
+    # TAB 4 — Ellit Predictive Intelligence (Cognitive Core Only)
     # ------------------------------------------------------------------
     with tab4:
 
@@ -1577,41 +1552,11 @@ Ellit Cognitive Core — Documento generado automáticamente
                 """, unsafe_allow_html=True)
 
         # ----------------------------------------------------------------------
-        # Leaflet + Cognitive Core Intelligence
+        # Cognitive Core Intelligence (map removed)
         # ----------------------------------------------------------------------
         c1_p2, c2_p2 = st.columns([2, 1])
 
-# with c1_p2:
-#     st.markdown(
-#         '<div class="section-title">Mapa global de inteligencia de amenazas</div>',
-#         unsafe_allow_html=True
-#     )
-
-#     threat_countries = [
-#         {
-#             "country": "España",
-#             "lat": 40.4168,
-#             "lng": -3.7038,
-#             "risk": riesgo_sectorial_val,
-#             "cves": random.randint(30, 90),
-#             "ransomware": random.randint(5, 20),
-#             "supply_chain": random.randint(3, 15),
-#             "critical": random.randint(3, 12),
-#         },
-#         {
-#             "country": "Estados Unidos",
-#             "lat": 38.9072,
-#             "lng": -77.0369,
-#             "risk": random.randint(70, 95),
-#             "cves": random.randint(110, 180),
-#             "ransomware": random.randint(20, 40),
-#             "supply_chain": random.randint(15, 30),
-#             "critical": random.randint(15, 35),
-#         }
-#     ]
-
-#     show_map({"countries": threat_countries}, key="ellit_map_sectorial")
-
+        # (Bloque del mapa eliminado por completo)
 
         with c2_p2:
             st.markdown(
@@ -1633,6 +1578,7 @@ Ellit Cognitive Core — Documento generado automáticamente
                 st.markdown("**Recomendaciones estratégicas**")
                 for r in recomendaciones_list:
                     st.markdown(f"- {r}")
+
 
     # ------------------------------------------------------------------
     # TAB 5 — Licencias y Suscripciones
