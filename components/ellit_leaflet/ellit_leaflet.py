@@ -1,17 +1,14 @@
 import streamlit.components.v1 as components
+import json
 from pathlib import Path
 
-# Ruta al directorio del frontend (HTML/JS)
-COMPONENT_DIR = Path(__file__).parent / "frontend"
-
-# Declaramos el componente con esa ruta
-ellit_leaflet = components.declare_component(
+_component_func = components.declare_component(
     "ellit_leaflet",
-    path=str(COMPONENT_DIR)
+    path=str(Path(__file__).parent / "frontend")
 )
 
-def show_map(data: dict = None):
-    """
-    Renderiza el componente Leaflet desde el frontend.
-    """
-    return ellit_leaflet(data=data or {}, default={})
+def ellit_leaflet(data, key=None):
+    return _component_func(data=json.dumps(data), key=key)
+
+def show_map(data, key="ellit_map"):
+    return ellit_leaflet(data, key=key)
