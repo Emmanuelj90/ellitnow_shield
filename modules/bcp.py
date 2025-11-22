@@ -14,7 +14,7 @@ from core.cognitive_core import (
 )
 
 from core.database import get_conn
-from app import download_pdf_button
+from core.utils import download_pdf_button
 
 
 # ============================================================================
