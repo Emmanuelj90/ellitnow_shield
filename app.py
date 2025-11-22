@@ -75,7 +75,6 @@ from modules.sgsi_monitoring import (
 st.components.v1.declare_component = lambda *args, **kwargs: None
 
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
-from core.cognitive_core import EllitCognitiveCore
 st.session_state["client"] = EllitCognitiveCore(st.secrets["OPENAI_API_KEY"])
 
 st.markdown("""
@@ -961,14 +960,15 @@ def render_panel():
         </div>
     """, unsafe_allow_html=True)
     
-# Breadcrumb
-if "breadcrumb" in st.session_state:
-    st.markdown(f"""
-        <div style="margin-top:10px; margin-bottom:20px;
-                    font-size:13px; color:#E2E8F0;">
-            {st.session_state['breadcrumb']}
-        </div>
-    """, unsafe_allow_html=True)
+    # ---------- Breadcrumb ----------
+    if "breadcrumb" in st.session_state:
+        st.markdown(f"""
+            <div style="margin-top:10px; margin-bottom:20px;
+                        font-size:13px; color:#E2E8F0;">
+                {st.session_state['breadcrumb']}
+            </div>
+        """, unsafe_allow_html=True)
+
 
 # ===============================================================
 # SIDEBAR CORPORATIVO — MENÚ + SUBMENÚ
@@ -1068,36 +1068,7 @@ with st.sidebar:
             label_visibility="collapsed"
         )
 
-# ==============================================================
-# VALIDACIÓN DE LICENCIAS — ENTERPRISE & PRIME
-# ==============================================================
 
-def require_enterprise():
-    """
-    Bloquea acceso si el tenant NO tiene Enterprise.
-    Super Admin e impersonated SIEMPRE tienen acceso.
-    """
-    role = st.session_state.get("auth_status")
-    if role in ["super_admin", "impersonated"]:
-        return
-
-    if not st.session_state.get("tenant_enterprise", False):
-        st.error("🚫 Este módulo requiere una licencia **Enterprise** activa.")
-        st.stop()
-
-
-def require_prime():
-    """
-    Bloquea acceso si el tenant NO tiene PRIME add-on.
-    Super Admin e impersonated SIEMPRE tienen acceso.
-    """
-    role = st.session_state.get("auth_status")
-    if role in ["super_admin", "impersonated"]:
-        return
-
-    if not st.session_state.get("tenant_prime", False):
-        st.warning("🔒 Este módulo requiere la suscripción **Prime - Predictive Intelligence**.")
-        st.stop()
 # ==============================================================
 # VALIDACIÓN DE LICENCIAS — ENTERPRISE & PRIME
 # ==============================================================
@@ -1139,8 +1110,8 @@ content_area = st.container()
 # ---------------------------------------------------------------
 # BREADCRUMB DINÁMICO
 # ---------------------------------------------------------------
-if menu and submenu:
-    st.session_state["breadcrumb"] = f"{menu} → {submenu}"
+    if menu and submenu:
+        st.session_state["breadcrumb"] = f"{menu} → {submenu}"
 # ---------------------------
 # RADAR IA (requiere Enterprise)
 # ---------------------------
@@ -1397,6 +1368,9 @@ def render_licencias_tab():
 # EJECUCIÓN PRINCIPAL
 # ==============================
 if st.session_state.get("auth_status"):
+
+    render_panel()   # SE RENDERIZA PRIMERO EL PANEL
+
     # Banner de impersonación si aplica
     if st.session_state.get("auth_status") == "impersonated":
         tenant = st.session_state.get("impersonated_tenant", {})
@@ -1408,9 +1382,10 @@ if st.session_state.get("auth_status"):
         </div>
         """, unsafe_allow_html=True)
 
-    render_panel()
-
+    # Controles de rol
     if st.session_state.auth_status in ["super_admin", "impersonated", "partner"]:
         render_role_controls()
+
 else:
     login_screen()
+
