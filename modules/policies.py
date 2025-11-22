@@ -4,7 +4,7 @@
 # ============================================================
 
 import streamlit as st
-from app import download_pdf_button
+from core.utils import download_pdf_button
 
 
 # ============================================================
