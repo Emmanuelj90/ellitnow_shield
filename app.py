@@ -344,6 +344,21 @@ def init_db():
             created_at TEXT DEFAULT (datetime('now'))
         )
     """)
+    # ==========================================
+    # MIGRACIÓN — NUEVOS CAMPOS DE LICENCIA
+    # ==========================================
+    # enterprise → 1 si el tenant ha adquirido el plan Enterprise anual
+    # prime → 1 si el tenant ha adquirido el add-on Predictive Intelligence
+
+    try:
+        c.execute("ALTER TABLE tenants ADD COLUMN enterprise INTEGER DEFAULT 0")
+    except:
+        pass
+
+    try:
+        c.execute("ALTER TABLE tenants ADD COLUMN prime INTEGER DEFAULT 0")
+    except:
+        pass
 
     # ==========================================
     # USERS
@@ -545,8 +560,10 @@ def get_user_by_email(email: str):
     """, (email,))
     row = c.fetchone()
     conn.close()
+
     if not row:
         return None
+
     return {
         "id": row[0],
         "email": row[1],
@@ -558,6 +575,43 @@ def get_user_by_email(email: str):
         "tenant_name": row[7] or "AI Executive Shield",
         "primary_color": row[8] or "#FF0080",
     }
+
+
+# ==========================================
+# Cargar licencias del tenant en session_state
+# ==========================================
+def load_tenant_license_flags(tenant_id: str):
+    """
+    Carga en session_state los flags de licencia Enterprise / Prime
+    del tenant autenticado.
+    """
+    if not tenant_id:
+        st.session_state["tenant_enterprise"] = False
+        st.session_state["tenant_prime"] = False
+        return
+
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("""
+        SELECT enterprise, prime
+        FROM tenants
+        WHERE id = ?
+        LIMIT 1
+    """, (tenant_id,))
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        st.session_state["tenant_enterprise"] = False
+        st.session_state["tenant_prime"] = False
+        return
+
+    enterprise, prime = row
+
+    # Guardar automáticamente en session_state
+    st.session_state["tenant_enterprise"] = bool(enterprise)
+    st.session_state["tenant_prime"] = bool(prime)
+
 
 def create_tenant_with_admin(name: str, email: str, tenant_type: str, parent_tenant_id: str | None = None):
     """
@@ -584,6 +638,7 @@ def create_tenant_with_admin(name: str, email: str, tenant_type: str, parent_ten
     conn.commit()
     conn.close()
     return tenant_id, user_id, first_token
+
 
 def activate_user_first_access(email: str, token: str, new_password: str) -> bool:
     conn = get_conn()
@@ -642,11 +697,15 @@ def login_screen():
 
     tab_login, tab_first, tab_reset = st.tabs(["Acceso Ellit", "Primer acceso", "Recuperar contraseña"])
 
-    # Acceso normal
+    # =========================================================
+    # ACCESO NORMAL
+    # =========================================================
     with tab_login:
         col1, col2 = st.columns(2)
 
-        # Super Admin por SUPER_ADMIN_KEY
+        # ----------------------------
+        # SUPER ADMIN por SUPER_ADMIN_KEY
+        # ----------------------------
         with col1:
             st.subheader("Super Admin")
             super_key = st.text_input("SUPER_ADMIN_KEY", type="password")
@@ -662,12 +721,18 @@ def login_screen():
                         "user_email": SUPERADMIN_EMAIL,
                         "primary_color": "#FF0080",
                     })
+
+                    # 🔥 Cargar flags Enterprise / Prime (aunque no tenga tenant)
+                    load_tenant_license_flags(st.session_state["tenant_id"])
+
                     st.success("Acceso concedido como Super Admin.")
                     st.rerun()
                 else:
                     st.error("Clave de Super Admin incorrecta.")
 
-        # Usuarios normales
+        # ----------------------------
+        # USUARIOS NORMALES
+        # ----------------------------
         with col2:
             st.subheader("Usuarios Ellit (partners, clientes, demo)")
 
@@ -698,6 +763,10 @@ def login_screen():
                                     "user_email": user["email"],
                                     "primary_color": user["primary_color"],
                                 })
+
+                                # 🔥 Cargar flags Enterprise / Prime
+                                load_tenant_license_flags(user["tenant_id"])
+
                                 st.success("Acceso correcto.")
                                 st.rerun()
                             else:
@@ -705,7 +774,9 @@ def login_screen():
                         except Exception:
                             st.error("Error verificando contraseña.")
 
-    # Primer acceso
+    # =========================================================
+    # PRIMER ACCESO
+    # =========================================================
     with tab_first:
         st.subheader("Activar usuario por primera vez")
         st.write("Introduce el email y el token de primer acceso proporcionado por tu administrador.")
@@ -728,7 +799,9 @@ def login_screen():
                 else:
                     st.error("No se pudo activar la cuenta. Revisa email y token.")
 
-    # Reset de contraseña (stub simple)
+    # =========================================================
+    # RESET PASSWORD
+    # =========================================================
     with tab_reset:
         st.subheader("Recuperar contraseña")
         st.info("La recuperación de contraseña se implementará enviando un token al correo corporativo. Por ahora, contacta con el administrador para un nuevo token de primer acceso.")
