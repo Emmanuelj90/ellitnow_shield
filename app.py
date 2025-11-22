@@ -1064,45 +1064,65 @@ with st.sidebar:
 # RENDER DEL CONTENIDO
 # ===============================================================
 content_area = st.container()
-
+# ---------------------------------------------------------------
+# BREADCRUMB DINÁMICO
+# ---------------------------------------------------------------
+if menu and submenu:
+    st.session_state["breadcrumb"] = f"{menu} → {submenu}"
 # ---------------------------
-# RADAR IA
+# RADAR IA (requiere Enterprise)
 # ---------------------------
 if menu == translate("Radar IA", "AI Radar"):
 
+    require_enterprise()  # 🔒 IMPORTANTE
+
     if submenu == translate("Cuadro de mando (KPIs)", "Dashboard KPIs"):
-        with content_area: render_radar_kpis()
+        with content_area: 
+            render_radar_kpis()
 
     elif submenu == translate("Perfil de la organización", "Organization Profile"):
-        with content_area: render_radar_profile()
+        with content_area: 
+            render_radar_profile()
 
     elif submenu == translate("Radar Cognitivo", "Cognitive Radar"):
-        with content_area: render_radar_cognitivo()
+        with content_area: 
+            render_radar_cognitivo()
 
     elif submenu == translate("Madurez SGSI", "ISMS Maturity"):
-        with content_area: render_radar_madurez()
+        with content_area: 
+            render_radar_madurez()
 
     elif submenu == translate("Informe PDF", "PDF Report"):
-        with content_area: render_radar_pdf()
+        with content_area: 
+            render_radar_pdf()
+
 
 # ---------------------------
-# SGSI Monitoring
+# SGSI Monitoring (Enterprise)
 # ---------------------------
 elif menu == translate("Monitorización SGSI", "ISMS Monitoring"):
 
+    require_enterprise()  # 🔒 IMPORTANTE
+
     if submenu == translate("Panel general", "General Dashboard"):
-        with content_area: render_sgsi_monitor_dashboard()
+        with content_area: 
+            render_sgsi_monitor_dashboard()
 
     elif submenu == translate("Registro histórico", "History Log"):
-        with content_area: render_sgsi_monitor_history()
+        with content_area: 
+            render_sgsi_monitor_history()
 
     elif submenu == translate("Evidencias y mantenimiento", "Evidence & Maintenance"):
-        with content_area: render_sgsi_monitor_evidences()
+        with content_area: 
+            render_sgsi_monitor_evidences()
+
 
 # ---------------------------
-# BCP
+# BCP (Enterprise)
 # ---------------------------
 elif menu == translate("Continuidad de Negocio (BCP)", "Business Continuity"):
+
+    require_enterprise()  # 🔒 IMPORTANTE
 
     if submenu == translate("Generador BCP", "BCP Generator"):
         with content_area: render_bcp_generator()
@@ -1117,9 +1137,11 @@ elif menu == translate("Continuidad de Negocio (BCP)", "Business Continuity"):
         with content_area: render_bcp_alert_tree()
 
 # ---------------------------
-# POLÍTICAS IA
+# POLÍTICAS IA (Enterprise)
 # ---------------------------
 elif menu == translate("Políticas IA", "AI Policies"):
+
+    require_enterprise()  # 🔒 IMPORTANTE
 
     if submenu == translate("Generador multinormativo", "Multistandard Policy Generator"):
         with content_area: render_policies_generator()
@@ -1130,15 +1152,22 @@ elif menu == translate("Políticas IA", "AI Policies"):
 elif menu == translate("Predictive Intelligence", "Predictive Intelligence"):
 
     if submenu == translate("Predicción estándar", "Standard Prediction"):
+        require_enterprise()  # standard prediction requiere enterprise
         with content_area: render_predictive_standard()
 
     elif submenu == translate("Predicción Prime", "Prime Prediction"):
+        require_prime()  # 🔮 Prime add-on
         with content_area: render_predictive_prime()
 
 # ---------------------------
 # LICENCIAS
 # ---------------------------
 elif menu == translate("Licencias", "Licenses"):
+
+    # Solo super_admin, partner o client_admin
+    if st.session_state.get("user_role") not in ["super_admin", "partner", "client_admin"]:
+        st.warning("⚠️ No tienes permisos para gestionar licencias.")
+        st.stop()
 
     if submenu == translate("Gestión de licencias", "License Management"):
         with content_area: render_licencias_tab()
