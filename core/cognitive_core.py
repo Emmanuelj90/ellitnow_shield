@@ -130,30 +130,133 @@ Devuelve SOLO el texto completo.
 
 
 
-# ==========================================================
-# 3. BCP ENGINE — ISO 22301 + ENS
-# ==========================================================
+# ------------------------
+# Motor: Generador BCP
+# ------------------------
 def generate_bcp_plan(client, data: dict):
+    """
+    Genera un plan completo ISO 22301 + ENS OP.BCP.
+    Devuelve texto listo para PDF.
+    """
 
     prompt = f"""
-Eres Ellit Cognitive Core. Genera un plan BCP basado en:
+Eres Ellit Cognitive Core, experto en continuidad de negocio.
 
+Genera un documento formal y completo de Plan de Continuidad basado en:
+- ISO 22301
+- ENS OP.BCP (España)
+- Mejores prácticas europeas
+
+### DATOS ###
 {json.dumps(data, indent=2)}
 
-Requisitos:
-- ISO 22301 + ENS OP.BCP
-- Con RTO, RPO, dependencias, impacto, estrategias
-- Devolver SOLO texto
+### ESTRUCTURA QUE DEBES ENTREGAR ###
+1. Introducción y contexto
+2. Alcance del BCP
+3. Procesos críticos
+4. Análisis BIA (Impacto, RTO, RPO)
+5. Infraestructura y dependencias
+6. Estrategias de continuidad
+7. Procedimientos de recuperación
+8. Roles y responsabilidades
+9. Comunicación en crisis
+10. Pruebas y ejercicios
+11. Mapa de riesgos
+12. Conclusiones ejecutivas
+
+Devuelve solo el documento en texto, sin JSON.
 """
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role":"system", "content":"Experto en continuidad de negocio."},
-            {"role":"user", "content": prompt}
+            {"role": "system", "content": "Eres Ellit Cognitive Core, auditor experto ISO 22301 y ENS OP.BCP."},
+            {"role": "user", "content": prompt}
         ],
         temperature=0.25,
-        max_tokens=1500
+        max_tokens=2000
+    )
+
+    return response.choices[0].message.content.strip()
+
+
+# ------------------------
+# Motor: Análisis cognitivo BCP
+# ------------------------
+def analyze_bcp_context(client, contexto: str):
+    """
+    Analiza un problema, riesgo o situación compleja de continuidad.
+    Devuelve un análisis experto y recomendaciones.
+    """
+
+    prompt = f"""
+Eres Ellit Cognitive Core, analista experto en continuidad de negocio.
+
+Analiza el siguiente contexto crítico:
+\"\"\"{contexto}\"\"\"
+
+### Debes generar ###
+- Diagnóstico experto (alto nivel)
+- Riesgos asociados
+- Debilidades existentes
+- Impacto potencial
+- Recomendaciones de mitigación
+- Acciones inmediatas (0–24h)
+- Acciones a 72h
+- Medidas de resiliencia a largo plazo
+
+Extensión máxima: 20 líneas.
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Eres un analista experto en continuidad ISO 22301, ENS y NIS2."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.2,
+        max_tokens=900
+    )
+
+    return response.choices[0].message.content.strip()
+
+
+# ------------------------
+# Motor: Simulador de Crisis
+# ------------------------
+def analyze_bcp_scenario(client, data: dict):
+    """
+    Simula un escenario de crisis y produce una narrativa completa.
+    Devuelve texto normal (no JSON).
+    """
+
+    prompt = f"""
+Eres Ellit Cognitive Core, simulador de crisis críticas.
+
+Simula el siguiente escenario:
+{json.dumps(data, indent=2)}
+
+### Debe incluir ###
+- Resumen del incidente
+- Línea temporal (minuto 0 / 30 / 60 / 120 / 240)
+- Efectos sobre procesos críticos
+- Decisiones clave que debe tomar el CISO
+- Impacto previsto según duración
+- Estrategia óptima de continuidad
+- Acciones recomendadas (prioridad A/B/C)
+
+Debe ser detallado pero claro.
+Devuelve solo texto, sin JSON.
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Eres Ellit Cognitive Core, simulador avanzado de crisis operativas."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.25,
+        max_tokens=1600
     )
 
     return response.choices[0].message.content.strip()
