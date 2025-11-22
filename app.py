@@ -9,50 +9,31 @@ import bcrypt
 import hashlib
 import secrets
 import uuid
-from openai import OpenAI
-
-# --- Librerías de análisis y visualización ---
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-import matplotlib.pyplot as plt
-import numpy as np
-import tempfile
-
-# --- Librerías auxiliares ---
-import stripe
-import random
-import base64
 import json
-import re
-import io
 import os
-import gc
-import time
-import traceback
 from math import pi
 from datetime import datetime
 from io import BytesIO
 
-# --- Librerías de análisis y visualización ---
+# --- Visualización ---
 import pandas as pd
+import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
-import matplotlib.pyplot as plt
 import numpy as np
-import tempfile
 
-# --- ReportLab para PDF corporativo ---
+# --- Auxiliares ---
+import stripe
+import traceback
+
+# --- PDF (corporativo) ---
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import Color
 from reportlab.lib.utils import ImageReader
 import datetime as _dt
-from fpdf import FPDF
-import textwrap
-import tempfile
-from io import BytesIO
-import datetime as _dt
+
+# --- Ellit Cognitive Core ---
 from core.cognitive_core import (
     init_openai,
     extract_json,
@@ -62,9 +43,8 @@ from core.cognitive_core import (
     generate_predictive_analysis,
     compute_sgsi_maturity,
 )
-# ============================
-# IMPORTAR MÓDULO RADAR IA
-# ============================
+
+# --- Módulo Radar IA ---
 from modules.radar_ia import (
     render_radar_ia,
     render_radar_kpis,
@@ -73,6 +53,15 @@ from modules.radar_ia import (
     render_radar_madurez,
     render_radar_pdf
 )
+
+# --- Módulo BCP ---
+from modules.bcp import (
+    render_bcp_generator,
+    render_bcp_analisis,
+    render_bcp_simulador,
+    render_bcp_alert_tree
+)
+
 
 # Desactivar carga de componentes externos antiguos
 st.components.v1.declare_component = lambda *args, **kwargs: None
