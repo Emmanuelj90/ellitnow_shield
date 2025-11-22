@@ -329,7 +329,9 @@ def init_db():
     c = conn.cursor()
     c.execute("PRAGMA foreign_keys = ON;")
 
-    # Tenants
+    # ==========================================
+    # TENANTS
+    # ==========================================
     c.execute("""
         CREATE TABLE IF NOT EXISTS tenants (
             id TEXT PRIMARY KEY,
@@ -343,7 +345,9 @@ def init_db():
         )
     """)
 
-    # Users
+    # ==========================================
+    # USERS
+    # ==========================================
     c.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
@@ -361,9 +365,60 @@ def init_db():
         )
     """)
 
+    # ==========================================
+    # SGSI — HISTÓRICO DE KPIS
+    # ==========================================
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS sgsi_kpi_history (
+            id TEXT PRIMARY KEY,
+            tenant_id TEXT NOT NULL,
+            user_id TEXT,
+            fecha TEXT NOT NULL,
+            kpi TEXT NOT NULL,
+            valor REAL NOT NULL,
+            metadata TEXT,
+            FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+        )
+    """)
+
+    # ==========================================
+    # SGSI — EVIDENCIAS (ARCHIVOS)
+    # ==========================================
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS sgsi_evidences (
+            id TEXT PRIMARY KEY,
+            tenant_id TEXT NOT NULL,
+            user_id TEXT,
+            fecha TEXT NOT NULL,
+            nombre_archivo TEXT NOT NULL,
+            tipo_archivo TEXT NOT NULL,
+            contenido BLOB,
+            descripcion TEXT,
+            FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+        )
+    """)
+
+    # ==========================================
+    # SGSI — MANTENIMIENTOS
+    # ==========================================
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS sgsi_maintenance (
+            id TEXT PRIMARY KEY,
+            tenant_id TEXT NOT NULL,
+            user_id TEXT,
+            fecha TEXT NOT NULL,
+            actividad TEXT NOT NULL,
+            responsable TEXT,
+            impacto TEXT,
+            FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+        )
+    """)
+
     conn.commit()
 
-    # Super Admin: solo se gestiona por SUPER_ADMIN_KEY, pero creamos tenant interno si no existe
+    # ==========================================
+    # SUPER ADMIN (tenant interno)
+    # ==========================================
     c.execute("SELECT id FROM tenants WHERE email = ?", (SUPERADMIN_EMAIL,))
     row = c.fetchone()
     if not row:
@@ -373,7 +428,9 @@ def init_db():
             VALUES (?, ?, ?, 1, 1, '#FF0080')
         """, (super_tenant_id, SUPERADMIN_NAME, SUPERADMIN_EMAIL))
 
-    # Tenant y usuario DEMO
+    # ==========================================
+    # TENANT Y USUARIO DEMO
+    # ==========================================
     c.execute("SELECT id FROM tenants WHERE email = ?", (DEMO_EMAIL,))
     row = c.fetchone()
     if row:
@@ -400,6 +457,7 @@ def init_db():
 
 # Inicializar DB
 init_db()
+
 
 # ==============================
 # UTILIDADES PDF CORPORATIVO
