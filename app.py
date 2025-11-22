@@ -34,15 +34,8 @@ from reportlab.lib.utils import ImageReader
 import datetime as _dt
 
 # --- Ellit Cognitive Core ---
-from core.cognitive_core import (
-    init_openai,
-    extract_json,
-    analyze_radar_ia,
-    generate_policy,
-    generate_bcp_plan,
-    generate_predictive_analysis,
-    compute_sgsi_maturity,
-)
+from core.cognitive_core import EllitCognitiveCore, extract_json
+
 
 # --- Módulo Radar IA ---
 from modules.radar_ia import (
