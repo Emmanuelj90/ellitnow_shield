@@ -60,6 +60,15 @@ from modules.predictive import (
     render_predictive_prime
 )
 from modules.policies import render_policies_generator
+# lenguaje UI
+from language import translate, set_language
+
+# SGSI Monitoring (faltaban!)
+from modules.sgsi_monitoring import (
+    render_sgsi_monitor_dashboard,
+    render_sgsi_monitor_history,
+    render_sgsi_monitor_evidences
+)
 
 
 # Desactivar carga de componentes externos antiguos
@@ -952,206 +961,186 @@ def render_panel():
         </div>
     """, unsafe_allow_html=True)
 
-    # ===============================================================
-    # SIDEBAR CORPORATIVO — MENÚ + SUBMENÚ
-    # ===============================================================
-    with st.sidebar:
+# ===============================================================
+# SIDEBAR CORPORATIVO — MENÚ + SUBMENÚ
+# ===============================================================
+with st.sidebar:
 
-        set_language()
+    set_language()
 
-        st.markdown(
-            """
-            <div style='padding:15px; margin-bottom:10px;
-                background:linear-gradient(180deg, #0048FF 0%, #001F7F 100%);
-                border-radius:12px; color:white;'>
-                <h3 style='margin:0; color:white;'>Ellit Cognitive Core</h3>
-                <p style='margin:0; opacity:0.8; font-size:13px;'>AI Executive Shield</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    st.markdown(
+        """
+        <div style='padding:15px; margin-bottom:10px;
+            background:linear-gradient(180deg, #0048FF 0%, #001F7F 100%);
+            border-radius:12px; color:white;'>
+            <h3 style='margin:0; color:white;'>Ellit Cognitive Core</h3>
+            <p style='margin:0; opacity:0.8; font-size:13px;'>AI Executive Shield</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-        menu = st.radio(
-            translate("Navegación", "Navigation"),
+    menu = st.radio(
+        translate("Navegación", "Navigation"),
+        [
+            translate("Radar IA", "AI Radar"),
+            translate("Monitorización SGSI", "ISMS Monitoring"),
+            translate("Continuidad de Negocio (BCP)", "Business Continuity"),
+            translate("Políticas IA", "AI Policies"),
+            translate("Predictive Intelligence", "Predictive Intelligence"),
+            translate("Licencias", "Licenses")
+        ],
+        label_visibility="collapsed"
+    )
+
+    submenu = None
+
+    if menu == translate("Radar IA", "AI Radar"):
+        submenu = st.radio(
+            translate("Opciones", "Options"),
             [
-                translate("Radar IA", "AI Radar"),
-                translate("Monitorización SGSI", "ISMS Monitoring"),
-                translate("Continuidad de Negocio (BCP)", "Business Continuity"),
-                translate("Políticas IA", "AI Policies"),
-                translate("Predictive Intelligence", "Predictive Intelligence"),
-                translate("Licencias", "Licenses")
+                translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
+                translate("Perfil de la organización", "Organization Profile"),
+                translate("Radar Cognitivo", "Cognitive Radar"),
+                translate("Madurez SGSI", "ISMS Maturity"),
+                translate("Informe PDF", "PDF Report")
             ],
             label_visibility="collapsed"
         )
 
-        submenu = None
-
-        if menu == translate("Radar IA", "AI Radar"):
-            submenu = st.radio(
-                translate("Opciones", "Options"),
-                [
-                    translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
-                    translate("Perfil de la organización", "Organization Profile"),
-                    translate("Radar Cognitivo", "Cognitive Radar"),
-                    translate("Madurez SGSI", "ISMS Maturity"),
-                    translate("Informe PDF", "PDF Report")
-                ],
-                label_visibility="collapsed"
-            )
-
-        elif menu == translate("Monitorización SGSI", "ISMS Monitoring"):
-            submenu = st.radio(
-                translate("Opciones", "Options"),
-                [
-                    translate("Panel general", "General Dashboard"),
-                    translate("Registro histórico", "History Log"),
-                    translate("Evidencias y mantenimiento", "Evidence & Maintenance")
-                ],
-                label_visibility="collapsed"
-            )
-
-        elif menu == translate("Continuidad de Negocio (BCP)", "Business Continuity"):
-            submenu = st.radio(
-                translate("Opciones", "Options"),
-                [
-                    translate("Generador BCP", "BCP Generator"),
-                    translate("Análisis cognitivo", "Cognitive Analysis"),
-                    translate("Simulador de crisis", "Crisis Simulator"),
-                    translate("ELLIT ALERT TREE – Crisis Communication Demo", "ELLIT ALERT TREE – Crisis Communication Demo")
-                ],
-                label_visibility="collapsed"
-            )
-
-        elif menu == translate("Políticas IA", "AI Policies"):
-            submenu = st.radio(
-                translate("Opciones", "Options"),
-                [
-                    translate("Generador multinormativo", "Multistandard Policy Generator")
-                ],
-                label_visibility="collapsed"
-            )
-            if submenu == translate("Generador multinormativo", "Multistandard Policy Generator"):
-                with content_area:
-                    render_policies_generator()
-
-        elif menu == translate("Predictive Intelligence", "Predictive Intelligence"):
-            submenu = st.radio(
-                translate("Opciones", "Options"),
-                [
-                    translate("Predicción estándar", "Standard Prediction"),
-                    translate("Predicción Prime", "Prime Prediction")
-                ],
-                label_visibility="collapsed"
-            )
-
-        elif menu == translate("Licencias", "Licenses"):
-            submenu = st.radio(
-                translate("Opciones", "Options"),
-                [
-                    translate("Gestión de licencias", "License Management")
-                ],
-                label_visibility="collapsed"
-            )
-
-
-    # ===============================================================
-    # RENDER DEL CONTENIDO SEGÚN EL SUBMENÚ
-    # ===============================================================
-
-    content_area = st.container()
-
-    # ---------------------------
-    # RADAR IA
-    # ---------------------------
-    if menu == translate("Radar IA", "AI Radar"):
-
-        if submenu == translate("Cuadro de mando (KPIs)", "Dashboard KPIs"):
-            with content_area:
-                render_radar_kpis()
-
-        elif submenu == translate("Perfil de la organización", "Organization Profile"):
-            with content_area:
-                render_radar_profile()
-
-        elif submenu == translate("Radar Cognitivo", "Cognitive Radar"):
-            with content_area:
-                render_radar_cognitivo()
-
-        elif submenu == translate("Madurez SGSI", "ISMS Maturity"):
-            with content_area:
-                render_radar_madurez()
-
-        elif submenu == translate("Informe PDF", "PDF Report"):
-            with content_area:
-                render_radar_pdf()
-
-    # ---------------------------
-    # MONITORIZACIÓN SGSI (NUEVO MÓDULO 2)
-    # ---------------------------
     elif menu == translate("Monitorización SGSI", "ISMS Monitoring"):
+        submenu = st.radio(
+            translate("Opciones", "Options"),
+            [
+                translate("Panel general", "General Dashboard"),
+                translate("Registro histórico", "History Log"),
+                translate("Evidencias y mantenimiento", "Evidence & Maintenance")
+            ],
+            label_visibility="collapsed"
+        )
 
-        if submenu == translate("Panel general", "General Dashboard"):
-            with content_area:
-                render_sgsi_monitor_dashboard()
-
-        elif submenu == translate("Registro histórico", "History Log"):
-            with content_area:
-                render_sgsi_monitor_history()
-
-        elif submenu == translate("Evidencias y mantenimiento", "Evidence & Maintenance"):
-            with content_area:
-                render_sgsi_monitor_evidences()
-
-    # ---------------------------
-    # CONTINUIDAD DE NEGOCIO (BCP)
-    # ---------------------------
     elif menu == translate("Continuidad de Negocio (BCP)", "Business Continuity"):
+        submenu = st.radio(
+            translate("Opciones", "Options"),
+            [
+                translate("Generador BCP", "BCP Generator"),
+                translate("Análisis cognitivo", "Cognitive Analysis"),
+                translate("Simulador de crisis", "Crisis Simulator"),
+                translate("ELLIT ALERT TREE – Crisis Communication Demo", "ELLIT ALERT TREE – Crisis Communication Demo")
+            ],
+            label_visibility="collapsed"
+        )
 
-        if submenu == translate("Generador BCP", "BCP Generator"):
-            with content_area:
-                render_bcp_generator()
-
-        elif submenu == translate("Análisis cognitivo", "Cognitive Analysis"):
-            with content_area:
-                render_bcp_analisis()
-
-        elif submenu == translate("Simulador de crisis", "Crisis Simulator"):
-            with content_area:
-                render_bcp_simulador()
-
-        elif submenu == translate("ELLIT ALERT TREE – Crisis Communication Demo", "ELLIT ALERT TREE – Crisis Communication Demo"):
-            with content_area:
-                render_bcp_alert_tree()
-
-    # ---------------------------
-    # POLÍTICAS IA
-    # ---------------------------
     elif menu == translate("Políticas IA", "AI Policies"):
-        if submenu == translate("Generador multinormativo", "Multistandard Policy Generator"):
-            with content_area:
-                render_policies_generator()
+        submenu = st.radio(
+            translate("Opciones", "Options"),
+            [
+                translate("Generador multinormativo", "Multistandard Policy Generator")
+            ],
+            label_visibility="collapsed"
+        )
 
-    # ---------------------------
-    # PREDICTIVE INTELLIGENCE
-    # ---------------------------
     elif menu == translate("Predictive Intelligence", "Predictive Intelligence"):
+        submenu = st.radio(
+            translate("Opciones", "Options"),
+            [
+                translate("Predicción estándar", "Standard Prediction"),
+                translate("Predicción Prime", "Prime Prediction")
+            ],
+            label_visibility="collapsed"
+        )
 
-        if submenu == translate("Predicción estándar", "Standard Prediction"):
-            with content_area:
-                render_predictive_standard()
-
-        elif submenu == translate("Predicción Prime", "Prime Prediction"):
-            with content_area:
-                render_predictive_prime()
-
-    # ---------------------------
-    # LICENCIAS
-    # ---------------------------
     elif menu == translate("Licencias", "Licenses"):
-        if submenu == translate("Gestión de licencias", "License Management"):
-            with content_area:
-                render_licencias_tab()
+        submenu = st.radio(
+            translate("Opciones", "Options"),
+            [
+                translate("Gestión de licencias", "License Management")
+            ],
+            label_visibility="collapsed"
+        )
 
+# ===============================================================
+# RENDER DEL CONTENIDO
+# ===============================================================
+content_area = st.container()
+
+# ---------------------------
+# RADAR IA
+# ---------------------------
+if menu == translate("Radar IA", "AI Radar"):
+
+    if submenu == translate("Cuadro de mando (KPIs)", "Dashboard KPIs"):
+        with content_area: render_radar_kpis()
+
+    elif submenu == translate("Perfil de la organización", "Organization Profile"):
+        with content_area: render_radar_profile()
+
+    elif submenu == translate("Radar Cognitivo", "Cognitive Radar"):
+        with content_area: render_radar_cognitivo()
+
+    elif submenu == translate("Madurez SGSI", "ISMS Maturity"):
+        with content_area: render_radar_madurez()
+
+    elif submenu == translate("Informe PDF", "PDF Report"):
+        with content_area: render_radar_pdf()
+
+# ---------------------------
+# SGSI Monitoring
+# ---------------------------
+elif menu == translate("Monitorización SGSI", "ISMS Monitoring"):
+
+    if submenu == translate("Panel general", "General Dashboard"):
+        with content_area: render_sgsi_monitor_dashboard()
+
+    elif submenu == translate("Registro histórico", "History Log"):
+        with content_area: render_sgsi_monitor_history()
+
+    elif submenu == translate("Evidencias y mantenimiento", "Evidence & Maintenance"):
+        with content_area: render_sgsi_monitor_evidences()
+
+# ---------------------------
+# BCP
+# ---------------------------
+elif menu == translate("Continuidad de Negocio (BCP)", "Business Continuity"):
+
+    if submenu == translate("Generador BCP", "BCP Generator"):
+        with content_area: render_bcp_generator()
+
+    elif submenu == translate("Análisis cognitivo", "Cognitive Analysis"):
+        with content_area: render_bcp_analisis()
+
+    elif submenu == translate("Simulador de crisis", "Crisis Simulator"):
+        with content_area: render_bcp_simulador()
+
+    elif submenu == translate("ELLIT ALERT TREE – Crisis Communication Demo", "ELLIT ALERT TREE – Crisis Communication Demo"):
+        with content_area: render_bcp_alert_tree()
+
+# ---------------------------
+# POLÍTICAS IA
+# ---------------------------
+elif menu == translate("Políticas IA", "AI Policies"):
+
+    if submenu == translate("Generador multinormativo", "Multistandard Policy Generator"):
+        with content_area: render_policies_generator()
+
+# ---------------------------
+# PREDICTIVE INTELLIGENCE
+# ---------------------------
+elif menu == translate("Predictive Intelligence", "Predictive Intelligence"):
+
+    if submenu == translate("Predicción estándar", "Standard Prediction"):
+        with content_area: render_predictive_standard()
+
+    elif submenu == translate("Predicción Prime", "Prime Prediction"):
+        with content_area: render_predictive_prime()
+
+# ---------------------------
+# LICENCIAS
+# ---------------------------
+elif menu == translate("Licencias", "Licenses"):
+
+    if submenu == translate("Gestión de licencias", "License Management"):
+        with content_area: render_licencias_tab()
 
 
 # ==============================
