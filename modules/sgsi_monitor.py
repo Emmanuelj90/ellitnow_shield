@@ -1,11 +1,12 @@
 # ==========================================================
-# ELLIT SGSI MONITOR – MÓDULO COMPLETO (BLOQUE 1/3)
+# ELLIT SGSI MONITOR — MÓDULO COMPLETO (2025)
 # ==========================================================
 # Incluye:
 # - Dashboard SGSI con KPIs y Radar
-# - Registro histórico completo
-# - Integración con Ellit Cognitive Core
-# - Diseño corporativo profesional
+# - Registro histórico
+# - Evidencias y mantenimiento
+# - Comparativa normativa con soporte N/A
+# - Motor de IA (Ellit Cognitive Core)
 # ==========================================================
 
 import streamlit as st
@@ -13,16 +14,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import uuid
-import base64
+import json
 from datetime import datetime
 from math import pi
 
 from app import get_conn
-from cognitive_core import (
-    analyze_kpi_drift,
-    classify_evidence,
-    sgsi_gap_analysis
-)
+from core.cognitive_core import EllitCognitiveCore
+
 
 # ==========================================================
 # ESTILOS CORPORATIVOS
@@ -51,23 +49,6 @@ CARD_STYLE = """
     font-size: 32px;
     font-weight: 700;
     color: #0F172A;
-    margin-top: 4px;
-}
-.evidence-card {
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 10px;
-}
-.evidence-meta {
-    font-size: 12px;
-    color: #64748B;
-}
-.table-clean thead tr th {
-    background-color: #F1F5F9;
-    font-size: 13px;
-    padding: 6px;
 }
 </style>
 """
@@ -93,51 +74,45 @@ def metric_card(label, value):
 
 
 # ==========================================================
-# BASE DE DATOS – CONSULTAS
+# BASE DE DATOS – KPIs
 # ==========================================================
-def db_get_kpis(tenant_id):
+def db_get_kpi_log(tenant_id):
     conn = get_conn()
     df = pd.read_sql_query("""
-        SELECT fecha, kpi, valor, usuario
-        FROM sgsi_kpi_history
+        SELECT id, kpi_date, kpi_name, kpi_value
+        FROM sgsi_kpis
         WHERE tenant_id = ?
-        ORDER BY fecha ASC
+        ORDER BY kpi_date ASC
     """, conn, params=(tenant_id,))
     conn.close()
     return df
 
 
-def db_insert_kpi(tenant_id, kpi_name, valor, usuario):
+def db_insert_kpi(tenant_id, name, value):
     conn = get_conn()
-    c = conn.cursor()
-    c.execute("""
-        INSERT INTO sgsi_kpi_history (id, tenant_id, fecha, kpi, valor, usuario)
-        VALUES (?, ?, ?, ?, ?, ?)
+    conn.execute("""
+        INSERT INTO sgsi_kpis (id, tenant_id, kpi_date, kpi_name, kpi_value)
+        VALUES (?, ?, ?, ?, ?)
     """, (
         str(uuid.uuid4()),
         tenant_id,
-        datetime.now().strftime("%Y-%m-%d %H:%M"),
-        kpi_name,
-        valor,
-        usuario
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        name,
+        value
     ))
     conn.commit()
     conn.close()
 
 
-def db_delete_kpi(kpi_id):
-    conn = get_conn()
-    conn.execute("DELETE FROM sgsi_kpi_history WHERE id = ?", (kpi_id,))
-    conn.commit()
-    conn.close()
-
-
 # ==========================================================
-# RADAR CHART
+# RADAR CHART – soporte N/A
 # ==========================================================
 def radar_fig(kpis):
     labels = list(kpis.keys())
-    values = list(kpis.values())
+    raw_values = list(kpis.values())
+
+    values = [(0 if v == "N/A" else v) for v in raw_values]
+    na_flags = [(v == "N/A") for v in raw_values]
 
     values += values[:1]
     num = len(labels)
@@ -145,417 +120,209 @@ def radar_fig(kpis):
     angles += angles[:1]
 
     fig, ax = plt.subplots(figsize=(6, 6), subplot_kw={"polar": True})
+
     ax.fill(angles, values, alpha=0.20, color="#00B4FF")
     ax.plot(angles, values, linewidth=2, color="#00B4FF")
 
-    ax.set_ylim(0, 100)
+    adjusted_labels = [
+        f"{label}\nN/A" if na else label
+        for label, na in zip(labels, na_flags)
+    ]
+
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(labels, fontsize=10)
+    ax.set_xticklabels(adjusted_labels, fontsize=9)
+    ax.set_ylim(0, 100)
 
     return fig
 
 
 # ==========================================================
-# PANEL GENERAL – DASHBOARD SGSI
+# BLOQUE 1 — DASHBOARD SGSI
 # ==========================================================
 def render_sgsi_monitor_dashboard():
-
     st.markdown(CARD_STYLE, unsafe_allow_html=True)
 
     tenant_id = get_active_tenant()
     tenant_color = st.session_state.get("primary_color", "#0048FF")
-    user_email = st.session_state.get("user_email", "usuario")
 
     st.markdown(
         f"""
-        <div style="
-            background: linear-gradient(135deg,{tenant_color} 0%, #00B4FF 100%);
-            padding:18px;border-radius:16px;color:white;text-align:center;
-            margin-bottom:20px;">
+        <div style="background: linear-gradient(135deg,{tenant_color} 0%, #00B4FF 100%);
+            padding:18px;border-radius:16px;color:white;text-align:center;margin-bottom:20px;">
             <h2 style="margin:0;">Monitorización SGSI — Panel General</h2>
-            <p style="opacity:0.85;margin:0;">KPIs, gráficas y análisis inteligente</p>
+            <p style="opacity:0.85;margin:0;">KPIs, gráficas, radar y análisis inteligente</p>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    # Cargar KPIs
-    df = db_get_kpis(tenant_id)
-
+    df = db_get_kpi_log(tenant_id)
     if df.empty:
-        st.warning("No existen KPIs aún para este tenant.")
-        st.info("Puedes agregar KPIs desde el módulo de Registro Histórico.")
+        st.warning("No existen KPIs aún.")
         return
 
-    # Selección de KPI
-    kpi_selected = st.selectbox("Selecciona una métrica para analizar", sorted(df["kpi"].unique()))
+    df["kpi_date"] = pd.to_datetime(df["kpi_date"])
 
-    df_kpi = df[df["kpi"] == kpi_selected]
+    kpi_selected = st.selectbox("Selecciona KPI", sorted(df["kpi_name"].unique()))
+    df_kpi = df[df["kpi_name"] == kpi_selected]
 
-    # TARJETAS
     c1, c2, c3 = st.columns(3)
     with c1:
-        metric_card("Valor actual", f"{df_kpi['valor'].iloc[-1]:.0f}%")
+        metric_card("Valor actual", df_kpi["kpi_value"].iloc[-1])
     with c2:
-        metric_card("Promedio histórico", f"{df_kpi['valor'].mean():.1f}%")
+        metric_card("Promedio histórico", round(df_kpi["kpi_value"].mean(), 1))
     with c3:
         metric_card("Total registros", len(df_kpi))
 
-    # GRÁFICA DE TENDENCIA
     fig, ax = plt.subplots(figsize=(8, 3))
-    ax.plot(df_kpi["fecha"], df_kpi["valor"], marker="o", linewidth=2, color=tenant_color)
+    ax.plot(df_kpi["kpi_date"], df_kpi["kpi_value"], marker="o", color=tenant_color)
     ax.set_ylim(0, 100)
     ax.grid(True, alpha=0.3)
     st.pyplot(fig)
 
     st.markdown("---")
 
-    # RADAR CHART – KPIs normalizadas
-    st.subheader("Radar de Madurez SGSI")
-
-    pivot = df.pivot_table(index="kpi", values="valor", aggfunc="last")
-    radar_data = {k: float(v) for k, v in zip(pivot.index, pivot["valor"])}
-
+    st.subheader("Radar SGSI")
+    pivot = df.pivot_table(index="kpi_name", values="kpi_value", aggfunc="last")
+    radar_data = {k: v for k, v in zip(pivot.index, pivot["kpi_value"])}
     st.pyplot(radar_fig(radar_data))
 
     st.markdown("---")
 
-    # ANÁLISIS COGNITIVO
-    st.subheader("Inteligencia del SGSI — Ellit Cognitive Core")
+    st.subheader("Comparativa normativa (ENS / ISO / NIST / NIS2)")
 
-    with st.spinner("Analizando comportamiento histórico..."):
-        result = analyze_kpi_drift(df, kpi_selected)
-
-    if result:
-        st.info(result)
-    else:
-        st.info("No se detectaron anomalías relevantes.")
-
-
-# ==========================================================
-# REGISTRO HISTÓRICO – CRUD COMPLETO
-# ==========================================================
-def render_sgsi_monitor_history():
-
-    st.markdown(CARD_STYLE, unsafe_allow_html=True)
-
-    tenant_id = get_active_tenant()
-    user_email = st.session_state.get("user_email", "usuario")
-
-    st.markdown("## Registro histórico SGSI")
-
-    df = db_get_kpis(tenant_id)
-
-    # -----------------------------
-    # FORMULARIO DE NUEVO KPI
-    # -----------------------------
-    with st.expander("Añadir nueva métrica KPI"):
-        kpi_name = st.text_input("Nombre de la KPI", placeholder="Ej: Disponibilidad Operativa")
-        valor = st.slider("Valor (%)", 0, 100, 80)
-
-        if st.button("Guardar KPI"):
-            if not kpi_name:
-                st.warning("Debes introducir un nombre.")
-            else:
-                db_insert_kpi(tenant_id, kpi_name, valor, user_email)
-                st.success("KPI guardada.")
-                st.experimental_rerun()
-
-    st.markdown("---")
-
-    if df.empty:
-        st.info("Aún no existen KPIs registradas.")
-        return
-
-    # -----------------------------
-    # FILTROS
-    # -----------------------------
-    col1, col2 = st.columns(2)
-    with col1:
-        filtro_kpi = st.selectbox("Filtrar por KPI", ["Todas"] + sorted(df["kpi"].unique()))
-    with col2:
-        filtro_usuario = st.selectbox("Filtrar por usuario", ["Todos"] + sorted(df["usuario"].unique()))
-
-    df_filtered = df.copy()
-    if filtro_kpi != "Todas":
-        df_filtered = df_filtered[df_filtered["kpi"] == filtro_kpi]
-    if filtro_usuario != "Todos":
-        df_filtered = df_filtered[df_filtered["usuario"] == filtro_usuario]
-
-    # -----------------------------
-    # TABLA
-    # -----------------------------
-    st.dataframe(df_filtered)
-
-    # -----------------------------
-    # EXPORTAR CSV
-    # -----------------------------
-    csv = df_filtered.to_csv(index=False).encode("utf-8")
-    st.download_button("Exportar CSV", csv, "historico_kpis.csv")
-
-    # -----------------------------
-    # BORRAR REGISTRO
-    # -----------------------------
-    st.markdown("### Borrar registro")
-    ids = st.selectbox("Selecciona ID", df["fecha"].index)
-
-    if st.button("Eliminar registro seleccionado"):
-        db_delete_kpi(df.iloc[ids]["id"])
-        st.success("Registro eliminado.")
-        st.experimental_rerun()
-
-# ===============================================================
-# BLOQUE 2 — DASHBOARD PRINCIPAL DE MONITORIZACIÓN SGSI
-# ===============================================================
-
-def render_sgsi_monitor_dashboard(tenant_id: str):
-    """
-    Panel principal del sistema de monitorización SGSI.
-    Presenta KPIs agregados, comparativas, tendencias
-    y gráficos tipo SAAS para visualización ejecutiva.
-    """
-
-    st.markdown("""
-        <h2 style='margin-bottom:10px;'>Panel de monitorización SGSI</h2>
-        <p style='color:#A0AEC0;margin-top:-10px;'>Visión ejecutiva del estado del sistema de gestión de seguridad.</p>
-    """, unsafe_allow_html=True)
-
-    # -----------------------------------------
-    # 1) Cargar datos desde la base de datos
-    # -----------------------------------------
-    conn = get_conn()
-    c = conn.cursor()
-
-    c.execute("""
-        SELECT kpi_date, kpi_name, kpi_value
-        FROM sgsi_kpis
-        WHERE tenant_id = ?
-        ORDER BY kpi_date ASC
-    """, (tenant_id,))
-
-    rows = c.fetchall()
-    conn.close()
-
-    if not rows:
-        st.info("No existen datos de KPIs del SGSI aún para este tenant.")
-        st.write("Introduce tus primeros valores en el apartado 'Evidencias y mantenimiento'.")
-        return
-
-    # Convertir a DataFrame
-    df = pd.DataFrame(rows, columns=["fecha", "kpi", "valor"])
-    df["fecha"] = pd.to_datetime(df["fecha"])
-    df = df.sort_values("fecha")
-
-    # KPIs principales (último valor registrado)
-    latest = df.groupby("kpi").tail(1).set_index("kpi")["valor"].to_dict()
-
-    # -----------------------------------------
-    # 2) Cards ejecutivas superiores
-    # -----------------------------------------
-    kpi1 = latest.get("Disponibilidad operativa (%)", 0)
-    kpi2 = latest.get("Incidentes críticos (últimos 30 días)", 0)
-    kpi3 = latest.get("Tiempo medio de respuesta (min)", 0)
-    kpi4 = latest.get("Controles implementados (%)", 0)
-
-    c1, c2, c3, c4 = st.columns(4)
-
-    with c1:
-        st.metric("Disponibilidad operativa", f"{kpi1}%")
-    with c2:
-        st.metric("Incidentes críticos", int(kpi2))
-    with c3:
-        st.metric("Tiempo medio de respuesta", f"{kpi3} min")
-    with c4:
-        st.metric("Controles implementados", f"{kpi4}%")
-
-    st.markdown("---")
-
-    # -----------------------------------------
-    # 3) Gráficos tipo SAAS (líneas de tendencia)
-    # -----------------------------------------
-    st.subheader("Tendencias del Sistema SGSI")
-
-    kpis_unicos = df["kpi"].unique()
-
-    for k in kpis_unicos:
-        subdf = df[df["kpi"] == k]
-
-        st.markdown(f"### {k}")
-
-        fig, ax = plt.subplots(figsize=(6.5, 2.8))
-        ax.plot(subdf["fecha"], subdf["valor"], linewidth=2)
-
-        ax.set_title(k, loc="left", fontsize=10)
-        ax.set_xlabel("")
-        ax.set_ylabel("")
-        ax.grid(True, alpha=0.2)
-
-        st.pyplot(fig)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # -----------------------------------------
-    # 4) Comparativa normativa (ENS / ISO / NIST / NIS2)
-    # -----------------------------------------
-
-    st.subheader("Comparativa normativa ENS / ISO 27001 / NIST / NIS2")
-
-    comp_data = {
-        "ENS": latest.get("ENS Gap (%)", 0),
-        "ISO 27001": latest.get("ISO Gap (%)", 0),
-        "NIST CSF": latest.get("NIST Gap (%)", 0),
-        "NIS2": latest.get("NIS2 Gap (%)", 0)
+    comp = {
+        "ISO 27001": radar_data.get("ISO Gap (%)", "N/A"),
+        "ENS": radar_data.get("ENS Gap (%)", "N/A"),
+        "NIST CSF": radar_data.get("NIST Gap (%)", "N/A"),
+        "NIS2": radar_data.get("NIS2 Gap (%)", "N/A")
     }
 
-    labels = list(comp_data.keys())
-    values = list(comp_data.values())
-
     fig2, ax2 = plt.subplots(figsize=(6.5, 3))
-    bars = ax2.bar(labels, values)
 
-    for bar in bars:
-        height = bar.get_height()
-        ax2.text(
-            bar.get_x() + bar.get_width() / 2,
-            height + 1,
-            f"{height:.0f}%",
-            ha='center', fontsize=10
-        )
+    for i, (label, value) in enumerate(comp.items()):
+        if value == "N/A":
+            ax2.bar(label, 0, color="#CBD5E1")
+            ax2.text(i, 5, "N/A", ha="center", color="#475569")
+        else:
+            ax2.bar(label, value, color=tenant_color)
+            ax2.text(i, value + 2, f"{value}%", ha="center")
 
     ax2.set_ylim(0, 100)
-    ax2.set_ylabel("Nivel de cumplimiento (%)")
-    ax2.grid(axis='y', alpha=0.2)
-
+    ax2.grid(axis="y", alpha=0.2)
     st.pyplot(fig2)
 
     st.markdown("---")
 
-    # -----------------------------------------
-    # 5) Análisis de IA
-    # ----------------------
-    st.subheader("Análisis automático del Ellit Cognitive Core")
+    st.subheader("Análisis Inteligente (Ellit Cognitive Core)")
 
-    resumen_ia = generate_sgsi_ai_summary(latest)
+    clean = {k: ("No aplica" if v == "N/A" else f"{v}%") for k, v in radar_data.items()}
 
-    st.info(resumen_ia)
+    prompt = f"""
+Eres Ellit Cognitive Core, módulo ejecutivo SGSI.
 
-# ===============================================================
-# BLOQUE 3 — REGISTRO HISTÓRICO Y EVIDENCIAS DEL SGSI
-# ===============================================================
+Analiza estos KPIs:
 
-# ---------------------------------------------------------------
-# 1) HISTÓRICO DE KPIs (Tabla + Exportación)
-# ---------------------------------------------------------------
+{json.dumps(clean, indent=2)}
+
+Genera:
+- Estado general
+- Riesgos principales
+- Áreas más débiles
+- Acciones recomendadas (30 / 90 / 180 días)
+- Conclusión ejecutiva
+Extensión máxima: 12 líneas.
+"""
+
+    try:
+        client = st.session_state["client"]
+        resp = client.analyze_text(prompt)
+        st.info(resp)
+    except:
+        st.info("No fue posible obtener el análisis en este momento.")
+
+
+# ==========================================================
+# BLOQUE 2 — REGISTRO HISTÓRICO
+# ==========================================================
 def render_sgsi_monitor_history():
     st.markdown("<h2>Registro histórico del SGSI</h2>", unsafe_allow_html=True)
 
-    tenant_id = st.session_state.get("tenant_id")
+    tenant_id = get_active_tenant()
+    df = db_get_kpi_log(tenant_id)
 
-    conn = get_conn()
-    c = conn.cursor()
-    c.execute("""
-        SELECT kpi_date, kpi_name, kpi_value
-        FROM sgsi_kpis
-        WHERE tenant_id = ?
-        ORDER BY kpi_date DESC
-    """, (tenant_id,))
-    rows = c.fetchall()
-    conn.close()
-
-    if not rows:
-        st.info("Aún no existen registros históricos para este tenant.")
+    if df.empty:
+        st.info("No hay registros aún.")
         return
 
-    df = pd.DataFrame(rows, columns=["Fecha", "KPI", "Valor"])
-    df["Fecha"] = pd.to_datetime(df["Fecha"])
+    df["kpi_date"] = pd.to_datetime(df["kpi_date"])
+    df.rename(columns={"kpi_date": "Fecha", "kpi_name": "KPI", "kpi_value": "Valor"}, inplace=True)
 
-    # Filtros
     col1, col2 = st.columns(2)
     with col1:
-        filtro_kpi = st.selectbox("Filtrar por KPI", ["Todos"] + sorted(df["KPI"].unique().tolist()))
+        filtro_kpi = st.selectbox("Filtrar por KPI", ["Todos"] + sorted(df["KPI"].unique()))
     with col2:
         filtro_fecha = st.date_input("Fecha mínima", None)
 
     filtered = df.copy()
-
     if filtro_kpi != "Todos":
         filtered = filtered[filtered["KPI"] == filtro_kpi]
-
     if filtro_fecha:
         filtered = filtered[filtered["Fecha"] >= pd.to_datetime(filtro_fecha)]
 
     st.dataframe(filtered, use_container_width=True)
 
-    # Exportación
     csv = filtered.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        "Exportar CSV",
-        csv,
-        "sgsi_history_export.csv",
-        "text/csv"
-    )
+    st.download_button("Exportar CSV", csv, "sgsi_history.csv")
 
 
-# ---------------------------------------------------------------
-# 2) FORMULARIO DE EVIDENCIAS + REGISTRO DE KPIs
-# ---------------------------------------------------------------
+# ==========================================================
+# BLOQUE 3 — EVIDENCIAS + KPIs
+# ==========================================================
 def render_sgsi_monitor_evidences():
     st.markdown("<h2>Evidencias y mantenimiento del SGSI</h2>", unsafe_allow_html=True)
 
-    tenant_id = st.session_state.get("tenant_id")
+    tenant_id = get_active_tenant()
 
     st.markdown("### Registrar nueva evidencia")
-
     col1, col2 = st.columns(2)
 
     with col1:
-        evidencia = st.text_area(
-            "Descripción de la evidencia",
-            placeholder="Ej: Auditoría interna realizada el 03/02/2025 con 2 no conformidades menores..."
-        )
-        normativa = st.selectbox(
-            "Marco aplicable",
-            ["ISO 27001", "ENS", "NIST CSF", "NIS2", "GDPR", "SOC 2", "PCI DSS"]
-        )
-
+        evidencia = st.text_area("Descripción de la evidencia")
+        normativa = st.selectbox("Marco aplicable", ["ISO 27001", "ENS", "NIST CSF", "NIS2", "GDPR", "SOC 2", "PCI DSS"])
     with col2:
-        hallazgos = st.text_area(
-            "Hallazgos detectados",
-            placeholder="Ej: Incumplimiento en control de accesos remotos, MFA no aplicado..."
-        )
-        acciones = st.text_area(
-            "Acciones correctivas propuestas",
-            placeholder="Ej: Implementar MFA en VPN antes del 30/03/2025."
-        )
+        hallazgos = st.text_area("Hallazgos detectados")
+        acciones = st.text_area("Acciones correctivas propuestas")
 
-    st.markdown("### Actualización de KPIs del SGSI")
+    st.markdown("### Actualización de KPIs")
 
-    # KPIs editables desde el panel
-    kpi1 = st.slider("Disponibilidad operativa (%)", 0, 100, 95)
-    kpi2 = st.number_input("Incidentes críticos (últimos 30 días)", 0, 999, 1)
-    kpi3 = st.number_input("Tiempo medio de respuesta (min)", 0, 9999, 45)
-    kpi4 = st.slider("Controles implementados (%)", 0, 100, 80)
+    k1 = st.slider("Disponibilidad operativa (%)", 0, 100, 95)
+    k2 = st.number_input("Incidentes críticos (30 días)", 0, 999, 1)
+    k3 = st.number_input("Tiempo medio de respuesta (min)", 0, 9999, 45)
+    k4 = st.slider("Controles implementados (%)", 0, 100, 80)
 
-    # Gaps normativos
-    gap_iso = st.slider("ISO 27001 Gap (%)", 0, 100, 20)
-    gap_ens = st.slider("ENS Gap (%)", 0, 100, 25)
-    gap_nist = st.slider("NIST Gap (%)", 0, 100, 30)
-    gap_nis2 = st.slider("NIS2 Gap (%)", 0, 100, 40)
+    st.markdown("### Cumplimiento normativo")
+
+    iso_na = st.checkbox("ISO 27001 — No aplica (N/A)")
+    gap_iso = "N/A" if iso_na else st.slider("ISO 27001 Gap (%)", 0, 100, 20)
+
+    ens_na = st.checkbox("ENS — No aplica (N/A)")
+    gap_ens = "N/A" if ens_na else st.slider("ENS Gap (%)", 0, 100, 25)
+
+    nist_na = st.checkbox("NIST CSF — No aplica (N/A)")
+    gap_nist = "N/A" if nist_na else st.slider("NIST Gap (%)", 0, 100, 30)
+
+    nis2_na = st.checkbox("NIS2 — No aplica (N/A)")
+    gap_nis2 = "N/A" if nis2_na else st.slider("NIS2 Gap (%)", 0, 100, 40)
 
     if st.button("Guardar evidencia y KPIs"):
-        conn = get_conn()
-        c = conn.cursor()
-
         fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # Guardar KPIs
         kpis = {
-            "Disponibilidad operativa (%)": kpi1,
-            "Incidentes críticos (últimos 30 días)": kpi2,
-            "Tiempo medio de respuesta (min)": kpi3,
-            "Controles implementados (%)": kpi4,
+            "Disponibilidad operativa (%)": k1,
+            "Incidentes críticos (últimos 30 días)": k2,
+            "Tiempo medio de respuesta (min)": k3,
+            "Controles implementados (%)": k4,
             "ISO Gap (%)": gap_iso,
             "ENS Gap (%)": gap_ens,
             "NIST Gap (%)": gap_nist,
@@ -563,59 +330,15 @@ def render_sgsi_monitor_evidences():
         }
 
         for k, v in kpis.items():
-            c.execute("""
-                INSERT INTO sgsi_kpis (tenant_id, kpi_date, kpi_name, kpi_value)
-                VALUES (?, ?, ?, ?)
-            """, (tenant_id, fecha, k, v))
+            db_insert_kpi(tenant_id, k, v)
 
-        # Guardar evidencia
-        c.execute("""
+        conn = get_conn()
+        conn.execute("""
             INSERT INTO sgsi_evidences (tenant_id, ev_date, evidence, findings, actions, framework)
             VALUES (?, ?, ?, ?, ?, ?)
         """, (tenant_id, fecha, evidencia, hallazgos, acciones, normativa))
-
         conn.commit()
         conn.close()
 
-        st.success("Evidencia y KPIs guardados correctamente.")
-
-
-# ---------------------------------------------------------------
-# 3) MOTOR DE ANÁLISIS IA (RESUMEN EJECUTIVO DEL SGSI)
-# ---------------------------------------------------------------
-def generate_sgsi_ai_summary(latest_kpis: dict) -> str:
-    """
-    Recibe los últimos KPIs del tenant y genera
-    un análisis ejecutivo automático.
-    """
-
-    try:
-        prompt = f"""
-Eres Ellit Cognitive Core, módulo ejecutivo de análisis SGSI.
-
-Analiza estos KPIs y genera un resumen profesional:
-
-KPIs:
-{json.dumps(latest_kpis, indent=2)}
-
-Genera:
-- Estado general del SGSI
-- Riesgos principales
-- Áreas más débiles
-- Acciones recomendadas a 30, 90 y 180 días
-- Conclusión ejecutiva
-
-Extensión: 12 líneas máximo.
-"""
-        response = client.chat.completions.create(
-            model="gpt-4.1",
-            messages=[{"role": "system", "content": "Analista SGSI senior."},
-                      {"role": "user", "content": prompt}]
-        )
-
-        return response.choices[0].message.content.strip()
-
-    except Exception:
-        return "No fue posible generar el análisis automático en este momento."
-
-
+        st.success("Datos guardados correctamente.")
+        st.rerun()
