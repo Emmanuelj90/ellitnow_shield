@@ -13,7 +13,7 @@ from core.cognitive_core import (
     analyze_bcp_scenario
 )
 
-from app import get_conn
+from core.database import get_conn
 from app import download_pdf_button
 
 
