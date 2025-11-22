@@ -18,7 +18,7 @@ import json
 from datetime import datetime
 from math import pi
 
-from app import get_conn
+from core.database import get_conn
 from core.cognitive_core import EllitCognitiveCore
 
 
