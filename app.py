@@ -801,29 +801,16 @@ def render_role_controls():
 
 
 # ==============================
-# PANEL PRINCIPAL 
+# PANEL PRINCIPAL (NAVEGACIÓN LATERAL PRO)
 # ==============================
 def render_panel():
     role = st.session_state.get("auth_status", "demo")
     tenant_name = st.session_state.get("tenant_name", "AI Executive Shield")
     primary_color = st.session_state.get("primary_color", "#FF0080")
 
-    # Super Admin: selector de tenant activo
-    if role == "super_admin":
-        conn = get_conn()
-        tenants = conn.execute("SELECT id, name FROM tenants ORDER BY name ASC").fetchall()
-        conn.close()
-        if tenants:
-            tenant_map = {t[1]: t[0] for t in tenants}
-            st.markdown("### Seleccionar tenant activo (modo Super Admin)")
-            chosen_tenant = st.selectbox("Tenant activo", list(tenant_map.keys()))
-            st.session_state["tenant_id"] = tenant_map[chosen_tenant]
-            st.session_state["tenant_name"] = chosen_tenant
-            tenant_name = chosen_tenant
-        else:
-            st.warning("No existen tenants disponibles. Crea uno desde el panel de administración.")
-
-    # Encabezado
+    # ---------------------------------------
+    # HEADER
+    # ---------------------------------------
     st.markdown(f"""
         <div style="
             background: linear-gradient(135deg, {primary_color} 0%, #00B4FF 100%);
@@ -833,766 +820,203 @@ def render_panel():
         </div>
     """, unsafe_allow_html=True)
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "Radar IA", 
-        "Panel de Continuidad de Negocio", 
-        "Políticas IA", 
-        "Predictive", 
-        "Licencias"
-    ])
+    # ===============================================================
+    # SIDEBAR CORPORATIVO — MENÚ + SUBMENÚ
+    # ===============================================================
+    with st.sidebar:
 
-    # ------------------------------------------------------------------
-    # TAB 1 — Radar IA
-    # ------------------------------------------------------------------
-    with tab1:
-        st.markdown("""
-        <style>
-        .main-container {
-            background-color: #FFFFFF;
-            border-radius: 18px;
-            padding: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            border: 1px solid #E2E8F0;
-            margin-bottom: 30px;
-        }
-        .metric-card {
-            background-color: #F9FAFB !important;
-            border: 1px solid #E2E8F0 !important;
-            border-radius: 14px !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            padding: 22px;
-            text-align: center;
-            transition: all 0.2s ease;
-        }
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-        }
-        .metric-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #0F172A !important;
-            margin-top: 6px;
-        }
-        .metric-label {
-            font-size: 14px;
-            font-weight: 500;
-            color: #64748B !important;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            margin-bottom: 6px;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        set_language()
 
-        try:
-            indicadores_session = st.session_state.get("radar_data", {}).get("indicadores", {})
-        except Exception:
-            indicadores_session = {}
-
-        disp_default = 99.8
-        ens_default = 92
-        bcp_default = 88
-        cultura_default = 74
-
-        disp = indicadores_session.get("Nivel de Protección", disp_default)
-        ens = indicadores_session.get("Cumplimiento Normativo", ens_default)
-        bcp = indicadores_session.get("Resiliencia BCP", bcp_default)
-        cultura = indicadores_session.get("Cultura de Seguridad", cultura_default)
-
-        def fmt(v):
-            try:
-                return f"{float(v):.0f}%"
-            except Exception:
-                return str(v)
-
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.markdown(
-                f'<div class="metric-card"><div class="metric-value">{fmt(disp)}</div>'
-                '<div class="metric-label">DISPONIBILIDAD OPERATIVA</div></div>',
-                unsafe_allow_html=True
-            )
-        with col2:
-            st.markdown(
-                f'<div class="metric-card"><div class="metric-value">{fmt(ens)}</div>'
-                '<div class="metric-label">CUMPLIMIENTO ENS</div></div>',
-                unsafe_allow_html=True
-            )
-        with col3:
-            st.markdown(
-                f'<div class="metric-card"><div class="metric-value">{fmt(bcp)}</div>'
-                '<div class="metric-label">RESILIENCIA BCP</div></div>',
-                unsafe_allow_html=True
-            )
-        with col4:
-            st.markdown(
-                f'<div class="metric-card"><div class="metric-value">{fmt(cultura)}</div>'
-                '<div class="metric-label">CULTURA DE SEGURIDAD</div></div>',
-                unsafe_allow_html=True
-            )
-
-        st.markdown("""
-        <div style="
-            background: linear-gradient(135deg, #FF0080 0%, #00B4FF 100%);
-            padding:24px;
-            border-radius:16px;
-            text-align:center;
-            margin-bottom:25px;
-            color:#FFFFFF;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        ">
-            <h2 style="font-weight:700; letter-spacing:0.5px; margin-bottom:6px;">
-                Radar IA — Cognitive Risk Engine
-            </h2>
-            <p style="font-size:15px; color:rgba(255,255,255,0.9); margin:0;">
-                Evaluación cognitiva avanzada de madurez, cumplimiento y resiliencia organizacional.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("### Perfil de la organización")
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            nombre_org = st.text_input("Nombre de la organización", "Fraudfense")
-        with c2:
-            sector = st.selectbox("Sector", [
-                "Banca y Finanzas", "Seguros", "Salud y Farmacéutica", "Tecnología e I+D+I",
-                "Energía y Utilities", "Educación", "Retail y E-commerce", "Industrial y Manufactura",
-                "Defensa y Seguridad", "Sector Público", "Startup / Innovación", "Otro"
-            ])
-        with c3:
-            nivel_ens = st.selectbox("Nivel ENS actual", ["No aplica", "Básico", "Medio", "Alto"])
-
-        c4, c5, c6 = st.columns(3)
-        with c4:
-            tamano = st.selectbox("Tamaño de la organización", ["Pequeña", "Mediana", "Grande", "Multinacional"])
-        with c5:
-            region = st.text_input("Región / País principal", "España")
-        with c6:
-            responsable = st.text_input("CISO / Responsable de seguridad", "Anónimo")
-
-        riesgos = st.text_area("Riesgos principales detectados",
-                               placeholder="Ejemplo: ransomware, fuga de datos, cumplimiento GDPR, dependencias críticas...")
-        certificaciones = st.text_area("Certificaciones y marcos aplicables",
-                                       placeholder="Ejemplo: ISO 27001, ENS Medio, NIST CSF, SOC 2 Tipo II...")
-
-        # INTEGRACIÓN DEL NUEVO MOTOR COGNITIVO
-        if st.button("Analizar con Ellit Cognitive Core", key="analizar_radar_ia"):
-            with st.spinner("Analizando contexto organizacional..."):
-
-                context = {
-                    "organizacion": nombre_org,
-                    "sector": sector,
-                    "nivel_ens": nivel_ens,
-                    "tamano": tamano,
-                    "region": region,
-                    "responsable": responsable,
-                    "riesgos_detectados": riesgos,
-                    "certificaciones": certificaciones
-                }
-
-                try:
-                    data = analyze_radar_ia(client, context)
-
-                    if data is not None:
-                        st.session_state["radar_data"] = data
-                        st.success("Análisis completado correctamente.")
-                    else:
-                        st.error("No se pudo interpretar la respuesta del motor cognitivo.")
-
-                except Exception as e:
-                    st.error(f"Error al procesar el análisis: {str(e)}")
-
-        else:
-            data = st.session_state.get("radar_data", None)
-
-        # Presentación del informe si existe
-        if data:
-            st.markdown("### Evaluación global de madurez y riesgo")
-
-            indicadores = data.get("indicadores", {})
-            if indicadores:
-                c1, c2 = st.columns(2)
-                with c1:
-                    st.subheader("Madurez del SGSI")
-                    from matplotlib.patches import Wedge, Circle
-                    madurez = indicadores.get("Madurez SGSI", 0)
-                    fig, ax = plt.subplots(figsize=(5, 3))
-                    ax.add_patch(Circle((0, 0), 1, color='white', ec='none'))
-                    ax.add_patch(Wedge((0, 0), 1, 180, 260, facecolor='#FF4B4B'))
-                    ax.add_patch(Wedge((0, 0), 1, 260, 300, facecolor='#FFD93D'))
-                    ax.add_patch(Wedge((0, 0), 1, 300, 360, facecolor='#6DFF8C'))
-                    ang = 180 + (madurez * 180 / 100)
-                    x = np.cos(np.deg2rad(ang))
-                    y = np.sin(np.deg2rad(ang))
-                    ax.plot([0, x], [0, y], color='#333', lw=3)
-                    ax.plot(0, 0, 'o', color='#333', markersize=8)
-                    ax.text(0, -0.2, f"{int(madurez)}", ha='center', va='center', fontsize=32, fontweight='bold', color='#444')
-                    ax.text(0, -0.4, "Nivel de madurez", ha='center', fontsize=10, color='#666')
-                    ax.set_xlim(-1.2, 1.2)
-                    ax.set_ylim(-0.2, 1.1)
-                    ax.axis('off')
-                    st.pyplot(fig)
-
-                with c2:
-                    st.subheader("Radar ENS–ISO–NIST")
-                    labels = list(indicadores.keys())
-                    values = list(indicadores.values())
-                    num_vars = len(labels)
-                    angles = [n / float(num_vars) * 2 * pi for n in range(num_vars)]
-                    values += values[:1]
-                    angles += angles[:1]
-                    fig2, ax2 = plt.subplots(figsize=(5, 5), subplot_kw=dict(polar=True))
-                    ax2.fill(angles, values, color="#00B4FF", alpha=0.25)
-                    ax2.plot(angles, values, color="#00B4FF", linewidth=2)
-                    ax2.set_yticks([20, 40, 60, 80, 100])
-                    ax2.set_ylim(0, 100)
-                    ax2.set_xticks(angles[:-1])
-                    ax2.set_xticklabels(labels, fontsize=8)
-                    st.pyplot(fig2)
-
-                st.markdown("---")
-                c3, c4 = st.columns(2)
-                with c3:
-                    st.subheader("Distribución general de controles")
-                    df = pd.DataFrame({
-                        "Indicador": list(indicadores.keys()),
-                        "Puntaje (%)": list(indicadores.values())
-                    })
-                    fig3, ax3 = plt.subplots(figsize=(6, 3))
-                    bars = ax3.bar(df["Indicador"], df["Puntaje (%)"], color="#0066cc")
-                    ax3.bar_label(bars, fmt="%.0f", label_type="edge")
-                    ax3.set_ylabel("Puntaje (%)")
-                    ax3.set_ylim(0, 100)
-                    plt.xticks(rotation=45, ha='right')
-                    st.pyplot(fig3)
-
-                with c4:
-                    st.subheader("Riesgo comparativo del sector")
-                    riesgo_sector = np.random.randint(30, 90)
-                    riesgo_org = 100 - indicadores.get("Madurez SGSI", 0)
-                    categorias = ["Media del sector", "Organización"]
-                    valores = [riesgo_sector, riesgo_org]
-                    fig4, ax4 = plt.subplots(figsize=(4.5, 3))
-                    colores = ["#00B4FF", "#FF0080"]
-                    ax4.bar(categorias, valores, color=colores)
-                    for i, v in enumerate(valores):
-                        ax4.text(i, v + 2, f"{v}%", ha='center', fontsize=11, fontweight='bold')
-                    ax4.set_ylim(0, 100)
-                    ax4.set_ylabel("Nivel de riesgo (%)")
-                    st.pyplot(fig4)
-
-            analisis = data.get("analisis", "")
-            if analisis:
-                st.markdown("### Análisis ejecutivo")
-                st.info(analisis)
-
-            acciones = data.get("acciones", {})
-            if acciones:
-                st.markdown("### Acciones prioritarias")
-                for horizonte, tareas in acciones.items():
-                    with st.expander(horizonte):
-                        for t in tareas:
-                            st.markdown(f"- {t}")
-
-            recomendaciones = data.get("recomendaciones", [])
-            if recomendaciones:
-                st.markdown("### Recomendaciones estratégicas")
-                for r in recomendaciones:
-                    st.markdown(f"- {r}")
-
-            alertas = data.get("alertas", [])
-            if alertas:
-                st.markdown("### Alertas críticas")
-                for a in alertas:
-                    st.error(a)
-
-        st.markdown("---")
-        st.markdown("### Exportar informe PDF")
-        estilo = st.selectbox("Estilo del informe PDF", ["Clásico", "Corporativo", "Ellit"], index=2)
-        if st.button("Generar informe PDF"):
-            try:
-                radar_data = st.session_state.get("radar_data", None)
-                if radar_data is None:
-                    st.warning("Primero ejecuta el análisis con Ellit Cognitive Core.")
-                else:
-                    resumen = radar_data.get("analisis", "Sin análisis generado.")
-                    indicadores = radar_data.get("indicadores", {})
-                    partes = [f"Informe Radar IA — {nombre_org}", "", f"Sector: {sector}", f"Nivel ENS actual: {nivel_ens}", f"Tamaño: {tamano}", f"Región: {region}", "", "Resumen ejecutivo:", resumen, "", "Indicadores clave:"]
-                    for k, v in indicadores.items():
-                        partes.append(f"- {k}: {v}%")
-                    content = "\n".join(partes)
-                    pdf_name = f"RadarIA_Report_{nombre_org.replace(' ', '_')}.pdf"
-                    download_pdf_button("Informe Radar IA", nombre_org, content, pdf_name)
-            except Exception:
-                st.error("Error al generar el PDF.")
-
-
-    # ------------------------------------------------------------------
-    # TAB 2 — Panel de Continuidad de Negocio (BCP + SGSI)
-    # ------------------------------------------------------------------
-    with tab2:
-        st.subheader("Generador de Plan de Continuidad ISO 22301 / ENS OP.BCP")
-
-        tenant_name_input = st.text_input("Nombre de la organización", placeholder="Ej: Fraudfense")
-        procesos_criticos = st.text_area(
-            "Procesos críticos del negocio",
-            "Facturación, Atención al cliente, Plataforma web, Operaciones TI"
-        )
-        infraestructura = st.text_area(
-            "Infraestructura disponible",
-            "2 CPDs en Madrid, Cloud Azure, VPN corporativa, Firewalls redundantes"
-        )
-        dependencias = st.text_area(
-            "Dependencias tecnológicas y humanas",
-            "ERP SAP, Microsoft 365, API de clientes, Proveedor ISP Telefónica"
-        )
-        rto = st.slider("RTO (tiempo máximo de recuperación, horas)", 1, 72, 6)
-        rpo = st.slider("RPO (pérdida máxima aceptable de datos, horas)", 0, 24, 1)
-
-        st.markdown("### Análisis cognitivo del contexto de continuidad")
-        contexto_libre = st.text_area(
-            "Describe el contexto o el problema de continuidad que deseas analizar",
-            placeholder=(
-                "Ejemplo: Tengo dos CPDs pero están en la misma ciudad. "
-                "¿Qué debería hacer para mejorar la resiliencia?"
-            )
+        st.markdown(
+            """
+            <div style='padding:15px; margin-bottom:10px;
+                background:linear-gradient(180deg, #0048FF 0%, #001F7F 100%);
+                border-radius:12px; color:white;'>
+                <h3 style='margin:0; color:white;'>Ellit Cognitive Core</h3>
+                <p style='margin:0; opacity:0.8; font-size:13px;'>AI Executive Shield</p>
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
-        if st.button("Generar plan de continuidad con Ellit Cognitive Core"):
-            org_name = tenant_name_input or tenant_name
-            bcp_input = {
-                "organizacion": org_name,
-                "procesos_criticos": procesos_criticos,
-                "infraestructura": infraestructura,
-                "dependencias": dependencias,
-                "rto_horas": rto,
-                "rpo_horas": rpo,
-                "contexto_adicional": contexto_libre,
-            }
-
-            try:
-                with st.spinner("Generando plan de continuidad con Ellit Cognitive Core..."):
-                    plan_text = generate_bcp_plan(client, bcp_input)
-
-                if plan_text:
-                    st.text_area("Vista previa del plan", plan_text, height=420)
-                    pdf_filename = f"Plan_BCP_{org_name.replace(' ', '_')}.pdf"
-                    download_pdf_button(
-                        f"Plan_BCP_{org_name}",
-                        org_name,
-                        plan_text,
-                        pdf_filename
-                    )
-                else:
-                    st.error("No se pudo generar el plan de continuidad.")
-            except Exception as e:
-                st.error(f"Error al generar el plan de continuidad: {str(e)}")
-
-        st.markdown("---")
-        st.subheader("Simulador de crisis BCP")
-
-        escenario = st.text_input(
-            "Describe el escenario de crisis a simular",
-            placeholder="Ejemplo: Pérdida total de conectividad entre CPDs durante 12 horas"
-        )
-        ubicacion = st.text_input(
-            "Ubicación o entorno afectado",
-            placeholder="Ej: CPD Madrid o sede principal"
-        )
-        duracion = st.slider("Duración estimada de la interrupción (horas)", 1, 72, 8)
-        impacto = st.select_slider("Nivel de impacto", ["Bajo", "Medio", "Alto"], value="Alto")
-
-        if st.button("Simular escenario de crisis"):
-            if not tenant_name_input:
-                cliente_sim = tenant_name
-            else:
-                cliente_sim = tenant_name_input
-
-            if "CPD" in escenario or "conectividad" in escenario.lower():
-                estrategia = "Activar replicación en región secundaria y habilitar conexión VPN temporal."
-            elif "ransomware" in escenario.lower():
-                estrategia = "Aislar servidores afectados y restaurar desde copias inmutables."
-            elif "inundación" in escenario.lower() or "incendio" in escenario.lower():
-                estrategia = "Trasladar operaciones al sitio alternativo y priorizar funciones críticas."
-            elif "personal" in escenario.lower() or "empleados" in escenario.lower():
-                estrategia = "Activar protocolo de contingencia de recursos humanos y teletrabajo."
-            else:
-                estrategia = "Aplicar protocolo general de continuidad ajustado a dependencias críticas."
-
-            plan_sim = f"""
-SIMULACIÓN DE ESCENARIO BCP — ELLIT COGNITIVE CORE
-
-Cliente: {cliente_sim}
-Escenario: {escenario}
-Ubicación afectada: {ubicacion}
-Duración estimada: {duracion} horas
-Impacto: {impacto}
-
-ESTRATEGIA DE RECUPERACIÓN RECOMENDADA
-{estrategia}
-
-© 2025 Ellit Cognitive Core — Simulador de continuidad
-"""
-            st.text_area("Resultado de la simulación", plan_sim, height=320)
-            pdf_name_sim = f"Simulacion_BCP_{cliente_sim.replace(' ', '_')}.pdf"
-            download_pdf_button(
-                f"Simulacion_BCP_{cliente_sim}",
-                cliente_sim,
-                plan_sim,
-                pdf_name_sim
-            )
-
-        st.markdown("---")
-        st.subheader("Evaluación rápida de madurez SGSI (ENS / ISO 27001 / NIST CSF)")
-
-        evidencias_text = st.text_area(
-            "Evidencias disponibles (auditorías, informes, KPIs, hallazgos)",
-            placeholder="Ejemplo: Informe auditoría interna 2024, revisión de accesos, análisis de vulnerabilidades..."
-        )
-        controles_text = st.text_area(
-            "Controles implementados (resumen ejecutivo)",
-            placeholder="Ejemplo: Controles de acceso RBAC, cifrado en reposo, SOC 24x7, bastionado de servidores..."
+        menu = st.radio(
+            translate("Navegación", "Navigation"),
+            [
+                translate("Radar IA", "AI Radar"),
+                translate("Monitorización SGSI", "ISMS Monitoring"),
+                translate("Continuidad de Negocio (BCP)", "Business Continuity"),
+                translate("Políticas IA", "AI Policies"),
+                translate("Predictive Intelligence", "Predictive Intelligence"),
+                translate("Licencias", "Licenses")
+            ],
+            label_visibility="collapsed"
         )
 
-        if st.button("Calcular madurez SGSI con Ellit Cognitive Core"):
-            if not evidencias_text.strip() and not controles_text.strip():
-                st.warning("Introduce al menos evidencias o controles para poder evaluar.")
-            else:
-                try:
-                    with st.spinner("Calculando madurez del SGSI..."):
-                        sgsi_result = compute_sgsi_maturity(client, evidencias_text, controles_text)
+        submenu = None
 
-                    if sgsi_result:
-                        madurez_val = sgsi_result.get("madurez", 0) or 0
-                        nivel_val = sgsi_result.get("nivel", "No determinado")
-
-                        st.markdown(f"**Nivel de madurez:** {nivel_val} ({madurez_val}%)")
-
-                        col_s1, col_s2 = st.columns(2)
-                        with col_s1:
-                            st.markdown("**Fortalezas**")
-                            for f_item in sgsi_result.get("fortalezas", []):
-                                st.markdown(f"- {f_item}")
-                        with col_s2:
-                            st.markdown("**Debilidades**")
-                            for d_item in sgsi_result.get("debilidades", []):
-                                st.markdown(f"- {d_item}")
-
-                        acciones_req = sgsi_result.get("acciones_requeridas", [])
-                        if acciones_req:
-                            st.markdown("**Acciones requeridas prioritarias**")
-                            for a_item in acciones_req:
-                                st.markdown(f"- {a_item}")
-                    else:
-                        st.error("No se pudo interpretar la respuesta del motor de madurez SGSI.")
-                except Exception as e:
-                    st.error(f"Error al calcular la madurez SGSI: {str(e)}")
-
-
-    # ------------------------------------------------------------------
-    # TAB 3 — Generador de Políticas (multinormativo)
-    # ------------------------------------------------------------------
-    with tab3:
-        st.markdown("""
-        <div style="background: linear-gradient(135deg,#FF0080 0%,#00B4FF 100%);
-                    padding:18px;border-radius:16px;color:white;text-align:center;">
-            <h2>Generador de políticas corporativas — Ellit Cognitive Core</h2>
-            <p>Redacta políticas y procedimientos multinormativos listos para auditoría.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            tipo = st.text_input("Tipo de política", "Gestión de accesos físicos")
-        with c2:
-            normativa = st.selectbox(
-                "Normativa principal",
-                ["ISO 27001", "ENS", "NIST CSF", "SOC 2", "GDPR", "COBIT", "PCI DSS"]
-            )
-        with c3:
-            detalle = st.slider("Nivel de detalle del documento", 1, 5, 3)
-
-        if st.button("Generar política con Ellit Cognitive Core"):
-            try:
-                org_name = tenant_name
-                st.info("Generando documento corporativo con Ellit Cognitive Core...")
-
-                policy_text = generate_policy(
-                    client=client,
-                    tipo=tipo,
-                    normativa=normativa,
-                    organizacion=org_name,
-                    detalle=detalle
-                )
-
-                if "policy_history" not in st.session_state:
-                    st.session_state["policy_history"] = []
-                st.session_state["policy_history"].insert(0, {
-                    "tipo": tipo,
-                    "normativa": normativa,
-                    "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                    "organizacion": org_name,
-                    "contenido": policy_text
-                })
-                st.session_state["policy_history"] = st.session_state["policy_history"][:10]
-
-                st.success(f"Política corporativa de {tipo} generada bajo {normativa}.")
-
-                with st.expander("Vista previa del documento"):
-                    st.markdown(policy_text)
-
-                with st.expander("Recomendaciones del Cognitive Core"):
-                    st.info(
-                        f"Se recomienda validar esta política con los controles aplicables de {normativa} "
-                        "y mantener revisión anual por el Comité de Seguridad."
-                    )
-
-                fecha_actual = datetime.now().strftime("%d/%m/%Y %H:%M")
-                encabezado = f"""
-POLÍTICA CORPORATIVA — {tipo.upper()}
-Organización: {org_name}
-Normativa base: {normativa}
-Fecha: {fecha_actual}
-Ellit Cognitive Core — Documento generado automáticamente
-------------------------------------------------------------
-
-"""
-                documento_final = encabezado + policy_text
-                pdf_filename = f"Politica_{tipo.replace(' ', '_')}.pdf"
-                download_pdf_button(f"Politica_{tipo}", org_name, documento_final, pdf_filename)
-
-            except Exception as e:
-                st.error(f"Error generando la política: {str(e)}")
-
-        if "policy_history" in st.session_state and st.session_state["policy_history"]:
-            st.markdown("---")
-            st.markdown("### Historial de políticas generadas")
-            for item in st.session_state["policy_history"]:
-                tipo_item = item.get("tipo", "Sin tipo")
-                normativa_item = item.get("normativa", "Sin normativa")
-                fecha_item = item.get("fecha", "Sin fecha")
-                org_item = item.get("organizacion", tenant_name)
-                st.markdown(f"""
-                <div style="background:#F8FAFC;
-                            padding:12px;
-                            border-radius:10px;
-                            margin-bottom:8px;
-                            border:1px solid #E2E8F0;">
-                    <b>{tipo_item}</b> — {normativa_item}<br>
-                    {fecha_item} | {org_item}
-                </div>
-                """, unsafe_allow_html=True)
-
-    # ------------------------------------------------------------------
-    # TAB 4 — Ellit Predictive Intelligence (Cognitive Core Only)
-    # ------------------------------------------------------------------
-    with tab4:
-
-        st.markdown("""
-        <style>
-        .dashboard-card {
-            background: #FFFFFF;
-            border-radius: 18px;
-            padding: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
-            border: 1px solid #E2E8F0;
-        }
-        .dashboard-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #0F172A;
-            margin-bottom: 5px;
-        }
-        .dashboard-sub {
-            font-size: 14px;
-            color: #475569;
-            margin-top: -8px;
-        }
-        .metric-box {
-            background: #F8FAFC;
-            border-radius: 14px;
-            padding: 18px;
-            text-align: center;
-            border: 1px solid #E2E8F0;
-        }
-        .metric-label {
-            color: #64748B;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-        }
-        .metric-value {
-            font-size: 22px;
-            font-weight: 600;
-            color: #0F172A;
-            margin-top: 4px;
-        }
-        .section-title {
-            font-weight: 600;
-            font-size: 18px;
-            color: #0F172A;
-            margin-bottom: 12px;
-        }
-        </style>
-        <div class="dashboard-card">
-            <div class="dashboard-title">Ellit Predictive Intelligence</div>
-            <div class="dashboard-sub">Panel ejecutivo de inteligencia viva para CISOs</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # ----------------------------------------------------------------------
-        # Filters
-        # ----------------------------------------------------------------------
-        col1_p, col2_p, col3_p = st.columns(3)
-
-        with col1_p:
-            sector_p = st.selectbox(
-                "Sector",
+        if menu == translate("Radar IA", "AI Radar"):
+            submenu = st.radio(
+                translate("Opciones", "Options"),
                 [
-                    "Banca y Finanzas", "Salud", "Educación",
-                    "Energía", "Retail y E-commerce",
-                    "Tecnología", "Industria",
-                    "Defensa", "Sector Público"
-                ]
+                    translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
+                    translate("Perfil de la organización", "Organization Profile"),
+                    translate("Radar Cognitivo", "Cognitive Radar"),
+                    translate("Madurez SGSI", "ISMS Maturity"),
+                    translate("Informe PDF", "PDF Report")
+                ],
+                label_visibility="collapsed"
             )
 
-        with col2_p:
-            pais = st.text_input("País / Región", "España")
-
-        with col3_p:
-            madurez_p = st.slider("Madurez ENS/ISO (percepción interna)", 1, 5, 3)
-
-        base_costos = {
-            "Banca y Finanzas": 520000,
-            "Salud": 480000,
-            "Educación": 250000,
-            "Energía": 600000,
-            "Retail y E-commerce": 310000,
-            "Tecnología": 400000,
-            "Industria": 350000,
-            "Defensa": 700000,
-            "Sector Público": 300000,
-        }
-
-        costo_promedio = base_costos.get(sector_p, 350000)
-
-        predictive_input = {
-            "sector": sector_p,
-            "region": pais,
-            "madurez": madurez_p,
-            "costo_medio_sector": costo_promedio,
-            "tenant": tenant_name,
-        }
-
-        riesgo_sectorial_val = None
-        impacto_estimado_val = None
-        amenazas_emergentes = []
-        tendencias_list = []
-        recomendaciones_list = []
-
-        # ----------------------------------------------------------------------
-        # Predictive Intelligence Engine
-        # ----------------------------------------------------------------------
-        try:
-            with st.spinner("Generando análisis predictivo con Ellit Cognitive Core..."):
-                predictive_data = generate_predictive_analysis(client, predictive_input)
-
-            if predictive_data:
-                raw_riesgo = predictive_data.get("riesgo_sectorial", "")
-                nums = re.findall(r"\d+", str(raw_riesgo))
-                riesgo_sectorial_val = int(nums[0]) if nums else random.randint(60, 95)
-
-                raw_impacto = predictive_data.get("impacto_estimado", "")
-                nums_i = re.findall(r"\d+", str(raw_impacto).replace(".", "").replace(",", ""))
-
-                impacto_estimado_val = (
-                    float(nums_i[0])
-                    if nums_i
-                    else costo_promedio * (riesgo_sectorial_val / 100) * (1.2 - (madurez_p / 10))
-                )
-
-                amenazas_emergentes = predictive_data.get("amenazas_emergentes", []) or []
-                tendencias_list = predictive_data.get("tendencias", []) or []
-                recomendaciones_list = predictive_data.get("recomendaciones", []) or []
-
-            else:
-                riesgo_sectorial_val = random.randint(60, 95)
-                impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
-
-        except Exception:
-            riesgo_sectorial_val = random.randint(60, 95)
-            impacto_estimado_val = costo_promedio * (riesgo_sectorial_val / 100)
-
-        riesgo_sectorial_val = riesgo_sectorial_val or random.randint(60, 95)
-
-        # ----------------------------------------------------------------------
-        # Session State
-        # ----------------------------------------------------------------------
-        st.session_state["riesgo_sectorial_val"] = riesgo_sectorial_val
-        st.session_state["impacto_estimado_val"] = impacto_estimado_val
-        st.session_state["amenazas_emergentes"] = amenazas_emergentes
-        st.session_state["tendencias_list"] = tendencias_list
-        st.session_state["recomendaciones_list"] = recomendaciones_list
-
-        # ----------------------------------------------------------------------
-        # KPI Cards
-        # ----------------------------------------------------------------------
-        st.markdown('<div class="section-title">Indicadores clave de riesgo</div>', unsafe_allow_html=True)
-        k1, k2, k3, k4 = st.columns(4)
-
-        indicadores_top = [
-            ("Riesgo sectorial estimado", f"{riesgo_sectorial_val:.0f}%"),
-            ("Madurez declarada", f"{madurez_p}/5"),
-            ("Coste medio sectorial (€)", f"{costo_promedio:,.0f}"),
-            ("Impacto potencial (€)", f"{impacto_estimado_val:,.0f}"),
-        ]
-
-        for col, (label, val) in zip([k1, k2, k3, k4], indicadores_top):
-            with col:
-                st.markdown(f"""
-                <div class="metric-box">
-                    <div class="metric-label">{label}</div>
-                    <div class="metric-value">{val}</div>
-                </div>
-                """, unsafe_allow_html=True)
-
-        # ----------------------------------------------------------------------
-        # Cognitive Core Intelligence (map removed)
-        # ----------------------------------------------------------------------
-        c1_p2, c2_p2 = st.columns([2, 1])
-
-        # (Bloque del mapa eliminado por completo)
-
-        with c2_p2:
-            st.markdown(
-                '<div class="section-title">Inteligencia del Cognitive Core</div>',
-                unsafe_allow_html=True
+        elif menu == translate("Monitorización SGSI", "ISMS Monitoring"):
+            submenu = st.radio(
+                translate("Opciones", "Options"),
+                [
+                    translate("Panel general", "General Dashboard"),
+                    translate("Registro histórico", "History Log"),
+                    translate("Evidencias y mantenimiento", "Evidence & Maintenance")
+                ],
+                label_visibility="collapsed"
             )
 
-            if amenazas_emergentes:
-                st.markdown("**Amenazas emergentes sectoriales**")
-                for a in amenazas_emergentes:
-                    st.markdown(f"- {a}")
+        elif menu == translate("Continuidad de Negocio (BCP)", "Business Continuity"):
+            submenu = st.radio(
+                translate("Opciones", "Options"),
+                [
+                    translate("Generador BCP", "BCP Generator"),
+                    translate("Análisis cognitivo", "Cognitive Analysis"),
+                    translate("Simulador de crisis", "Crisis Simulator"),
+                    translate("ELLIT ALERT TREE – Crisis Communication Demo", "ELLIT ALERT TREE – Crisis Communication Demo")
+                ],
+                label_visibility="collapsed"
+            )
 
-            if tendencias_list:
-                st.markdown("**Tendencias globales relevantes**")
-                for t in tendencias_list:
-                    st.markdown(f"- {t}")
+        elif menu == translate("Políticas IA", "AI Policies"):
+            submenu = st.radio(
+                translate("Opciones", "Options"),
+                [
+                    translate("Generador multinormativo", "Multistandard Policy Generator")
+                ],
+                label_visibility="collapsed"
+            )
 
-            if recomendaciones_list:
-                st.markdown("**Recomendaciones estratégicas**")
-                for r in recomendaciones_list:
-                    st.markdown(f"- {r}")
+        elif menu == translate("Predictive Intelligence", "Predictive Intelligence"):
+            submenu = st.radio(
+                translate("Opciones", "Options"),
+                [
+                    translate("Predicción estándar", "Standard Prediction"),
+                    translate("Predicción Prime", "Prime Prediction")
+                ],
+                label_visibility="collapsed"
+            )
+
+        elif menu == translate("Licencias", "Licenses"):
+            submenu = st.radio(
+                translate("Opciones", "Options"),
+                [
+                    translate("Gestión de licencias", "License Management")
+                ],
+                label_visibility="collapsed"
+            )
 
 
-    # ------------------------------------------------------------------
-    # TAB 5 — Licencias y Suscripciones
-    # ------------------------------------------------------------------
-    with tab5:
-        render_licencias_tab()
+    # ===============================================================
+    # RENDER DEL CONTENIDO SEGÚN EL SUBMENÚ
+    # ===============================================================
+
+    content_area = st.container()
+
+    # ---------------------------
+    # RADAR IA
+    # ---------------------------
+    if menu == translate("Radar IA", "AI Radar"):
+
+        if submenu == translate("Cuadro de mando (KPIs)", "Dashboard KPIs"):
+            with content_area:
+                render_radar_kpis()
+
+        elif submenu == translate("Perfil de la organización", "Organization Profile"):
+            with content_area:
+                render_radar_profile()
+
+        elif submenu == translate("Radar Cognitivo", "Cognitive Radar"):
+            with content_area:
+                render_radar_cognitivo()
+
+        elif submenu == translate("Madurez SGSI", "ISMS Maturity"):
+            with content_area:
+                render_radar_madurez()
+
+        elif submenu == translate("Informe PDF", "PDF Report"):
+            with content_area:
+                render_radar_pdf()
+
+    # ---------------------------
+    # MONITORIZACIÓN SGSI (NUEVO MÓDULO 2)
+    # ---------------------------
+    elif menu == translate("Monitorización SGSI", "ISMS Monitoring"):
+
+        if submenu == translate("Panel general", "General Dashboard"):
+            with content_area:
+                render_sgsi_monitor_dashboard()
+
+        elif submenu == translate("Registro histórico", "History Log"):
+            with content_area:
+                render_sgsi_monitor_history()
+
+        elif submenu == translate("Evidencias y mantenimiento", "Evidence & Maintenance"):
+            with content_area:
+                render_sgsi_monitor_evidences()
+
+    # ---------------------------
+    # CONTINUIDAD DE NEGOCIO (BCP)
+    # ---------------------------
+    elif menu == translate("Continuidad de Negocio (BCP)", "Business Continuity"):
+
+        if submenu == translate("Generador BCP", "BCP Generator"):
+            with content_area:
+                render_bcp_generator()
+
+        elif submenu == translate("Análisis cognitivo", "Cognitive Analysis"):
+            with content_area:
+                render_bcp_analisis()
+
+        elif submenu == translate("Simulador de crisis", "Crisis Simulator"):
+            with content_area:
+                render_bcp_simulador()
+
+        elif submenu == translate("ELLIT ALERT TREE – Crisis Communication Demo", "ELLIT ALERT TREE – Crisis Communication Demo"):
+            with content_area:
+                render_bcp_alert_tree()
+
+    # ---------------------------
+    # POLÍTICAS IA
+    # ---------------------------
+    elif menu == translate("Políticas IA", "AI Policies"):
+        if submenu == translate("Generador multinormativo", "Multistandard Policy Generator"):
+            with content_area:
+                render_policies_generator()
+
+    # ---------------------------
+    # PREDICTIVE INTELLIGENCE
+    # ---------------------------
+    elif menu == translate("Predictive Intelligence", "Predictive Intelligence"):
+
+        if submenu == translate("Predicción estándar", "Standard Prediction"):
+            with content_area:
+                render_predictive_standard()
+
+        elif submenu == translate("Predicción Prime", "Prime Prediction"):
+            with content_area:
+                render_predictive_prime()
+
+    # ---------------------------
+    # LICENCIAS
+    # ---------------------------
+    elif menu == translate("Licencias", "Licenses"):
+        if submenu == translate("Gestión de licencias", "License Management"):
+            with content_area:
+                render_licencias_tab()
+
 
 
 # ==============================
