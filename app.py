@@ -44,7 +44,7 @@ from modules.radar_ia import (
     render_radar_cognitivo,
     render_radar_madurez,
     render_radar_pdf,
-    render_radar_normativa_inteligente
+ #    render_radar_normativa_inteligente
 )
 
 
