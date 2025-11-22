@@ -69,7 +69,7 @@ from modules.sgsi_monitoring import (
     render_sgsi_monitor_history,
     render_sgsi_monitor_evidences
 )
-
+from core.database import get_conn
 
 # Desactivar carga de componentes externos antiguos
 st.components.v1.declare_component = lambda *args, **kwargs: None
