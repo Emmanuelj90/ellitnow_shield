@@ -62,6 +62,18 @@ from core.cognitive_core import (
     generate_predictive_analysis,
     compute_sgsi_maturity,
 )
+# ============================
+# IMPORTAR MÓDULO RADAR IA
+# ============================
+from modules.radar_ia import (
+    render_radar_ia,
+    render_radar_kpis,
+    render_radar_profile,
+    render_radar_cognitivo,
+    render_radar_madurez,
+    render_radar_pdf
+)
+
 # Desactivar carga de componentes externos antiguos
 st.components.v1.declare_component = lambda *args, **kwargs: None
 
