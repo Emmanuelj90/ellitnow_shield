@@ -46,13 +46,14 @@ from core.cognitive_core import (
 
 # --- Módulo Radar IA ---
 from modules.radar_ia import (
-    render_radar_ia,
     render_radar_kpis,
     render_radar_profile,
     render_radar_cognitivo,
     render_radar_madurez,
-    render_radar_pdf
+    render_radar_pdf,
+    render_radar_normativa_inteligente
 )
+
 
 # --- Módulo BCP ---
 from modules.bcp import (
@@ -61,6 +62,11 @@ from modules.bcp import (
     render_bcp_simulador,
     render_bcp_alert_tree
 )
+from modules.predictive import (
+    render_predictive_standard,
+    render_predictive_prime
+)
+from modules.policies import render_policies_generator
 
 
 # Desactivar carga de componentes externos antiguos
