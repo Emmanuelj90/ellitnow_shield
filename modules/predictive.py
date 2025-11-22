@@ -6,7 +6,7 @@
 
 import streamlit as st
 from datetime import datetime
-from app import download_pdf_button
+from core.utils import download_pdf_button
 from cognitive_core import (
     predictive_full_forecast,
     predictive_sector_intel,
