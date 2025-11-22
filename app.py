@@ -960,6 +960,15 @@ def render_panel():
             <p>{role.title()} • Ellit Cognitive Core 2025</p>
         </div>
     """, unsafe_allow_html=True)
+    
+# Breadcrumb
+if "breadcrumb" in st.session_state:
+    st.markdown(f"""
+        <div style="margin-top:10px; margin-bottom:20px;
+                    font-size:13px; color:#E2E8F0;">
+            {st.session_state['breadcrumb']}
+        </div>
+    """, unsafe_allow_html=True)
 
 # ===============================================================
 # SIDEBAR CORPORATIVO — MENÚ + SUBMENÚ
@@ -1059,6 +1068,36 @@ with st.sidebar:
             label_visibility="collapsed"
         )
 
+# ==============================================================
+# VALIDACIÓN DE LICENCIAS — ENTERPRISE & PRIME
+# ==============================================================
+
+def require_enterprise():
+    """
+    Bloquea acceso si el tenant NO tiene Enterprise.
+    Super Admin e impersonated SIEMPRE tienen acceso.
+    """
+    role = st.session_state.get("auth_status")
+    if role in ["super_admin", "impersonated"]:
+        return
+
+    if not st.session_state.get("tenant_enterprise", False):
+        st.error("🚫 Este módulo requiere una licencia **Enterprise** activa.")
+        st.stop()
+
+
+def require_prime():
+    """
+    Bloquea acceso si el tenant NO tiene PRIME add-on.
+    Super Admin e impersonated SIEMPRE tienen acceso.
+    """
+    role = st.session_state.get("auth_status")
+    if role in ["super_admin", "impersonated"]:
+        return
+
+    if not st.session_state.get("tenant_prime", False):
+        st.warning("🔒 Este módulo requiere la suscripción **Prime - Predictive Intelligence**.")
+        st.stop()
 
 # ===============================================================
 # RENDER DEL CONTENIDO
