@@ -73,7 +73,8 @@ from modules.policies import render_policies_generator
 st.components.v1.declare_component = lambda *args, **kwargs: None
 
 # Inicializar cliente de OpenAI (asegúrate que exista en secrets.toml)
-client = init_openai(st.secrets["OPENAI_API_KEY"])
+from core.cognitive_core import EllitCognitiveCore
+st.session_state["client"] = EllitCognitiveCore(st.secrets["OPENAI_API_KEY"])
 
 st.markdown("""
     <style>
