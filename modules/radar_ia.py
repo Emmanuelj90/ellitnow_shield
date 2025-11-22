@@ -279,7 +279,7 @@ def render_radar_pdf():
         download_pdf_button("Informe Radar IA", profile.get('organizacion',''), content, pdf_name)
 
 # ============================================================
-#  RADAR IA — BLOQUE 6: Selección inteligente de normativa (NUEVO)
+#  RADAR IA — BLOQUE 6: Selección inteligente de normativa
 # ============================================================
 
 def render_radar_normativa_inteligente():
@@ -315,20 +315,204 @@ def render_radar_normativa_inteligente():
             st.error(f"Error: {e}")
             return
 
+    # Mostrar resultados previos si existen
     result = st.session_state.get("normativa_inteligente", None)
     if not result:
         return
 
     st.markdown("### Normativa principal sugerida")
-    st.success(result.get("normativa_principal","No disponible"))
+    st.success(result.get("normativa_principal", "No disponible"))
 
     st.markdown("### Normativas secundarias")
-    for n in result.get("normativas_secundarias",[]):
+    for n in result.get("normativas_secundarias", []):
         st.markdown(f"- {n}")
 
     st.markdown("### Roadmap 3 / 6 / 12 meses")
-    roadmap = result.get("roadmap",{})
+    roadmap = result.get("roadmap", {})
     for fase, tareas in roadmap.items():
         with st.expander(fase):
             for t in tareas:
                 st.markdown(f"- {t}")
+
+
+# ====================================================
+# 3/3 — RENDER FINAL DEL MÓDULO RADAR IA
+# ====================================================
+
+# -------------------------------------------
+# 🧠 1) RADAR COGNITIVO (ENS / ISO / NIS2)
+# -------------------------------------------
+def render_radar_cognitivo():
+    st.subheader("Radar Cognitivo Multinormativo (ENS / ISO / NIS2)")
+
+    st.markdown("""
+    El motor Ellit Cognitive Core identifica automáticamente:
+    - La normativa más relevante según tu sector
+    - Los controles aplicables
+    - Las brechas actuales basadas en tus KPIs y evidencias
+    - Un radar comparativo entre ENS, ISO 27001 y NIS2
+    """)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        sector = st.selectbox("Sector", [
+            "Banca", "Seguros", "Salud", "Tecnología",
+            "Energía", "Retail", "Educación", "Industrial",
+            "Sector Público", "Defensa", "Startup"
+        ])
+
+    with col2:
+        tamano = st.selectbox("Tamaño organización", ["Pequeña", "Mediana", "Grande"])
+
+    evidencias = st.text_area("Evidencias disponibles")
+    controles = st.text_area("Controles implementados")
+
+    if st.button("Analizar Radar Cognitivo"):
+        context = {
+            "sector": sector,
+            "tamano": tamano,
+            "evidencias": evidencias,
+            "controles": controles
+        }
+
+        with st.spinner("Generando radar cognitivo…"):
+            data = analyze_radar_ia(st.session_state.get("client"), context)
+
+        if not data:
+            st.error("No se pudo generar el radar cognitivo.")
+            return
+
+        st.success("Radar cognitivo completado.")
+
+        indicadores = data.get("indicadores", {})
+        if not indicadores:
+            st.error("Sin indicadores para graficar.")
+            return
+
+        # ---------------------------
+        # RADAR PLOT
+        # ---------------------------
+        labels = list(indicadores.keys())
+        values = list(indicadores.values())
+        num_vars = len(labels)
+
+        angles = [n / float(num_vars) * 2 * pi for n in range(num_vars)]
+        values += values[:1]
+        angles += angles[:1]
+
+        fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+        ax.fill(angles, values, color="#00B4FF", alpha=0.25)
+        ax.plot(angles, values, color="#00B4FF", linewidth=2)
+        ax.set_xticks(angles[:-1])
+        ax.set_xticklabels(labels)
+        ax.set_ylim(0, 100)
+
+        st.pyplot(fig)
+
+        st.markdown("### Recomendaciones Inteligentes (ENS / ISO / NIS2)")
+        for r in data.get("recomendaciones", []):
+            st.markdown(f"- {r}")
+
+
+# -------------------------------------------
+# 🧠 2) EVALUACIÓN DE MADUREZ SGSI (con KPIs)
+# -------------------------------------------
+def render_radar_madurez():
+    st.subheader("Evaluación de Madurez SGSI")
+
+    st.markdown("""
+    Ellit Cognitive Core calcula tu nivel de madurez automáticamente combinando:
+    - KPIs reales del tenant
+    - Evidencias cargadas
+    - Controles implementados
+    - Normativa aplicable (ENS / ISO / NIS2)
+    """)
+
+    evidencias_text = st.text_area(
+        "Evidencias (auditorías, hallazgos, KPIs, etc.)"
+    )
+    controles_text = st.text_area(
+        "Controles implementados"
+    )
+
+    if st.button("Calcular Madurez SGSI"):
+        if not evidencias_text and not controles_text:
+            st.warning("Introduce al menos evidencias o controles.")
+            return
+        
+        with st.spinner("Analizando madurez…"):
+            sgsi = compute_sgsi_maturity(
+                st.session_state.get("client"),
+                evidencias_text,
+                controles_text
+            )
+
+        if not sgsi:
+            st.error("No se pudo calcular la madurez.")
+            return
+
+        nivel = sgsi.get("nivel", "-")
+        valor = sgsi.get("madurez", 0)
+
+        st.metric("Nivel de madurez", f"{nivel} ({valor}%)")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### Fortalezas")
+            for f in sgsi.get("fortalezas", []):
+                st.markdown(f"- {f}")
+
+        with col2:
+            st.markdown("### Debilidades")
+            for d in sgsi.get("debilidades", []):
+                st.markdown(f"- {d}")
+
+        st.markdown("### Acciones Requeridas")
+        for a in sgsi.get("acciones_requeridas", []):
+            st.markdown(f"- {a}")
+
+
+# -------------------------------------------
+# 🧠 3) EXPORTAR INFORME PDF
+# -------------------------------------------
+def render_radar_pdf():
+    st.subheader("Generar Informe PDF")
+
+    st.markdown("""
+    Exporta un informe profesional con:
+    - Indicadores clave
+    - Radar Cognitivo
+    - Nivel de madurez SGSI
+    - Recomendaciones ejecutivas
+    """)
+
+    tenant = st.session_state.get("tenant_name", "Organización")
+    radar_data = st.session_state.get("radar_data", {})
+
+    if not radar_data:
+        st.warning("Primero genera el Radar Cognitivo.")
+        return
+
+    if st.button("Generar Informe PDF"):
+        try:
+            resumen = radar_data.get("analisis", "")
+            indicadores = radar_data.get("indicadores", {})
+
+            texto = [f"Informe Radar IA — {tenant}", ""]
+            texto.append("Indicadores:")
+            for k, v in indicadores.items():
+                texto.append(f"- {k}: {v}%")
+
+            texto.append("")
+            texto.append("Resumen ejecutivo:")
+            texto.append(resumen)
+
+            contenido = "\n".join(texto)
+
+            from app import download_pdf_button
+            download_pdf_button("Informe Radar IA", tenant, contenido, f"RadarIA_{tenant}.pdf")
+
+            st.success("PDF generado correctamente.")
+        except Exception as e:
+            st.error(f"Error al generar PDF: {e}")
+
