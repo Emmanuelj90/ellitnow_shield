@@ -266,36 +266,215 @@ Devuelve solo texto, sin JSON.
 # ==========================================================
 # 4. PREDICTIVE INTELLIGENCE ENGINE
 # ==========================================================
-def generate_predictive_analysis(client, data: dict):
+# ================================================================
+#   ELLIT — PREDICTIVE INTELLIGENCE ENGINE (FUNCIONES DEL CORE)
+#   Forecast · Sector Intelligence · GeoRisk · Correlation Matrix
+# ================================================================
+
+
+def predictive_full_forecast(client, sector: str, region: str):
+    """
+    Forecast 12 meses + índice global de riesgo (GRI)
+    + análisis ejecutivo.
+    """
 
     prompt = f"""
-Eres Ellit Cognitive Core. Genera inteligencia predictiva.
+Eres el motor de Predicción Avanzada de Ellit Cognitive Core.
 
-Entrada:
-{json.dumps(data, indent=2)}
+Genera un análisis predictivo profundo con este formato JSON:
 
-### FORMATO JSON ###
 {{
-  "riesgo_sectorial": "...",
-  "amenazas_emergentes": ["..."],
-  "tendencias": ["..."],
-  "impacto_estimado": "...",
-  "recomendaciones": ["..."]
+  "global_risk_index": number (0-100),
+  "avg_probability": number,
+  "avg_impact": number,
+  "executive_summary": "texto corto",
+  "forecast_12m": [
+      {{
+        "mes": "Enero",
+        "nivel": "Alto/Medio/Bajo",
+        "probabilidad": number,
+        "impacto": number,
+        "descripcion": "texto corto"
+      }}
+  ]
 }}
+
+Sector: {sector}
+Región: {region}
+
+Enfócate en amenazas tecnológicas, operativas, geopolíticas y regulatorias.
 """
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role":"system", "content":"Motor predictivo avanzado para CISOs."},
-            {"role":"user", "content": prompt}
-        ],
-        temperature=0.3,
-        max_tokens=900
+        model="gpt-4.1",
+        messages=[{"role": "system", "content": "Ellit Predictive Core"},
+                  {"role": "user", "content": prompt}]
     )
 
-    raw = response.choices[0].message.content
-    return extract_json(raw)
+    return extract_json(response.choices[0].message.content)
+
+
+
+def predictive_sector_intel(client, sector: str):
+    """
+    Devuelve riesgos típicos del sector + brechas + resumen.
+    """
+
+    prompt = f"""
+Actúa como Ellit Predictive Intelligence – Sector Core.
+
+Genera JSON con:
+
+{{
+  "sector_summary": "texto general del sector",
+  "top_risks": ["riesgo1","riesgo2",...],
+  "sector_gaps": ["brecha1","brecha2",...]
+}}
+
+Sector: {sector}
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4.1",
+        messages=[{"role": "system", "content": "Sector Intelligence Engine"},
+                  {"role": "user", "content": prompt}]
+    )
+
+    return extract_json(response.choices[0].message.content)
+
+
+
+def predictive_geo_exposure(client, region: str):
+    """
+    Analiza exposición geográfica: estabilidad, regulación,
+    factores críticos.
+    """
+
+    prompt = f"""
+Eres el módulo de GeoRisk de Ellit Cognitive Core.
+
+Devuelve JSON:
+
+{{
+  "stability_score": number (0-100),
+  "regulatory_risk": "Bajo/Medio/Alto",
+  "factors": ["factor1","factor2","factor3"]
+}}
+
+Región: {region}
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4.1",
+        messages=[{"role": "system", "content": "GeoRisk Engine"},
+                  {"role": "user", "content": prompt}]
+    )
+
+    return extract_json(response.choices[0].message.content)
+
+
+
+def predictive_correlations(client, sector: str, region: str):
+    """
+    Correlation Engine – PRIME.
+    Devuelve matriz simplificada de correlaciones entre amenazas.
+    """
+
+    prompt = f"""
+Actúa como Ellit PRIME Correlation Engine.
+
+Devuelve un JSON:
+
+{{
+  "Ransomware ↔ Interrupción de servicio": {{
+      "nivel": "Fuerte/Moderada/Débil",
+      "explicacion": "texto corto"
+  }},
+  "Fallo cloud ↔ Cadena de suministro": {{
+      "nivel": "Fuerte/Moderada/Débil",
+      "explicacion": "texto corto"
+  }},
+  "Ciberfraude ↔ Regulación": {{
+      "nivel": "Fuerte/Moderada/Débil",
+      "explicacion": "texto corto"
+  }}
+}}
+
+Sector: {sector}
+Región: {region}
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4.1",
+        messages=[{"role": "system", "content": "Correlation Engine PRIME"},
+                  {"role": "user", "content": prompt}]
+    )
+
+    return extract_json(response.choices[0].message.content)
+
+
+
+def predictive_short_term_analysis(client, sector: str, region: str):
+    """
+    Roadmap 30/60/180 días.
+    """
+
+    prompt = f"""
+Genera un plan ejecutivo 30/60/180 días para el sector y región seleccionados.
+
+Formato JSON:
+
+{{
+  "30 días": ["acción1","acción2"],
+  "60 días": ["acción1","acción2"],
+  "180 días": ["acción1","acción2"]
+}}
+
+Sector: {sector}
+Región: {region}
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4.1",
+        messages=[{"role": "system", "content": "Ellit Short-Term Planner"},
+                  {"role": "user", "content": prompt}]
+    )
+
+    return extract_json(response.choices[0].message.content)
+
+def generate_predictive_analysis(client, data: dict):
+    """
+    Análisis multinormativo inteligente basado en Radar IA.
+    (Usado por: Radar IA → Normativa Inteligente)
+    """
+    prompt = f"""
+Eres Ellit Cognitive Core, módulo de análisis multinormativo.
+
+Analiza el siguiente contexto:
+{json.dumps(data, indent=2)}
+
+Devuelve JSON con este formato:
+
+{
+  "normativa_principal": "ENS / ISO 27001 / NIST / NIS2 / GDPR / DORA",
+  "normativas_secundarias": ["...","..."],
+  "roadmap": {
+    "0-3 meses": ["..."],
+    "3-6 meses": ["..."],
+    "6-12 meses": ["..."]
+  }
+}
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4.1",
+        messages=[
+            {"role": "system", "content": "Ellit Cognitive Core — Normativa Inteligente"},
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    return extract_json(response.choices[0].message.content)
 
 
 
