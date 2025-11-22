@@ -1030,6 +1030,9 @@ def render_panel():
                 ],
                 label_visibility="collapsed"
             )
+            if submenu == translate("Generador multinormativo", "Multistandard Policy Generator"):
+                with content_area:
+                    render_policies_generator()
 
         elif menu == translate("Predictive Intelligence", "Predictive Intelligence"):
             submenu = st.radio(
