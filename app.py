@@ -754,59 +754,20 @@ def render_licencias_tab():
 
     st.markdown("### Activar Licencias")
     render_stripe_checkout()
-        # ===============================
-        # MENÚ PRINCIPAL CONFIG
-        # ===============================
-        main_options = [
-            translate("Radar IA", "AI Radar"),
-            translate("Monitorización SGSI", "ISMS Monitoring"),
-            translate("Continuidad de Negocio (BCP)", "Business Continuity"),
-            translate("Políticas IA", "AI Policies"),
-            translate("Predictive Intelligence", "Predictive Intelligence"),
-            translate("Licencias", "Licenses")
-        ]
 
-        submenu_map = {
-            translate("Radar IA", "AI Radar"): [
-                translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
-                translate("Perfil de la organización", "Organization Profile"),
-                translate("Radar Cognitivo", "Cognitive Radar"),
-                translate("Madurez SGSI", "ISMS Maturity"),
-                translate("Informe PDF", "PDF Report")
-            ],
-            translate("Monitorización SGSI", "ISMS Monitoring"): [
-                translate("Panel general", "General Dashboard"),
-                translate("Registro histórico", "History Log"),
-                translate("Evidencias y mantenimiento", "Evidence & Maintenance")
-            ],
-            translate("Continuidad de Negocio (BCP)", "Business Continuity"): [
-                translate("Generador BCP", "BCP Generator"),
-                translate("Análisis cognitivo", "Cognitive Analysis"),
-                translate("Simulador de crisis", "Crisis Simulator"),
-                translate("ELLIT ALERT TREE – Crisis Communication Demo", "ELLIT ALERT TREE – Crisis Communication Demo")
-            ],
-            translate("Políticas IA", "AI Policies"): [
-                translate("Generador multinormativo", "Multistandard Policy Generator")
-            ],
-            translate("Predictive Intelligence", "Predictive Intelligence"): [
-                translate("Predicción estándar", "Standard Prediction"),
-                translate("Predicción Prime", "Prime Prediction")
-            ],
-            translate("Licencias", "Licenses"): [
-                translate("Gestión de licencias", "License Management")
-            ]
-        }
 
-        # Estado inicial seguro
-        if "menu" not in st.session_state:
-            st.session_state.menu = main_options[0]
+# ==============================
+# EJECUCIÓN PRINCIPAL
+# ==============================
+if st.session_state.get("auth_status"):
 
-        if "submenu" not in st.session_state:
-            st.session_state.submenu = submenu_map[st.session_state.menu][0]
+    # ==============================
+    # SIDEBAR CORPORATIVO
+    # ==============================
+    with st.sidebar:
+        set_language()
 
-        # ===============================
-        # ESTILOS (CSS)
-        # ===============================
+        # Estilos específicos del menú lateral
         st.markdown("""
         <style>
         .ellit-menu-btn {
@@ -846,8 +807,69 @@ def render_licencias_tab():
         </style>
         """, unsafe_allow_html=True)
 
+        # Header del sidebar
+        st.markdown("""
+            <div style="padding:12px 4px; margin-bottom:10px;">
+                <h3 style="margin:0; color:white;">Ellit Cognitive Core</h3>
+                <p style="margin:0; color:#E2E8F0; font-size:13px;">
+                    AI Executive Shield
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+
         # ===============================
-        # MENÚ PRINCIPAL
+        # CONFIGURACIÓN MENÚ PRINCIPAL
+        # ===============================
+        main_options = [
+            translate("Radar IA", "AI Radar"),
+            translate("Monitorización SGSI", "ISMS Monitoring"),
+            translate("Continuidad de Negocio (BCP)", "Business Continuity"),
+            translate("Políticas IA", "AI Policies"),
+            translate("Predictive Intelligence", "Predictive Intelligence"),
+            translate("Licencias", "Licenses")
+        ]
+
+        submenu_map = {
+            translate("Radar IA", "AI Radar"): [
+                translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
+                translate("Perfil de la organización", "Organization Profile"),
+                translate("Radar Cognitivo", "Cognitive Radar"),
+                translate("Madurez SGSI", "ISMS Maturity"),
+                translate("Informe PDF", "PDF Report")
+            ],
+            translate("Monitorización SGSI", "ISMS Monitoring"): [
+                translate("Panel general", "General Dashboard"),
+                translate("Registro histórico", "History Log"),
+                translate("Evidencias y mantenimiento", "Evidence & Maintenance")
+            ],
+            translate("Continuidad de Negocio (BCP)", "Business Continuity"): [
+                translate("Generador BCP", "BCP Generator"),
+                translate("Análisis cognitivo", "Cognitive Analysis"),
+                translate("Simulador de crisis", "Crisis Simulator"),
+                translate("ELLIT ALERT TREE – Crisis Communication Demo",
+                          "ELLIT ALERT TREE – Crisis Communication Demo")
+            ],
+            translate("Políticas IA", "AI Policies"): [
+                translate("Generador multinormativo", "Multistandard Policy Generator")
+            ],
+            translate("Predictive Intelligence", "Predictive Intelligence"): [
+                translate("Predicción estándar", "Standard Prediction"),
+                translate("Predicción Prime", "Prime Prediction")
+            ],
+            translate("Licencias", "Licenses"): [
+                translate("Gestión de licencias", "License Management")
+            ]
+        }
+
+        # Estado inicial seguro
+        if "menu" not in st.session_state:
+            st.session_state.menu = main_options[0]
+
+        if "submenu" not in st.session_state:
+            st.session_state.submenu = submenu_map[st.session_state.menu][0]
+
+        # ===============================
+        # MENÚ PRINCIPAL (BOTONES)
         # ===============================
         for opt in main_options:
             active = (opt == st.session_state.menu)
@@ -858,7 +880,8 @@ def render_licencias_tab():
                 st.session_state.submenu = submenu_map[opt][0]
                 st.rerun()
 
-            st.markdown(f"<div class='{css_class}'>{opt}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='{css_class}'>{opt}</div>",
+                        unsafe_allow_html=True)
 
         # ===============================
         # SUBMENÚ
@@ -871,13 +894,13 @@ def render_licencias_tab():
                 st.session_state.submenu = sub
                 st.rerun()
 
-            st.markdown(f"<div class='{css_sub}'>{sub}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='{css_sub}'>{sub}</div>",
+                        unsafe_allow_html=True)
 
         # ===============================
         # CONTROLES DE ROL
         # ===============================
         render_role_controls()
-
 
     # ==============================
     # PANEL SUPERIOR
@@ -923,7 +946,7 @@ def render_licencias_tab():
                 render_radar_pdf()
 
     # =====================================
-    # SGSI MONITORING (Enterprise)
+    # MONITORIZACIÓN SGSI (Enterprise)
     # =====================================
     elif menu == translate("Monitorización SGSI", "ISMS Monitoring"):
 
@@ -966,7 +989,7 @@ def render_licencias_tab():
                 render_bcp_alert_tree()
 
     # =====================================
-    # POLITICAS IA (Enterprise)
+    # POLÍTICAS IA (Enterprise)
     # =====================================
     elif menu == translate("Políticas IA", "AI Policies"):
 
@@ -977,7 +1000,7 @@ def render_licencias_tab():
                 render_policies_generator()
 
     # =====================================
-    # PREDICTIVE INTELLIGENCE
+    # PREDICTIVE INTELLIGENCE (Enterprise / Prime)
     # =====================================
     elif menu == translate("Predictive Intelligence", "Predictive Intelligence"):
 
@@ -998,13 +1021,11 @@ def render_licencias_tab():
 
         if st.session_state.get("user_role") not in ["super_admin", "partner", "client_admin"]:
             st.warning("No tienes permisos para gestionar licencias.")
-            st.stop()
-
-        if submenu == translate("Gestión de licencias", "License Management"):
-            with content_area:
-                render_licencias_tab()
+        else:
+            if submenu == translate("Gestión de licencias", "License Management"):
+                with content_area:
+                    render_licencias_tab()
 
 else:
-    # Si no hay sesión iniciar login
+    # Sin sesión iniciada: mostrar login
     login_screen()
-
