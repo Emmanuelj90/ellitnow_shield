@@ -818,7 +818,7 @@ if st.session_state.get("auth_status"):
         """, unsafe_allow_html=True)
 
         # ===============================
-        # CONFIGURACIÓN MENÚ PRINCIPAL
+        # MENÚ PRINCIPAL CONFIG
         # ===============================
         main_options = [
             translate("Radar IA", "AI Radar"),
@@ -861,7 +861,9 @@ if st.session_state.get("auth_status"):
             ]
         }
 
-        # Estado inicial seguro
+        # ===============================
+        # ESTADO INICIAL
+        # ===============================
         if "menu" not in st.session_state:
             st.session_state.menu = main_options[0]
 
@@ -869,33 +871,67 @@ if st.session_state.get("auth_status"):
             st.session_state.submenu = submenu_map[st.session_state.menu][0]
 
         # ===============================
-        # MENÚ PRINCIPAL (BOTONES)
+        # CSS MENÚ LATERAL
+        # ===============================
+        st.markdown("""
+        <style>
+        .ellit-btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #1A4472;
+            background: #0F355F;
+            color: white;
+            text-align: left;
+            margin-bottom: 6px;
+        }
+        .ellit-btn:hover {
+            background:#1A4472;
+        }
+        .ellit-btn-active {
+            background: #D8278A !important;
+            border-color: #FF0080 !important;
+            font-weight: 700;
+        }
+        .submenu-item {
+            padding: 6px 10px;
+            margin-left: 12px;
+            color: #E2E8F0;
+            border-left: 2px solid #1A4472;
+        }
+        .submenu-item:hover {
+            color: white;
+        }
+        .submenu-active {
+            color: #FF0080 !important;
+            border-color: #FF0080 !important;
+            font-weight: 700;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # ===============================
+        # MENÚ PRINCIPAL
         # ===============================
         for opt in main_options:
             active = (opt == st.session_state.menu)
-            css_class = "ellit-menu-btn-active" if active else "ellit-menu-btn"
+            css_class = "ellit-btn-active" if active else "ellit-btn"
 
             if st.button(opt, key=f"menu_{opt}"):
                 st.session_state.menu = opt
                 st.session_state.submenu = submenu_map[opt][0]
                 st.rerun()
 
-            st.markdown(f"<div class='{css_class}'>{opt}</div>",
-                        unsafe_allow_html=True)
-
         # ===============================
         # SUBMENÚ
         # ===============================
         for sub in submenu_map[st.session_state.menu]:
             is_active = (sub == st.session_state.submenu)
-            css_sub = "ellit-submenu-item ellit-submenu-active" if is_active else "ellit-submenu-item"
+            css_class = "submenu-item submenu-active" if is_active else "submenu-item"
 
             if st.button(sub, key=f"submenu_{sub}"):
                 st.session_state.submenu = sub
                 st.rerun()
-
-            st.markdown(f"<div class='{css_sub}'>{sub}</div>",
-                        unsafe_allow_html=True)
 
         # ===============================
         # CONTROLES DE ROL
