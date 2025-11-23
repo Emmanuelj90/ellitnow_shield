@@ -1253,7 +1253,6 @@ def render_stripe_checkout():
 def render_licencias_tab():
     st.subheader("Licencias y suscripciones — gestión de tenants y activaciones")
     st.write("Administra o activa tus licencias reales a través de Stripe Checkout.")
-
     conn = get_conn()
     tenants_df = pd.read_sql_query("""
         SELECT name AS Tenant, email AS Email,
@@ -1262,12 +1261,9 @@ def render_licencias_tab():
         FROM tenants ORDER BY created_at DESC
     """, conn)
     conn.close()
-
     if not tenants_df.empty:
         st.dataframe(tenants_df, use_container_width=True)
     else:
         st.info("No hay tenants registrados aún.")
-
     st.markdown("### Activación de licencias")
     render_stripe_checkout()
-een()
