@@ -783,8 +783,7 @@ def render_licencias_tab():
                 translate("Generador BCP", "BCP Generator"),
                 translate("Análisis cognitivo", "Cognitive Analysis"),
                 translate("Simulador de crisis", "Crisis Simulator"),
-                translate("ELLIT ALERT TREE – Crisis Communication Demo",
-                          "ELLIT ALERT TREE – Crisis Communication Demo")
+                translate("ELLIT ALERT TREE – Crisis Communication Demo", "ELLIT ALERT TREE – Crisis Communication Demo")
             ],
             translate("Políticas IA", "AI Policies"): [
                 translate("Generador multinormativo", "Multistandard Policy Generator")
@@ -810,7 +809,6 @@ def render_licencias_tab():
         # ===============================
         st.markdown("""
         <style>
-
         .ellit-menu-btn {
             width: 100%;
             padding: 10px 14px;
@@ -822,33 +820,28 @@ def render_licencias_tab():
             font-weight: 500;
             text-align: left;
         }
-
         .ellit-menu-btn:hover {
             background: #1A4472;
         }
-
         .ellit-menu-btn-active {
-            background: #D8278A !important;
-            border-color: #FF0080 !important;
-            font-weight: 700 !important;
-            color: white !important;
+            background: #D8278A;
+            border-color: #FF0080;
+            font-weight: 700;
+            color: white;
         }
-
         .ellit-submenu-item {
             padding: 6px 10px;
             margin-left: 12px;
             border-left: 2px solid #1A4472;
             color: #E2E8F0;
         }
-
         .ellit-submenu-item:hover {
             color: white;
         }
-
         .ellit-submenu-active {
-            color: #FF0080 !important;
+            color: #FF0080;
             font-weight: 700;
-            border-left: 2px solid #FF0080 !important;
+            border-left: 2px solid #FF0080;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -865,25 +858,20 @@ def render_licencias_tab():
                 st.session_state.submenu = submenu_map[opt][0]
                 st.rerun()
 
-            st.markdown(f"<div class='{css_class}'>{opt}</div>",
-                        unsafe_allow_html=True)
+            st.markdown(f"<div class='{css_class}'>{opt}</div>", unsafe_allow_html=True)
 
         # ===============================
         # SUBMENÚ
         # ===============================
         for sub in submenu_map[st.session_state.menu]:
-
             is_active = (sub == st.session_state.submenu)
-            css_sub = ("ellit-submenu-item ellit-submenu-active"
-                       if is_active
-                       else "ellit-submenu-item")
+            css_sub = "ellit-submenu-item ellit-submenu-active" if is_active else "ellit-submenu-item"
 
             if st.button(sub, key=f"submenu_{sub}"):
                 st.session_state.submenu = sub
                 st.rerun()
 
-            st.markdown(f"<div class='{css_sub}'>{sub}</div>",
-                        unsafe_allow_html=True)
+            st.markdown(f"<div class='{css_sub}'>{sub}</div>", unsafe_allow_html=True)
 
         # ===============================
         # CONTROLES DE ROL
