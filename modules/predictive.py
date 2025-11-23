@@ -7,13 +7,13 @@
 import streamlit as st
 from datetime import datetime
 from core.utils import download_pdf_button
-from cognitive_core import (
-    predictive_full_forecast,
-    predictive_sector_intel,
-    predictive_geo_exposure,
-    predictive_correlations,
-    predictive_short_term_analysis
+from core.cognitive_core import (
+    predictive_standard_engine,
+    predictive_prime_engine,
+    generate_predictive_analysis,
+    extract_json
 )
+
 
 
 # ==========================================================
