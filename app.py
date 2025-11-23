@@ -1205,7 +1205,7 @@ def render_licencias_tab():
 if st.session_state.get("auth_status"):
 
     # ===============================================================
-    # SIDEBAR CORPORATIVO — SAAS PRO
+    # SIDEBAR CORPORATIVO — SAAS PRO (MENÚ + SUBMENÚ)
     # ===============================================================
     with st.sidebar:
 
@@ -1216,20 +1216,33 @@ if st.session_state.get("auth_status"):
         # -----------------------
         st.markdown("""
             <style>
+            /* Sidebar base */
             section[data-testid="stSidebar"] {
                 background: #0B2A55;
                 padding: 20px 18px;
                 border-right: 1px solid #4C5D7A;
                 color: white !important;
             }
+            /* Header */
             .ellit-sidebar-header {
                 background: linear-gradient(135deg, #0B2A55 0%, #0048FF 100%);
                 border-radius: 14px;
                 padding: 18px;
+                text-align: left;
                 margin-bottom: 20px;
             }
-            .ellit-sidebar-header h3 { color: white !important; margin: 0; font-size: 20px; font-weight: 700; }
-            .ellit-sidebar-header p { color: #E2E8F0 !important; margin: 0; font-size: 12px; }
+            .ellit-sidebar-header h3 {
+                color: white !important;
+                margin: 0;
+                font-size: 20px;
+                font-weight: 700;
+            }
+            .ellit-sidebar-header p {
+                color: #E2E8F0 !important;
+                margin: 0;
+                font-size: 12px;
+            }
+            /* Botón principal */
             .ellit-menu-btn {
                 padding: 12px 16px;
                 border-radius: 12px;
@@ -1241,27 +1254,45 @@ if st.session_state.get("auth_status"):
                 cursor: pointer;
                 transition: all .18s ease;
             }
-            .ellit-menu-btn:hover { background: #1A4472; border-color: #0048FF; }
+            .ellit-menu-btn:hover {
+                background: #1A4472;
+                border-color: #0048FF;
+            }
+            /* Botón activo */
             .ellit-menu-btn-active {
                 background: #D8278A !important;
                 border: 1px solid #FF0080 !important;
                 color: white !important;
                 box-shadow: 0 0 6px rgba(255,0,128,0.4);
             }
-            .ellit-submenu { margin-left: 10px; margin-top: 8px; border-left: 2px solid #D8278A; padding-left: 12px; }
+            /* Submenú */
+            .ellit-submenu {
+                margin-left: 10px;
+                margin-top: 8px;
+                border-left: 2px solid #D8278A;
+                padding-left: 12px;
+            }
             .ellit-submenu a {
                 padding: 6px 0;
                 display: block;
                 color: #E2E8F0 !important;
                 font-size: 13px;
+                text-decoration: none;
+                transition: 0.15s ease;
             }
-            .ellit-submenu a:hover { color: white !important; transform: translateX(3px); }
-            .ellit-submenu-active { color: #FF0080 !important; font-weight: 700; }
+            .ellit-submenu a:hover {
+                color: white !important;
+                transform: translateX(3px);
+            }
+            .ellit-submenu-active {
+                color: #FF0080 !important;
+                font-weight: 700;
+            }
             </style>
         """, unsafe_allow_html=True)
 
         # -----------------------
-        # HEADER
+        # HEADER ELLIT
         # -----------------------
         st.markdown("""
             <div class="ellit-sidebar-header">
@@ -1270,9 +1301,10 @@ if st.session_state.get("auth_status"):
             </div>
         """, unsafe_allow_html=True)
 
-        # -----------------------
-        # MENÚ PRINCIPAL
-        # -----------------------
+
+        # =========================================================
+        # SISTEMA NUEVO DE MENÚ (reemplaza st.radio)
+        # =========================================================
         main_options = [
             translate("Radar IA", "AI Radar"),
             translate("Monitorización SGSI", "ISMS Monitoring"),
@@ -1299,7 +1331,8 @@ if st.session_state.get("auth_status"):
                 translate("Generador BCP", "BCP Generator"),
                 translate("Análisis cognitivo", "Cognitive Analysis"),
                 translate("Simulador de crisis", "Crisis Simulator"),
-                translate("ELLIT ALERT TREE – Crisis Communication Demo", "ELLIT ALERT TREE – Crisis Communication Demo")
+                translate("ELLIT ALERT TREE – Crisis Communication Demo",
+                        "ELLIT ALERT TREE – Crisis Communication Demo")
             ],
             translate("Políticas IA", "AI Policies"): [
                 translate("Generador multinormativo", "Multistandard Policy Generator")
@@ -1314,16 +1347,16 @@ if st.session_state.get("auth_status"):
         }
 
         # -----------------------
-        # VARIABLES DE ESTADO
+        # Variables de estado
         # -----------------------
         if "menu" not in st.session_state:
             st.session_state.menu = main_options[0]
 
         if "submenu" not in st.session_state:
-            st.session_state.submenu = submenu_map[main_options[0]][0]
+            st.session_state.submenu = submenu_map[st.session_state.menu][0]
 
         # -----------------------
-        # RENDER MENÚ PRINCIPAL
+        # Botones del menú principal
         # -----------------------
         for opt in main_options:
             is_active = (opt == st.session_state.menu)
@@ -1335,6 +1368,7 @@ if st.session_state.get("auth_status"):
                 st.rerun()
 
             st.markdown(f"<div class='{css_class}'>{opt}</div>", unsafe_allow_html=True)
+
 
         # -----------------------
         # SUBMENÚ
@@ -1352,18 +1386,18 @@ if st.session_state.get("auth_status"):
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        menu = st.session_state.menu
-        submenu = st.session_state.submenu
-
-        # Controles de rol
-        if st.session_state.auth_status in ["super_admin", "impersonated", "partner"]:
-            render_role_controls()
-
     # -----------------------
-    # PANEL SUPERIOR
+    # Exponer al sistema global
     # -----------------------
+    menu = st.session_state.menu
+    submenu = st.session_state.submenu
+
+    # Render del panel superior
     render_panel()
+
+    # Roles
+    if st.session_state.auth_status in ["super_admin", "impersonated", "partner"]:
+        render_role_controls()
 
 else:
     login_screen()
-
