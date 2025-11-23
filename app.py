@@ -870,12 +870,14 @@ if st.session_state.get("auth_status"):
             active = (opt == st.session_state.menu)
             css = "ellit-menu-btn-active" if active else "ellit-menu-btn"
 
+            # Render del botón ESTÉTICO, pero manejado por streamlit
             if st.button(opt, key=f"main_{opt}"):
                 st.session_state.menu = opt
                 st.session_state.submenu = submenu_map[opt][0]
                 st.rerun()
 
-            st.markdown(f"<div class='{css}'>{opt}</div>", unsafe_allow_html=True)
+# NO renderizamos el DIV extra. El botón ya tendrá el estilo aplicado por CSS.
+
 
         # SUBMENÚ
         st.markdown("<div class='ellit-submenu'>", unsafe_allow_html=True)
@@ -885,9 +887,10 @@ if st.session_state.get("auth_status"):
 
             if st.button(sub, key=f"sub_{sub}"):
                 st.session_state.submenu = sub
-                st.rerun()
+            st.rerun()
 
-            st.markdown(f"<a class='{sub_active}'>{sub}</a>", unsafe_allow_html=True)
+# Quitar el <a>. No se necesita.
+
 
         st.markdown("</div>", unsafe_allow_html=True)
 
