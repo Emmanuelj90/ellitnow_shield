@@ -754,69 +754,9 @@ def render_licencias_tab():
 
     st.markdown("### Activar Licencias")
     render_stripe_checkout()
-# ==============================
-# EJECUCION PRINCIPAL
-# ==============================
-
-if st.session_state.get("auth_status"):
-
-    # ============================
-    # SIDEBAR CORPORATIVO
-    # ============================
-    with st.sidebar:
-
-        set_language()
-
-        st.markdown("""
-            <style>
-            .ellit-menu-btn {
-                padding: 10px 14px;
-                margin-bottom: 6px;
-                border-radius: 10px;
-                background: #0F355F;
-                border: 1px solid #1A4472;
-                color: #E2E8F0;
-                cursor: pointer;
-                text-align: left;
-                transition: .15s;
-            }
-            .ellit-menu-btn:hover {
-                background: #1A4472;
-            }
-            .ellit-menu-btn-active {
-                background: #D8278A;
-                border-color: #FF0080;
-                color: white;
-                font-weight: 700;
-            }
-            .ellit-submenu a {
-                color: #E2E8F0;
-                text-decoration: none;
-                display: block;
-                padding: 6px 0;
-            }
-            .ellit-submenu a:hover {
-                color: white;
-                transform: translateX(4px);
-            }
-            .ellit-submenu-active {
-                color: #FF0080 !important;
-                font-weight: 700;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-
-        # Header
-        st.markdown("""
-            <div style="padding:12px 4px; margin-bottom:10px;">
-                <h3 style="margin:0; color:white;">Ellit Cognitive Core</h3>
-                <p style="margin:0; color:#E2E8F0; font-size:13px;">
-                    AI Executive Shield
-                </p>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # MENU PRINCIPAL
+        # ===============================
+        # MENÚ PRINCIPAL CONFIG
+        # ===============================
         main_options = [
             translate("Radar IA", "AI Radar"),
             translate("Monitorización SGSI", "ISMS Monitoring"),
@@ -858,44 +798,94 @@ if st.session_state.get("auth_status"):
             ]
         }
 
-        # Estados iniciales
+        # Estado inicial seguro
         if "menu" not in st.session_state:
             st.session_state.menu = main_options[0]
 
         if "submenu" not in st.session_state:
             st.session_state.submenu = submenu_map[st.session_state.menu][0]
 
-        # Render del menú principal
+        # ===============================
+        # ESTILOS (CSS)
+        # ===============================
+        st.markdown("""
+        <style>
+        .ellit-menu-btn {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            border: 1px solid #1A4472;
+            background: #0F355F;
+            color: white;
+            font-weight: 500;
+            text-align: left;
+        }
+        .ellit-menu-btn:hover {
+            background: #1A4472;
+        }
+        .ellit-menu-btn-active {
+            background: #D8278A !important;
+            border-color: #FF0080 !important;
+            font-weight: 700 !important;
+            color: white !important;
+        }
+
+        /* Submenú */
+        .ellit-submenu-item {
+            padding: 6px 10px;
+            margin-left: 12px;
+            border-left: 2px solid #1A4472;
+            color: #E2E8F0;
+        }
+        .ellit-submenu-item:hover {
+            color: white;
+        }
+        .ellit-submenu-active {
+            color: #FF0080 !important;
+            font-weight: 700;
+            border-left: 2px solid #FF0080 !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # ===============================
+        # MENÚ PRINCIPAL (BOTONES)
+        # ===============================
         for opt in main_options:
             active = (opt == st.session_state.menu)
-            css = "ellit-menu-btn-active" if active else "ellit-menu-btn"
+            css_class = "ellit-menu-btn-active" if active else "ellit-menu-btn"
 
-            # Render del botón ESTÉTICO, pero manejado por streamlit
-            if st.button(opt, key=f"main_{opt}"):
+            if st.button(opt, key=f"menu_{opt}"):
                 st.session_state.menu = opt
                 st.session_state.submenu = submenu_map[opt][0]
                 st.rerun()
 
-# NO renderizamos el DIV extra. El botón ya tendrá el estilo aplicado por CSS.
+            st.markdown(f"<div class='{css_class}'>{opt}</div>",
+                        unsafe_allow_html=True)
 
-
+        # ===============================
         # SUBMENÚ
-        st.markdown("<div class='ellit-submenu'>", unsafe_allow_html=True)
-
+        # ===============================
         for sub in submenu_map[st.session_state.menu]:
-            sub_active = "ellit-submenu-active" if sub == st.session_state.submenu else ""
 
-            if st.button(sub, key=f"sub_{sub}"):
+            is_active = (sub == st.session_state.submenu)
+            css_sub = ("ellit-submenu-item ellit-submenu-active"
+                       if is_active
+                       else "ellit-submenu-item")
+
+            if st.button(sub, key=f"submenu_{sub}"):
                 st.session_state.submenu = sub
-            st.rerun()
+                st.rerun()
 
-# Quitar el <a>. No se necesita.
+            st.markdown(f"<div class='{css_sub}'>{sub}</div>",
+                        unsafe_allow_html=True)
 
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        # Controles de rol (superadmin / partner / impersonacion)
+        # ===============================
+        # ROLES (superadmin / partners)
+        # ===============================
         render_role_controls()
+
 
     # ==============================
     # PANEL SUPERIOR
