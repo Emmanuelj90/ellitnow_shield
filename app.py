@@ -752,6 +752,7 @@ def get_partner_clients(partner_id):
         conn.close()
     return clients
 
+
 def impersonate_tenant(target_tenant_id):
     if st.session_state.get("auth_status") != "super_admin":
         st.error("No tienes permiso para impersonar tenants.")
@@ -759,7 +760,11 @@ def impersonate_tenant(target_tenant_id):
 
     conn = get_conn()
     c = conn.cursor()
-    c.execute("SELECT id, name, email, primary_color FROM tenants WHERE id = ?", (target_tenant_id,))
+    c.execute("""
+        SELECT id, name, email, primary_color
+        FROM tenants
+        WHERE id = ?
+    """, (target_tenant_id,))
     tenant = c.fetchone()
     conn.close()
 
@@ -770,21 +775,28 @@ def impersonate_tenant(target_tenant_id):
             "email": tenant[2],
             "primary_color": tenant[3] or "#FF0080",
         }
-        st.session_state["auth_status"] = "impersonated"
-        st.session_state["tenant_id"] = tenant[0]
-        st.session_state["tenant_name"] = tenant[1]
-        st.session_state["primary_color"] = tenant[3] or "#FF0080"
+
+        st.session_state.update({
+            "auth_status": "impersonated",
+            "tenant_id": tenant[0],
+            "tenant_name": tenant[1],
+            "primary_color": tenant[3] or "#FF0080",
+        })
+
         st.success(f"Ahora estás viendo como: {tenant[1]}")
         st.rerun()
     else:
         st.error("Tenant no encontrado.")
 
+
 def stop_impersonation():
     if "impersonated_tenant" in st.session_state:
         del st.session_state["impersonated_tenant"]
+
     st.session_state["auth_status"] = "super_admin"
     st.sidebar.success("Volviste al modo Super Admin")
     st.rerun()
+
 
 def render_role_controls():
     role = st.session_state.get("auth_status")
@@ -793,19 +805,27 @@ def render_role_controls():
     # SUPER ADMIN
     if role == "super_admin":
         st.sidebar.markdown("### Impersonación de Tenants")
+
         conn = get_conn()
-        tenants_df = pd.read_sql_query("SELECT id, name FROM tenants ORDER BY name ASC", conn)
+        tenants_df = pd.read_sql_query(
+            "SELECT id, name FROM tenants ORDER BY name ASC", conn
+        )
         conn.close()
 
         if tenants_df.empty:
             st.sidebar.info("No hay tenants disponibles.")
         else:
-            tenant_options = {row["name"]: row["id"] for _, row in tenants_df.iterrows()}
+            tenant_options = {
+                row["name"]: row["id"]
+                for _, row in tenants_df.iterrows()
+            }
+
             target = st.sidebar.selectbox(
                 "Selecciona un tenant para ver como",
                 list(tenant_options.keys()),
-                key=f"impersonation_selectbox_{uuid.uuid4()}"
+                key="impersonation_selectbox"
             )
+
             if st.sidebar.button("Ver como este tenant"):
                 impersonate_tenant(tenant_options[target])
 
@@ -823,24 +843,29 @@ def render_role_controls():
                 st.sidebar.error("Nombre y email son obligatorios.")
             else:
                 tenant_type = "partner" if tipo_tenant == "Partner" else "client"
-                parent_id = None
-                tenant_id, user_id, token = create_tenant_with_admin(nombre, email, tenant_type, parent_id)
+                tenant_id, user_id, token = create_tenant_with_admin(
+                    nombre, email, tenant_type
+                )
                 st.sidebar.success(f"Tenant '{nombre}' creado correctamente.")
-                st.sidebar.write("Token de primer acceso para el administrador:")
+                st.sidebar.write("Token de primer acceso del administrador:")
                 st.sidebar.code(token, language="bash")
 
     # IMPERSONATED
     elif role == "impersonated":
         tenant = st.session_state.get("impersonated_tenant", {})
-        st.sidebar.markdown(f"### Modo Impersonación\nViendo como: **{tenant.get('name','')}**")
+        st.sidebar.markdown(
+            f"### Modo Impersonación\nViendo como: **{tenant.get('name','')}**"
+        )
         if st.sidebar.button("Volver a Super Admin"):
             stop_impersonation()
 
     # PARTNER
     elif role == "partner":
         st.sidebar.markdown("### Tus clientes")
+
         partner_id = st.session_state.get("tenant_id")
         clients = get_partner_clients(partner_id)
+
         if clients:
             for c in clients:
                 status = "Activo" if c[3] == 1 else "Inactivo"
@@ -850,12 +875,16 @@ def render_role_controls():
 
         st.sidebar.markdown("---")
         st.sidebar.subheader("Crear cliente")
+
         with st.sidebar.form("create_client_form"):
             name = st.text_input("Nombre del cliente")
             email = st.text_input("Correo administrador")
             submitted = st.form_submit_button("Crear cliente")
+
         if submitted and name and email:
-            tenant_id, user_id, token = create_tenant_with_admin(name, email, "client", parent_tenant_id=partner_id)
+            tenant_id, user_id, token = create_tenant_with_admin(
+                name, email, "client", parent_tenant_id=partner_id
+            )
             st.sidebar.success(f"Cliente '{name}' creado correctamente.")
             st.sidebar.write("Token de primer acceso del administrador:")
             st.sidebar.code(token, language="bash")
@@ -864,23 +893,24 @@ def render_role_controls():
     elif role == "demo":
         st.sidebar.markdown("### Modo demo")
         st.sidebar.info("Estás usando el entorno de demostración comercial.")
+
         if st.sidebar.button("Cerrar sesión demo"):
-            for k in ["auth_status", "user_role", "user_id", "tenant_id", "tenant_name", "user_email"]:
+            for k in [
+                "auth_status", "user_role", "user_id",
+                "tenant_id", "tenant_name", "user_email"
+            ]:
                 st.session_state[k] = None
             st.rerun()
 
 
 # ==============================
-# PANEL PRINCIPAL (NAVEGACIÓN LATERAL PRO)
+# PANEL PRINCIPAL / HEADER
 # ==============================
 def render_panel():
     role = st.session_state.get("auth_status", "demo")
     tenant_name = st.session_state.get("tenant_name", "AI Executive Shield")
     primary_color = st.session_state.get("primary_color", "#FF0080")
 
-    # ---------------------------------------
-    # HEADER
-    # ---------------------------------------
     st.markdown(f"""
         <div style="
             background: linear-gradient(135deg, {primary_color} 0%, #00B4FF 100%);
@@ -889,29 +919,30 @@ def render_panel():
             <p>{role.title()} • Ellit Cognitive Core 2025</p>
         </div>
     """, unsafe_allow_html=True)
-    
-    # ---------- Breadcrumb ----------
+
+    if "menu" in st.session_state and "submenu" in st.session_state:
+        st.session_state["breadcrumb"] = (
+            f"{st.session_state.menu} → {st.session_state.submenu}"
+        )
+
     if "breadcrumb" in st.session_state:
-        st.markdown(f"""
-            <div style="margin-top:10px; margin-bottom:20px;
-                        font-size:13px; color:#E2E8F0;">
+        st.markdown(
+            f"""
+            <div style="margin-top:10px;margin-bottom:20px;
+                        font-size:13px;color:#E2E8F0;">
                 {st.session_state['breadcrumb']}
             </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
 
-# ==============================================================
-# VALIDACIÓN DE LICENCIAS — ENTERPRISE & PRIME
-# ==============================================================
-
+# ==============================
+# VALIDACIÓN DE LICENCIAS
+# ==============================
 def require_enterprise():
-    """
-    Bloquea acceso si el tenant NO tiene Enterprise.
-    Super Admin e impersonated SIEMPRE tienen acceso.
-    """
     role = st.session_state.get("auth_status")
 
-    # super_admin e impersonated siempre pueden usarlo
     if role in ["super_admin", "impersonated"]:
         return
 
@@ -921,10 +952,6 @@ def require_enterprise():
 
 
 def require_prime():
-    """
-    Bloquea acceso si el tenant NO tiene PRIME add-on.
-    Super Admin e impersonated SIEMPRE tienen acceso.
-    """
     role = st.session_state.get("auth_status")
 
     if role in ["super_admin", "impersonated"]:
@@ -934,123 +961,141 @@ def require_prime():
         st.warning("🔒 Este módulo requiere la suscripción **Prime - Predictive Intelligence**.")
         st.stop()
 
+
 # ===============================================================
 # RENDER DEL CONTENIDO
 # ===============================================================
+
+# Obtención segura de los valores del menú
+menu = st.session_state.get("menu")
+submenu = st.session_state.get("submenu")
+
+# Si no hay menú aún (usuario sin login)
+if not menu:
+    st.stop()
+
 content_area = st.container()
+
 # ---------------------------------------------------------------
 # BREADCRUMB DINÁMICO
 # ---------------------------------------------------------------
-if st.session_state.get("menu") and st.session_state.get("submenu"):
-    menu = st.session_state["menu"]
-    submenu = st.session_state["submenu"]
+if menu and submenu:
     st.session_state["breadcrumb"] = f"{menu} → {submenu}"
 
 
-# ---------------------------
-# RADAR IA (requiere Enterprise)
-# ---------------------------
+# ===============================================================
+# RADAR IA (Enterprise)
+# ===============================================================
 if menu == translate("Radar IA", "AI Radar"):
 
-    require_enterprise()  # 🔒 IMPORTANTE
+    require_enterprise()
 
     if submenu == translate("Cuadro de mando (KPIs)", "Dashboard KPIs"):
-        with content_area: 
+        with content_area:
             render_radar_kpis()
 
     elif submenu == translate("Perfil de la organización", "Organization Profile"):
-        with content_area: 
+        with content_area:
             render_radar_profile()
 
     elif submenu == translate("Radar Cognitivo", "Cognitive Radar"):
-        with content_area: 
+        with content_area:
             render_radar_cognitivo()
 
     elif submenu == translate("Madurez SGSI", "ISMS Maturity"):
-        with content_area: 
+        with content_area:
             render_radar_madurez()
 
     elif submenu == translate("Informe PDF", "PDF Report"):
-        with content_area: 
+        with content_area:
             render_radar_pdf()
 
 
-# ---------------------------
-# SGSI Monitoring (Enterprise)
-# ---------------------------
+# ===============================================================
+# SGSI MONITORING (Enterprise)
+# ===============================================================
 elif menu == translate("Monitorización SGSI", "ISMS Monitoring"):
 
-    require_enterprise()  # 🔒 IMPORTANTE
+    require_enterprise()
 
     if submenu == translate("Panel general", "General Dashboard"):
-        with content_area: 
+        with content_area:
             render_sgsi_monitor_dashboard()
 
     elif submenu == translate("Registro histórico", "History Log"):
-        with content_area: 
+        with content_area:
             render_sgsi_monitor_history()
 
     elif submenu == translate("Evidencias y mantenimiento", "Evidence & Maintenance"):
-        with content_area: 
+        with content_area:
             render_sgsi_monitor_evidences()
 
 
-# ---------------------------
+# ===============================================================
 # BCP (Enterprise)
-# ---------------------------
+# ===============================================================
 elif menu == translate("Continuidad de Negocio (BCP)", "Business Continuity"):
 
-    require_enterprise()  # 🔒 IMPORTANTE
+    require_enterprise()
 
     if submenu == translate("Generador BCP", "BCP Generator"):
-        with content_area: render_bcp_generator()
+        with content_area:
+            render_bcp_generator()
 
     elif submenu == translate("Análisis cognitivo", "Cognitive Analysis"):
-        with content_area: render_bcp_analisis()
+        with content_area:
+            render_bcp_analisis()
 
     elif submenu == translate("Simulador de crisis", "Crisis Simulator"):
-        with content_area: render_bcp_simulador()
+        with content_area:
+            render_bcp_simulador()
 
-    elif submenu == translate("ELLIT ALERT TREE – Crisis Communication Demo", "ELLIT ALERT TREE – Crisis Communication Demo"):
-        with content_area: render_bcp_alert_tree()
+    elif submenu == translate("ELLIT ALERT TREE – Crisis Communication Demo",
+                              "ELLIT ALERT TREE – Crisis Communication Demo"):
+        with content_area:
+            render_bcp_alert_tree()
 
-# ---------------------------
+
+# ===============================================================
 # POLÍTICAS IA (Enterprise)
-# ---------------------------
+# ===============================================================
 elif menu == translate("Políticas IA", "AI Policies"):
 
-    require_enterprise()  # 🔒 IMPORTANTE
+    require_enterprise()
 
     if submenu == translate("Generador multinormativo", "Multistandard Policy Generator"):
-        with content_area: render_policies_generator()
+        with content_area:
+            render_policies_generator()
 
-# ---------------------------
-# PREDICTIVE INTELLIGENCE
-# ---------------------------
+
+# ===============================================================
+# PREDICTIVE INTELLIGENCE (Enterprise / Prime)
+# ===============================================================
 elif menu == translate("Predictive Intelligence", "Predictive Intelligence"):
 
     if submenu == translate("Predicción estándar", "Standard Prediction"):
-        require_enterprise()  # standard prediction requiere enterprise
-        with content_area: render_predictive_standard()
+        require_enterprise()
+        with content_area:
+            render_predictive_standard()
 
     elif submenu == translate("Predicción Prime", "Prime Prediction"):
-        require_prime()  # 🔮 Prime add-on
-        with content_area: render_predictive_prime()
+        require_prime()
+        with content_area:
+            render_predictive_prime()
 
-# ---------------------------
-# LICENCIAS
-# ---------------------------
+
+# ===============================================================
+# LICENCIAS (solo super_admin, partner o client_admin)
+# ===============================================================
 elif menu == translate("Licencias", "Licenses"):
 
-    # Solo super_admin, partner o client_admin
     if st.session_state.get("user_role") not in ["super_admin", "partner", "client_admin"]:
         st.warning("⚠️ No tienes permisos para gestionar licencias.")
         st.stop()
 
     if submenu == translate("Gestión de licencias", "License Management"):
-        with content_area: render_licencias_tab()
-
-
+        with content_area:
+            render_licencias_tab()
 # ==============================
 # LICENCIAS / STRIPE
 # ==============================
@@ -1058,64 +1103,74 @@ def render_stripe_checkout():
     stripe_key = st.secrets.get("STRIPE_SECRET_KEY")
     app_url = st.secrets.get("APP_URL", "https://ellitnow.com")
 
+    # Validación clave Stripe
     if not stripe_key:
-        st.error("Stripe no está configurado correctamente.")
+        st.error("Stripe no está configurado correctamente (falta STRIPE_SECRET_KEY).")
+        return
+
+    # Validación Price IDs
+    if "STRIPE_PRICE_ENTERPRISE_ID" not in st.secrets or \
+       "STRIPE_PRICE_PREDICTIVE_ID" not in st.secrets:
+        st.error("Faltan Price IDs en los secretos de Stripe.")
         return
 
     stripe.api_key = stripe_key
 
+    # Encabezado UI
     st.markdown("""
         <div style="
-            background: linear-gradient(135deg,#FF0080 0%,#00B4FF 100%);
+            background: linear-gradient(135deg,#FF0080 0%,#0048FF 100%);
             padding:24px;
             border-radius:16px;
             text-align:center;
             color:#FFFFFF;
-            box-shadow:0 4px 20px rgba(0,0,0,0.08);
+            box-shadow:0 4px 20px rgba(0,0,0,0.15);
             margin-bottom:30px;">
-            <h2 style="font-weight:700; letter-spacing:0.5px; margin-bottom:6px;">
+            <h2 style="font-weight:700; margin-bottom:6px;">
                 Activación de licencias EllitNow Shield
             </h2>
-            <p style="font-size:15px; color:rgba(255,255,255,0.9); margin:0;">
+            <p style="font-size:15px; opacity:0.9; margin:0;">
                 Selecciona un plan para tu organización.
             </p>
         </div>
     """, unsafe_allow_html=True)
 
+    # Estilos UI versión dark corporativa Ellit
     st.markdown("""
         <style>
         .license-card {
-            background-color: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-radius: 16px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            background: #0F355F;
+            border: 1px solid #4C5D7A;
+            border-radius: 18px;
             padding: 30px;
             text-align: center;
+            color: #FFFFFF;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.35);
             transition: all 0.2s ease-in-out;
         }
         .license-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 18px rgba(0,0,0,0.45);
         }
         .license-title {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
-            color: #0F172A;
+            color: #FF0080;
             margin-bottom: 8px;
         }
         .license-desc {
-            color: #475569;
             font-size: 14px;
-            margin-bottom: 12px;
+            color: #E2E8F0;
+            margin-bottom: 10px;
         }
         .license-price {
             font-size: 26px;
             font-weight: 800;
-            color: #0048FF;
-            margin: 10px 0;
+            color: #00B4FF;
+            margin: 10px 0 16px 0;
         }
         .license-features {
-            color: #334155;
+            color: #E2E8F0;
             font-size: 13px;
             margin-top: 8px;
         }
@@ -1123,15 +1178,20 @@ def render_stripe_checkout():
     """, unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
+
+    # ---------------------------
+    # LICENCIA ENTERPRISE
+    # ---------------------------
     with col1:
         st.markdown("""
             <div class="license-card">
                 <div class="license-title">Enterprise Edition</div>
                 <div class="license-desc">Licencia anual completa</div>
                 <div class="license-price">4.900 €/año</div>
-                <div class="license-features">Radar IA • Simulador BCP • Políticas ejecutivas</div>
+                <div class="license-features">Radar IA • BCP • Políticas ejecutivas</div>
             </div>
         """, unsafe_allow_html=True)
+
         if st.button("Activar Enterprise Edition", key="stripe_enterprise_button"):
             try:
                 session = stripe.checkout.Session.create(
@@ -1145,19 +1205,25 @@ def render_stripe_checkout():
                     cancel_url=f"{app_url}?canceled=true",
                 )
                 st.success("Redirigiendo a Stripe Checkout...")
-                st.markdown(f"[Haz clic aquí para completar el pago en Stripe]({session.url})", unsafe_allow_html=True)
+                st.markdown(
+                    f"<a href='{session.url}' target='_blank'>Haz clic aquí para completar el pago</a>",
+                    unsafe_allow_html=True)
             except Exception as e:
                 st.error(f"Error al crear sesión Stripe: {e}")
 
+    # ---------------------------
+    # LICENCIA PRIME (ADD-ON)
+    # ---------------------------
     with col2:
         st.markdown("""
             <div class="license-card">
-                <div class="license-title">Prime - Predictive Intelligence Add-On</div>
+                <div class="license-title">Prime - Predictive Intelligence</div>
                 <div class="license-desc">Suscripción mensual</div>
                 <div class="license-price">699 €/mes</div>
                 <div class="license-features">IA avanzada • Alertas globales • Benchmark sectorial</div>
             </div>
         """, unsafe_allow_html=True)
+
         if st.button("Añadir Prime - Predictive Intelligence Add-On", key="stripe_predictive_button"):
             try:
                 session = stripe.checkout.Session.create(
@@ -1171,13 +1237,19 @@ def render_stripe_checkout():
                     cancel_url=f"{app_url}?canceled=true",
                 )
                 st.success("Redirigiendo a Stripe Checkout...")
-                st.markdown(f"[Haz clic aquí para completar el pago en Stripe]({session.url})", unsafe_allow_html=True)
+                st.markdown(
+                    f"<a href='{session.url}' target='_blank'>Haz clic aquí para completar el pago</a>",
+                    unsafe_allow_html=True)
             except Exception as e:
                 st.error(f"Error al crear sesión Stripe: {e}")
 
     st.markdown("---")
     st.caption("Pagos seguros con Stripe • EllitNow Cognitive Core © 2025")
 
+
+# ============================================================
+# GESTOR DE LICENCIAS (TAB)
+# ============================================================
 def render_licencias_tab():
     st.subheader("Licencias y suscripciones — gestión de tenants y activaciones")
     st.write("Administra o activa tus licencias reales a través de Stripe Checkout.")
@@ -1198,206 +1270,4 @@ def render_licencias_tab():
 
     st.markdown("### Activación de licencias")
     render_stripe_checkout()
-
-# ==============================
-# EJECUCIÓN PRINCIPAL
-# ==============================
-if st.session_state.get("auth_status"):
-
-    # ===============================================================
-    # SIDEBAR CORPORATIVO — SAAS PRO (MENÚ + SUBMENÚ)
-    # ===============================================================
-    with st.sidebar:
-
-        set_language()
-
-        # -----------------------
-        # ESTILO PREMIUM
-        # -----------------------
-        st.markdown("""
-            <style>
-            /* Sidebar base */
-            section[data-testid="stSidebar"] {
-                background: #0B2A55;
-                padding: 20px 18px;
-                border-right: 1px solid #4C5D7A;
-                color: white !important;
-            }
-            /* Header */
-            .ellit-sidebar-header {
-                background: linear-gradient(135deg, #0B2A55 0%, #0048FF 100%);
-                border-radius: 14px;
-                padding: 18px;
-                text-align: left;
-                margin-bottom: 20px;
-            }
-            .ellit-sidebar-header h3 {
-                color: white !important;
-                margin: 0;
-                font-size: 20px;
-                font-weight: 700;
-            }
-            .ellit-sidebar-header p {
-                color: #E2E8F0 !important;
-                margin: 0;
-                font-size: 12px;
-            }
-            /* Botón principal */
-            .ellit-menu-btn {
-                padding: 12px 16px;
-                border-radius: 12px;
-                margin-bottom: 8px;
-                font-weight: 600;
-                background: #0F355F;
-                border: 1px solid #1A4472;
-                color: #E2E8F0 !important;
-                cursor: pointer;
-                transition: all .18s ease;
-            }
-            .ellit-menu-btn:hover {
-                background: #1A4472;
-                border-color: #0048FF;
-            }
-            /* Botón activo */
-            .ellit-menu-btn-active {
-                background: #D8278A !important;
-                border: 1px solid #FF0080 !important;
-                color: white !important;
-                box-shadow: 0 0 6px rgba(255,0,128,0.4);
-            }
-            /* Submenú */
-            .ellit-submenu {
-                margin-left: 10px;
-                margin-top: 8px;
-                border-left: 2px solid #D8278A;
-                padding-left: 12px;
-            }
-            .ellit-submenu a {
-                padding: 6px 0;
-                display: block;
-                color: #E2E8F0 !important;
-                font-size: 13px;
-                text-decoration: none;
-                transition: 0.15s ease;
-            }
-            .ellit-submenu a:hover {
-                color: white !important;
-                transform: translateX(3px);
-            }
-            .ellit-submenu-active {
-                color: #FF0080 !important;
-                font-weight: 700;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-
-        # -----------------------
-        # HEADER ELLIT
-        # -----------------------
-        st.markdown("""
-            <div class="ellit-sidebar-header">
-                <h3>Ellit Cognitive Core</h3>
-                <p>AI Executive Shield</p>
-            </div>
-        """, unsafe_allow_html=True)
-
-
-        # =========================================================
-        # SISTEMA NUEVO DE MENÚ (reemplaza st.radio)
-        # =========================================================
-        main_options = [
-            translate("Radar IA", "AI Radar"),
-            translate("Monitorización SGSI", "ISMS Monitoring"),
-            translate("Continuidad de Negocio (BCP)", "Business Continuity"),
-            translate("Políticas IA", "AI Policies"),
-            translate("Predictive Intelligence", "Predictive Intelligence"),
-            translate("Licencias", "Licenses")
-        ]
-
-        submenu_map = {
-            translate("Radar IA", "AI Radar"): [
-                translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
-                translate("Perfil de la organización", "Organization Profile"),
-                translate("Radar Cognitivo", "Cognitive Radar"),
-                translate("Madurez SGSI", "ISMS Maturity"),
-                translate("Informe PDF", "PDF Report")
-            ],
-            translate("Monitorización SGSI", "ISMS Monitoring"): [
-                translate("Panel general", "General Dashboard"),
-                translate("Registro histórico", "History Log"),
-                translate("Evidencias y mantenimiento", "Evidence & Maintenance")
-            ],
-            translate("Continuidad de Negocio (BCP)", "Business Continuity"): [
-                translate("Generador BCP", "BCP Generator"),
-                translate("Análisis cognitivo", "Cognitive Analysis"),
-                translate("Simulador de crisis", "Crisis Simulator"),
-                translate("ELLIT ALERT TREE – Crisis Communication Demo",
-                        "ELLIT ALERT TREE – Crisis Communication Demo")
-            ],
-            translate("Políticas IA", "AI Policies"): [
-                translate("Generador multinormativo", "Multistandard Policy Generator")
-            ],
-            translate("Predictive Intelligence", "Predictive Intelligence"): [
-                translate("Predicción estándar", "Standard Prediction"),
-                translate("Predicción Prime", "Prime Prediction")
-            ],
-            translate("Licencias", "Licenses"): [
-                translate("Gestión de licencias", "License Management")
-            ],
-        }
-
-        # -----------------------
-        # Variables de estado
-        # -----------------------
-        if "menu" not in st.session_state:
-            st.session_state.menu = main_options[0]
-
-        if "submenu" not in st.session_state:
-            st.session_state.submenu = submenu_map[st.session_state.menu][0]
-
-        # -----------------------
-        # Botones del menú principal
-        # -----------------------
-        for opt in main_options:
-            is_active = (opt == st.session_state.menu)
-            css_class = "ellit-menu-btn-active" if is_active else "ellit-menu-btn"
-
-            if st.button(opt, key=f"btn_{opt}"):
-                st.session_state.menu = opt
-                st.session_state.submenu = submenu_map[opt][0]
-                st.rerun()
-
-            st.markdown(f"<div class='{css_class}'>{opt}</div>", unsafe_allow_html=True)
-
-
-        # -----------------------
-        # SUBMENÚ
-        # -----------------------
-        st.markdown("<div class='ellit-submenu'>", unsafe_allow_html=True)
-
-        for sub in submenu_map[st.session_state.menu]:
-            active = "ellit-submenu-active" if sub == st.session_state.submenu else ""
-
-            if st.button(sub, key=f"sub_{sub}"):
-                st.session_state.submenu = sub
-                st.rerun()
-
-            st.markdown(f"<a class='{active}'>{sub}</a>", unsafe_allow_html=True)
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # -----------------------
-    # Exponer al sistema global
-    # -----------------------
-    menu = st.session_state.menu
-    submenu = st.session_state.submenu
-
-    # Render del panel superior
-    render_panel()
-
-    # Roles
-    if st.session_state.auth_status in ["super_admin", "impersonated", "partner"]:
-        render_role_controls()
-
-else:
-    login_screen()
+een()
