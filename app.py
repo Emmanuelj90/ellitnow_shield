@@ -941,8 +941,11 @@ content_area = st.container()
 # ---------------------------------------------------------------
 # BREADCRUMB DINÁMICO
 # ---------------------------------------------------------------
-if menu and submenu:
+if st.session_state.get("menu") and st.session_state.get("submenu"):
+    menu = st.session_state["menu"]
+    submenu = st.session_state["submenu"]
     st.session_state["breadcrumb"] = f"{menu} → {submenu}"
+
 
 # ---------------------------
 # RADAR IA (requiere Enterprise)
