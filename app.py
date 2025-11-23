@@ -798,7 +798,9 @@ def render_licencias_tab():
             ]
         }
 
-        # Estado inicial seguro
+        # ===============================
+        # ESTADO INICIAL
+        # ===============================
         if "menu" not in st.session_state:
             st.session_state.menu = main_options[0]
 
@@ -806,10 +808,11 @@ def render_licencias_tab():
             st.session_state.submenu = submenu_map[st.session_state.menu][0]
 
         # ===============================
-        # ESTILOS (CSS)
+        # CSS
         # ===============================
         st.markdown("""
         <style>
+
         .ellit-menu-btn {
             width: 100%;
             padding: 10px 14px;
@@ -821,9 +824,11 @@ def render_licencias_tab():
             font-weight: 500;
             text-align: left;
         }
+
         .ellit-menu-btn:hover {
             background: #1A4472;
         }
+
         .ellit-menu-btn-active {
             background: #D8278A !important;
             border-color: #FF0080 !important;
@@ -831,26 +836,28 @@ def render_licencias_tab():
             color: white !important;
         }
 
-        /* Submenú */
         .ellit-submenu-item {
             padding: 6px 10px;
             margin-left: 12px;
             border-left: 2px solid #1A4472;
             color: #E2E8F0;
         }
+
         .ellit-submenu-item:hover {
             color: white;
         }
+
         .ellit-submenu-active {
             color: #FF0080 !important;
             font-weight: 700;
             border-left: 2px solid #FF0080 !important;
         }
+
         </style>
         """, unsafe_allow_html=True)
 
         # ===============================
-        # MENÚ PRINCIPAL (BOTONES)
+        # BOTONES DEL MENÚ PRINCIPAL
         # ===============================
         for opt in main_options:
             active = (opt == st.session_state.menu)
@@ -861,8 +868,7 @@ def render_licencias_tab():
                 st.session_state.submenu = submenu_map[opt][0]
                 st.rerun()
 
-            st.markdown(f"<div class='{css_class}'>{opt}</div>",
-                        unsafe_allow_html=True)
+            st.markdown(f"<div class='{css_class}'>{opt}</div>", unsafe_allow_html=True)
 
         # ===============================
         # SUBMENÚ
@@ -870,19 +876,20 @@ def render_licencias_tab():
         for sub in submenu_map[st.session_state.menu]:
 
             is_active = (sub == st.session_state.submenu)
-            css_sub = ("ellit-submenu-item ellit-submenu-active"
-                       if is_active
-                       else "ellit-submenu-item")
+            css_sub = (
+                "ellit-submenu-item ellit-submenu-active"
+                if is_active else
+                "ellit-submenu-item"
+            )
 
             if st.button(sub, key=f"submenu_{sub}"):
                 st.session_state.submenu = sub
                 st.rerun()
 
-            st.markdown(f"<div class='{css_sub}'>{sub}</div>",
-                        unsafe_allow_html=True)
+            st.markdown(f"<div class='{css_sub}'>{sub}</div>", unsafe_allow_html=True)
 
         # ===============================
-        # ROLES (superadmin / partners)
+        # CONTROLES DE ROL
         # ===============================
         render_role_controls()
 
