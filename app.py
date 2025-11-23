@@ -1267,3 +1267,178 @@ def render_licencias_tab():
         st.info("No hay tenants registrados aún.")
     st.markdown("### Activación de licencias")
     render_stripe_checkout()
+
+# ============================================================
+# EJECUCIÓN PRINCIPAL — MENÚ, SUBMENÚ, SIDEBAR, CONTENIDO
+# ============================================================
+
+if st.session_state.get("auth_status"):
+
+    # ============================================================
+    # SIDEBAR CORPORATIVO
+    # ============================================================
+    with st.sidebar:
+
+        set_language()
+
+        # -------------------------------------
+        # Estilo UI del sidebar
+        # -------------------------------------
+        st.markdown("""
+            <style>
+            .ellit-menu-btn {
+                padding: 10px 14px;
+                margin-bottom: 6px;
+                border-radius: 10px;
+                background: #0F355F;
+                border: 1px solid #1A4472;
+                color: #E2E8F0 !important;
+                cursor: pointer;
+                text-align: left;
+                transition: .15s;
+            }
+            .ellit-menu-btn:hover {
+                background: #1A4472;
+            }
+            .ellit-menu-btn-active {
+                background: #D8278A;
+                border-color: #FF0080;
+                color: white !important;
+                font-weight: 700;
+            }
+            .ellit-submenu a {
+                color: #E2E8F0 !important;
+                text-decoration: none;
+                display: block;
+                padding: 6px 0;
+            }
+            .ellit-submenu a:hover {
+                color: white !important;
+                transform: translateX(4px);
+            }
+            .ellit-submenu-active {
+                color: #FF0080 !important;
+                font-weight: 700;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
+        # -------------------------------------
+        # HEADER DEL SIDEBAR
+        # -------------------------------------
+        st.markdown("""
+            <div style="padding:12px 4px; margin-bottom:10px;">
+                <h3 style="margin:0; color:white;">Ellit Cognitive Core</h3>
+                <p style="margin:0; color:#E2E8F0; font-size:13px;">
+                    AI Executive Shield
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # -------------------------------------
+        # OPCIONES PRINCIPALES DEL MENÚ
+        # -------------------------------------
+        main_options = [
+            translate("Radar IA", "AI Radar"),
+            translate("Monitorización SGSI", "ISMS Monitoring"),
+            translate("Continuidad de Negocio (BCP)", "Business Continuity"),
+            translate("Políticas IA", "AI Policies"),
+            translate("Predictive Intelligence", "Predictive Intelligence"),
+            translate("Licencias", "Licenses")
+        ]
+
+        submenu_map = {
+            translate("Radar IA", "AI Radar"): [
+                translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
+                translate("Perfil de la organización", "Organization Profile"),
+                translate("Radar Cognitivo", "Cognitive Radar"),
+                translate("Madurez SGSI", "ISMS Maturity"),
+                translate("Informe PDF", "PDF Report")
+            ],
+            translate("Monitorización SGSI", "ISMS Monitoring"): [
+                translate("Panel general", "General Dashboard"),
+                translate("Registro histórico", "History Log"),
+                translate("Evidencias y mantenimiento", "Evidence & Maintenance")
+            ],
+            translate("Continuidad de Negocio (BCP)", "Business Continuity"): [
+                translate("Generador BCP", "BCP Generator"),
+                translate("Análisis cognitivo", "Cognitive Analysis"),
+                translate("Simulador de crisis", "Crisis Simulator"),
+                translate("ELLIT ALERT TREE – Crisis Communication Demo",
+                          "ELLIT ALERT TREE – Crisis Communication Demo")
+            ],
+            translate("Políticas IA", "AI Policies"): [
+                translate("Generador multinormativo", "Multistandard Policy Generator")
+            ],
+            translate("Predictive Intelligence", "Predictive Intelligence"): [
+                translate("Predicción estándar", "Standard Prediction"),
+                translate("Predicción Prime", "Prime Prediction")
+            ],
+            translate("Licencias", "Licenses"): [
+                translate("Gestión de licencias", "License Management")
+            ]
+        }
+
+        # -------------------------------------
+        # ESTADO INICIAL DEL MENÚ
+        # -------------------------------------
+        if "menu" not in st.session_state:
+            st.session_state.menu = main_options[0]
+
+        if "submenu" not in st.session_state:
+            st.session_state.submenu = submenu_map[st.session_state.menu][0]
+
+        # -------------------------------------
+        # Renderizar botones del menú principal
+        # -------------------------------------
+        for opt in main_options:
+            active = (opt == st.session_state.menu)
+            css = "ellit-menu-btn-active" if active else "ellit-menu-btn"
+
+            if st.button(opt, key=f"main_{opt}"):
+                st.session_state.menu = opt
+                st.session_state.submenu = submenu_map[opt][0]
+                st.rerun()
+
+            st.markdown(f"<div class='{css}'>{opt}</div>", unsafe_allow_html=True)
+
+        # -------------------------------------
+        # SUBMENÚ
+        # -------------------------------------
+        st.markdown("<div class='ellit-submenu'>", unsafe_allow_html=True)
+
+        for sub in submenu_map[st.session_state.menu]:
+
+            sub_active = "ellit-submenu-active" if sub == st.session_state.submenu else ""
+
+            if st.button(sub, key=f"sub_{sub}"):
+                st.session_state.submenu = sub
+                st.rerun()
+
+            st.markdown(f"<a class='{sub_active}'>{sub}</a>", unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # -------------------------------------
+        # Controles de rol (impersonar, crear tenant…)
+        # -------------------------------------
+        render_role_controls()
+
+    # ============================================================
+    # PANEL SUPERIOR
+    # ============================================================
+    render_panel()
+
+    # ============================================================
+    # RENDER DEL CONTENIDO SEGÚN MENÚ / SUBMENÚ
+    # (esta parte ya existe en tu archivo, solo ejecutamos)
+    # ============================================================
+
+    # ya declaraste `menu` y `submenu` arriba del bloque Stripe:
+    # los usamos directamente
+    pass
+
+else:
+    # Si no hay sesión => mostrar pantalla de login
+    login_screen()
+
