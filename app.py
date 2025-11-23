@@ -1200,219 +1200,166 @@ def render_licencias_tab():
 # EJECUCIÓN PRINCIPAL
 # ==============================
 if st.session_state.get("auth_status"):
+
     # ===============================================================
-# SIDEBAR CORPORATIVO — SAAS PRO (MENÚ + SUBMENÚ)
-# ===============================================================
+    # SIDEBAR CORPORATIVO — SAAS PRO
+    # ===============================================================
     with st.sidebar:
 
-    set_language()
+        set_language()
 
-    # -----------------------
-    # ESTILO PREMIUM
-    # -----------------------
-    st.markdown("""
-        <style>
-
-        /* Sidebar base */
-        section[data-testid="stSidebar"] {
-            background: #0B2A55;
-            padding: 20px 18px;
-            border-right: 1px solid #4C5D7A;
-            color: white !important;
-        }
-
-        /* Header */
-        .ellit-sidebar-header {
-            background: linear-gradient(135deg, #0B2A55 0%, #0048FF 100%);
-            border-radius: 14px;
-            padding: 18px;
-            text-align: left;
-            margin-bottom: 20px;
-        }
-        .ellit-sidebar-header h3 {
-            color: white !important;
-            margin: 0;
-            font-size: 20px;
-            font-weight: 700;
-        }
-        .ellit-sidebar-header p {
-            color: #E2E8F0 !important;
-            margin: 0;
-            font-size: 12px;
-        }
-
-        /* Botón principal */
-        .ellit-menu-btn {
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            font-weight: 600;
-            background: #0F355F;
-            border: 1px solid #1A4472;
-            color: #E2E8F0 !important;
-            cursor: pointer;
-            transition: all .18s ease;
-        }
-        .ellit-menu-btn:hover {
-            background: #1A4472;
-            border-color: #0048FF;
-        }
-
-        /* Botón activo */
-        .ellit-menu-btn-active {
-            background: #D8278A !important;
-            border: 1px solid #FF0080 !important;
-            color: white !important;
-            box-shadow: 0 0 6px rgba(255,0,128,0.4);
-        }
-
-        /* Submenú */
-        .ellit-submenu {
-            margin-left: 10px;
-            margin-top: 8px;
-            border-left: 2px solid #D8278A;
-            padding-left: 12px;
-        }
-
-        .ellit-submenu a {
-            padding: 6px 0;
-            display: block;
-            color: #E2E8F0 !important;
-            font-size: 13px;
-            text-decoration: none;
-            transition: 0.15s ease;
-        }
-        .ellit-submenu a:hover {
-            color: white !important;
-            transform: translateX(3px);
-        }
-
-        .ellit-submenu-active {
-            color: #FF0080 !important;
-            font-weight: 700;
-        }
-
-        </style>
-    """, unsafe_allow_html=True)
-
-    # -----------------------
-    # HEADER ELLIT
-    # -----------------------
+        # -----------------------
+        # ESTILO PREMIUM
+        # -----------------------
         st.markdown("""
-        <div class="ellit-sidebar-header">
-            <h3>Ellit Cognitive Core</h3>
-            <p>AI Executive Shield</p>
-        </div>
-    """, unsafe_allow_html=True)
+            <style>
+            section[data-testid="stSidebar"] {
+                background: #0B2A55;
+                padding: 20px 18px;
+                border-right: 1px solid #4C5D7A;
+                color: white !important;
+            }
+            .ellit-sidebar-header {
+                background: linear-gradient(135deg, #0B2A55 0%, #0048FF 100%);
+                border-radius: 14px;
+                padding: 18px;
+                margin-bottom: 20px;
+            }
+            .ellit-sidebar-header h3 { color: white !important; margin: 0; font-size: 20px; font-weight: 700; }
+            .ellit-sidebar-header p { color: #E2E8F0 !important; margin: 0; font-size: 12px; }
+            .ellit-menu-btn {
+                padding: 12px 16px;
+                border-radius: 12px;
+                margin-bottom: 8px;
+                font-weight: 600;
+                background: #0F355F;
+                border: 1px solid #1A4472;
+                color: #E2E8F0 !important;
+                cursor: pointer;
+                transition: all .18s ease;
+            }
+            .ellit-menu-btn:hover { background: #1A4472; border-color: #0048FF; }
+            .ellit-menu-btn-active {
+                background: #D8278A !important;
+                border: 1px solid #FF0080 !important;
+                color: white !important;
+                box-shadow: 0 0 6px rgba(255,0,128,0.4);
+            }
+            .ellit-submenu { margin-left: 10px; margin-top: 8px; border-left: 2px solid #D8278A; padding-left: 12px; }
+            .ellit-submenu a {
+                padding: 6px 0;
+                display: block;
+                color: #E2E8F0 !important;
+                font-size: 13px;
+            }
+            .ellit-submenu a:hover { color: white !important; transform: translateX(3px); }
+            .ellit-submenu-active { color: #FF0080 !important; font-weight: 700; }
+            </style>
+        """, unsafe_allow_html=True)
 
+        # -----------------------
+        # HEADER
+        # -----------------------
+        st.markdown("""
+            <div class="ellit-sidebar-header">
+                <h3>Ellit Cognitive Core</h3>
+                <p>AI Executive Shield</p>
+            </div>
+        """, unsafe_allow_html=True)
 
-    # =========================================================
-    # SISTEMA NUEVO DE MENÚ (reemplaza st.radio)
-    # =========================================================
-
-    # Menú principal
+        # -----------------------
+        # MENÚ PRINCIPAL
+        # -----------------------
         main_options = [
-        translate("Radar IA", "AI Radar"),
-        translate("Monitorización SGSI", "ISMS Monitoring"),
-        translate("Continuidad de Negocio (BCP)", "Business Continuity"),
-        translate("Políticas IA", "AI Policies"),
-        translate("Predictive Intelligence", "Predictive Intelligence"),
-        translate("Licencias", "Licenses")
-    ]
+            translate("Radar IA", "AI Radar"),
+            translate("Monitorización SGSI", "ISMS Monitoring"),
+            translate("Continuidad de Negocio (BCP)", "Business Continuity"),
+            translate("Políticas IA", "AI Policies"),
+            translate("Predictive Intelligence", "Predictive Intelligence"),
+            translate("Licencias", "Licenses")
+        ]
 
-    # Submenú por cada opción
         submenu_map = {
-        translate("Radar IA", "AI Radar"): [
-            translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
-            translate("Perfil de la organización", "Organization Profile"),
-            translate("Radar Cognitivo", "Cognitive Radar"),
-            translate("Madurez SGSI", "ISMS Maturity"),
-            translate("Informe PDF", "PDF Report")
-        ],
-        translate("Monitorización SGSI", "ISMS Monitoring"): [
-            translate("Panel general", "General Dashboard"),
-            translate("Registro histórico", "History Log"),
-            translate("Evidencias y mantenimiento", "Evidence & Maintenance")
-        ],
-        translate("Continuidad de Negocio (BCP)", "Business Continuity"): [
-            translate("Generador BCP", "BCP Generator"),
-            translate("Análisis cognitivo", "Cognitive Analysis"),
-            translate("Simulador de crisis", "Crisis Simulator"),
-            translate("ELLIT ALERT TREE – Crisis Communication Demo",
-                     "ELLIT ALERT TREE – Crisis Communication Demo")
-        ],
-        translate("Políticas IA", "AI Policies"): [
-            translate("Generador multinormativo", "Multistandard Policy Generator")
-        ],
-        translate("Predictive Intelligence", "Predictive Intelligence"): [
-            translate("Predicción estándar", "Standard Prediction"),
-            translate("Predicción Prime", "Prime Prediction")
-        ],
-        translate("Licencias", "Licenses"): [
-            translate("Gestión de licencias", "License Management")
-        ],
-    }
+            translate("Radar IA", "AI Radar"): [
+                translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
+                translate("Perfil de la organización", "Organization Profile"),
+                translate("Radar Cognitivo", "Cognitive Radar"),
+                translate("Madurez SGSI", "ISMS Maturity"),
+                translate("Informe PDF", "PDF Report")
+            ],
+            translate("Monitorización SGSI", "ISMS Monitoring"): [
+                translate("Panel general", "General Dashboard"),
+                translate("Registro histórico", "History Log"),
+                translate("Evidencias y mantenimiento", "Evidence & Maintenance")
+            ],
+            translate("Continuidad de Negocio (BCP)", "Business Continuity"): [
+                translate("Generador BCP", "BCP Generator"),
+                translate("Análisis cognitivo", "Cognitive Analysis"),
+                translate("Simulador de crisis", "Crisis Simulator"),
+                translate("ELLIT ALERT TREE – Crisis Communication Demo", "ELLIT ALERT TREE – Crisis Communication Demo")
+            ],
+            translate("Políticas IA", "AI Policies"): [
+                translate("Generador multinormativo", "Multistandard Policy Generator")
+            ],
+            translate("Predictive Intelligence", "Predictive Intelligence"): [
+                translate("Predicción estándar", "Standard Prediction"),
+                translate("Predicción Prime", "Prime Prediction")
+            ],
+            translate("Licencias", "Licenses"): [
+                translate("Gestión de licencias", "License Management")
+            ],
+        }
 
-    # -----------------------
-    # Variables de estado
-    # -----------------------
-       if "menu" not in st.session_state:
+        # -----------------------
+        # VARIABLES DE ESTADO
+        # -----------------------
+        if "menu" not in st.session_state:
             st.session_state.menu = main_options[0]
 
         if "submenu" not in st.session_state:
             st.session_state.submenu = submenu_map[main_options[0]][0]
 
+        # -----------------------
+        # RENDER MENÚ PRINCIPAL
+        # -----------------------
+        for opt in main_options:
+            is_active = (opt == st.session_state.menu)
+            css_class = "ellit-menu-btn-active" if is_active else "ellit-menu-btn"
+
+            if st.button(opt, key=f"btn_{opt}"):
+                st.session_state.menu = opt
+                st.session_state.submenu = submenu_map[opt][0]
+                st.rerun()
+
+            st.markdown(f"<div class='{css_class}'>{opt}</div>", unsafe_allow_html=True)
+
+        # -----------------------
+        # SUBMENÚ
+        # -----------------------
+        st.markdown("<div class='ellit-submenu'>", unsafe_allow_html=True)
+
+        for sub in submenu_map[st.session_state.menu]:
+            active = "ellit-submenu-active" if sub == st.session_state.submenu else ""
+
+            if st.button(sub, key=f"sub_{sub}"):
+                st.session_state.submenu = sub
+                st.rerun()
+
+            st.markdown(f"<a class='{active}'>{sub}</a>", unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        menu = st.session_state.menu
+        submenu = st.session_state.submenu
+
+        # Controles de rol
+        if st.session_state.auth_status in ["super_admin", "impersonated", "partner"]:
+            render_role_controls()
+
     # -----------------------
-    # Render de botones del menú
+    # PANEL SUPERIOR
     # -----------------------
-    for opt in main_options:
-        is_active = (opt == st.session_state.menu)
-        css_class = "ellit-menu-btn-active" if is_active else "ellit-menu-btn"
-
-        if st.button(opt, key=f"btn_{opt}"):
-            st.session_state.menu = opt
-            st.session_state.submenu = submenu_map[opt][0]
-            st.rerun()
-
-        st.markdown(f"<div class='{css_class}'>{opt}</div>", unsafe_allow_html=True)
-
-    # -----------------------
-    # Render del SUBMENÚ dinámico
-    # -----------------------
-    st.markdown("<div class='ellit-submenu'>", unsafe_allow_html=True)
-
-    for sub in submenu_map[st.session_state.menu]:
-        active = "ellit-submenu-active" if sub == st.session_state.submenu else ""
-
-        if st.button(sub, key=f"sub_{sub}"):
-            st.session_state.submenu = sub
-            st.rerun()
-
-        st.markdown(f"<a class='{active}'>{sub}</a>", unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # Exponer valores equivalentes a tu lógica antigua
-    menu = st.session_state.menu
-    submenu = st.session_state.submenu
-
-
-    render_panel()   # SE RENDERIZA PRIMERO EL PANEL
-
-    # Banner de impersonación si aplica
-    if st.session_state.get("auth_status") == "impersonated":
-        tenant = st.session_state.get("impersonated_tenant", {})
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #FF0080 0%, #00B4FF 100%);
-                    color:white; padding:15px; border-radius:12px; text-align:center;
-                    font-size:16px; font-weight:bold; margin-bottom:20px; position:sticky; top:0; z-index:1000;">
-            Estás viendo como: <b>{tenant.get('name', 'Cliente')}</b>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Controles de rol
-    if st.session_state.auth_status in ["super_admin", "impersonated", "partner"]:
-        render_role_controls()
+    render_panel()
 
 else:
     login_screen()
