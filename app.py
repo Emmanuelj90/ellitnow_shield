@@ -767,45 +767,36 @@ if st.session_state.get("auth_status"):
     with st.sidebar:
         set_language()
 
-        # Estilos específicos del menú lateral
+        # Estilos específicos del menú lateral (solo colores)
         st.markdown("""
         <style>
-        .ellit-menu-btn {
+        /* Botones del sidebar: fondo azul oscuro, texto blanco */
+        section[data-testid="stSidebar"] div[data-testid="stButton"] > button {
             width: 100%;
             padding: 10px 14px;
-            border-radius: 10px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
+            border-radius: 12px;
             border: 1px solid #1A4472;
-            background: #0F355F;
-            color: white;
+            background-color: #0F355F;
+            color: #FFFFFF;
             font-weight: 500;
             text-align: left;
         }
-        .ellit-menu-btn:hover {
-            background: #1A4472;
+
+        /* Hover: un azul un poco más claro */
+        section[data-testid="stSidebar"] div[data-testid="stButton"] > button:hover {
+            background-color: #1A4472;
         }
-        .ellit-menu-btn-active {
-            background: #D8278A;
-            border-color: #FF0080;
-            font-weight: 700;
-            color: white;
-        }
-        .ellit-submenu-item {
-            padding: 6px 10px;
-            margin-left: 12px;
-            border-left: 2px solid #1A4472;
-            color: #E2E8F0;
-        }
-        .ellit-submenu-item:hover {
-            color: white;
-        }
-        .ellit-submenu-active {
-            color: #FF0080;
-            font-weight: 700;
-            border-left: 2px solid #FF0080;
+
+        /* “Seleccionado”: usamos el focus para dibujar el borde fucsia */
+        section[data-testid="stSidebar"] div[data-testid="stButton"] > button:focus {
+            outline: 2px solid #D8278A;
+            border-color: #D8278A;
+            box-shadow: 0 0 0 1px #D8278A;
         }
         </style>
         """, unsafe_allow_html=True)
+
 
         # Header del sidebar
         st.markdown("""
