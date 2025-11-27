@@ -1,166 +1,201 @@
 # ============================================================
-#  MÓDULO DE LICENCIAS — Ellit Platform
-#  Gestión de Suscripciones · Features · Niveles · Estado Actual
+#  MÓDULO DE LICENCIAS — Ellit Shield (Enterprise SaaS)
 # ============================================================
 
 import streamlit as st
-from datetime import datetime
+import stripe
 
 # ============================================================
-# CONFIGURACIÓN DE PLANES
+# CONFIG STRIPE
 # ============================================================
 
-PLANES = {
-    "FREE": {
-        "color": "#A3A3A3",
-        "features": [
-            "Acceso limitado al Cognitive Core",
-            "Generación básica de documentos",
-            "Sin historial",
-            "Sin radar IA",
-            "1 usuario",
-        ],
-    },
-    "PRO": {
-        "color": "#0048FF",
-        "features": [
-            "Radar IA estándar",
-            "Generación multinormativa",
-            "Políticas corporativas",
-            "Historial SGSI",
-            "2 usuarios",
-        ],
-    },
-    "ENTERPRISE": {
-        "color": "#FF0080",
-        "features": [
-            "Radar IA avanzado (ENS, ISO, NIST, NIS2, DORA)",
-            "Motor BCP avanzado",
-            "Simulador de crisis",
-            "Evidencias SGSI + auditoría",
-            "10 usuarios",
-        ],
-    },
-    "PRIME": {
-        "color": "#D8278A",
-        "features": [
-            "Alert Tree PRIME",
-            "Predictive Intelligence Engine",
-            "GeoRisk + Sector Intelligence",
-            "Correlation Matrix PRIME",
-            "Usuarios ilimitados",
-        ],
-    },
-}
-
+stripe.api_key = st.secrets.get("STRIPE_SECRET_KEY")
+APP_URL = st.secrets.get("APP_URL")
 
 # ============================================================
-# UTIL
-# ============================================================
-
-def get_current_plan():
-    """
-    Se toma desde session_state el plan actual del tenant.
-    """
-    return st.session_state.get("tenant_plan", "FREE")
-
-def get_next_renewal():
-    """
-    Fecha de renovación real o placeholder.
-    """
-    return st.session_state.get("tenant_renewal", "2025-12-31")
-
-
-# ============================================================
-# MÓDULO PRINCIPAL
+# CORE
 # ============================================================
 
 def render_licencias_tab():
 
-    plan_actual = get_current_plan()
-    renewal = get_next_renewal()
-    plan_conf = PLANES[plan_actual]
+    st.markdown("## Licencias Ellit Shield")
 
-    # Encabezado
-    st.markdown(f"""
-        <div style="
-            background: linear-gradient(135deg,{plan_conf['color']} 0%, #00000020 100%);
-            padding:22px; border-radius:16px; color:white;
-            text-align:center; margin-bottom:20px;">
-            <h2 style="margin:0;">Licencias y Suscripciones</h2>
-            <p style="margin:0;opacity:0.85;">Gestión del plan y funcionalidades activas</p>
-        </div>
+    st.markdown("""
+    <p style="font-size:15px;color:#475569;max-width:820px;">
+    Ellit Shield se licencia como plataforma <strong>Enterprise</strong>, con un módulo
+    avanzado <strong>Prime — Predictive Intelligence</strong> para organizaciones que
+    necesitan anticipación estratégica y simulación avanzada.
+    </p>
     """, unsafe_allow_html=True)
 
     # ============================
-    # BLOQUE 1 — Estado actual
+    # ESTILOS
     # ============================
 
-    st.subheader("📌 Estado de la suscripción")
+    st.markdown("""
+    <style>
+    .license-grid {
+        display: flex;
+        gap: 32px;
+        margin-top: 30px;
+    }
+
+    .license-card {
+        flex: 1;
+        background: #0F2F57;
+        border-radius: 20px;
+        padding: 34px;
+        color: white;
+        box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+        position: relative;
+        min-height: 520px;
+    }
+
+    .license-card.prime {
+        background: #0B2545;
+        border: 2px solid #9D2B6B;
+    }
+
+    .license-badge {
+        position: absolute;
+        top: 22px;
+        right: 22px;
+        background: #9D2B6B;
+        padding: 6px 14px;
+        border-radius: 14px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .3px;
+    }
+
+    .license-title {
+        font-size: 26px;
+        font-weight: 800;
+        margin-bottom: 6px;
+    }
+
+    .license-subtitle {
+        font-size: 15px;
+        color: #CBD5E1;
+        margin-bottom: 22px;
+    }
+
+    .license-features {
+        font-size: 14px;
+        line-height: 1.9;
+        margin-bottom: 28px;
+    }
+
+    .license-features strong {
+        color: #E879B8;
+    }
+
+    .license-price {
+        font-size: 42px;
+        font-weight: 800;
+        margin-bottom: 22px;
+    }
+
+    div.stButton > button.ellit-cta {
+        width: 100%;
+        height: 52px;
+        border-radius: 14px;
+        font-size: 15px;
+        font-weight: 700;
+        border: none;
+        background: #9D2B6B;
+        color: white;
+        transition: all .15s ease;
+    }
+
+    div.stButton > button.ellit-cta:hover {
+        background: #7F2358;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     col1, col2 = st.columns(2)
 
+    # =====================================================
+    # ENTERPRISE
+    # =====================================================
     with col1:
-        st.metric("Plan actual", plan_actual)
+        st.markdown("""
+        <div class="license-card">
+            <div class="license-title">Enterprise</div>
+            <div class="license-subtitle">
+                Gobierno, cumplimiento y resiliencia operacional
+            </div>
 
+            <div class="license-features">
+                • Radar IA completo (ENS, ISO, NIS2, DORA)<br>
+                • SGSI & gestión de evidencias<br>
+                • Continuidad de negocio & crisis<br>
+                • Políticas IA corporativas<br>
+                • Acceso multiusuario<br>
+            </div>
+
+            <div class="license-price">
+                4.900 € <span style="font-size:16px;font-weight:500;">/ año</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("Activar Enterprise", key="enterprise_pay", help="Activar licencia Enterprise"):
+            try:
+                session = stripe.checkout.Session.create(
+                    payment_method_types=["card"],
+                    mode="subscription",
+                    line_items=[{
+                        "price": st.secrets["STRIPE_PRICE_ENTERPRISE_ID"],
+                        "quantity": 1
+                    }],
+                    success_url=f"{APP_URL}?success=enterprise",
+                    cancel_url=f"{APP_URL}?canceled=true",
+                )
+                st.markdown(f"[Continuar pago seguro →]({session.url})")
+            except Exception as e:
+                st.error(f"Stripe error: {e}")
+
+    # =====================================================
+    # PRIME
+    # =====================================================
     with col2:
-        st.metric("Próxima renovación", renewal)
+        st.markdown("""
+        <div class="license-card prime">
+            <div class="license-badge">ADVANCED</div>
 
-    st.markdown("---")
+            <div class="license-title">Prime — Predictive Intelligence</div>
+            <div class="license-subtitle">
+                Anticipación estratégica basada en IA
+            </div>
 
-    # ============================
-    # BLOQUE 2 — Features activas
-    # ============================
+            <div class="license-features">
+                • Predicción cognitiva avanzada<br>
+                • Simulaciones estratégicas<br>
+                • Roadmaps predictivos<br>
+                • Scoring dinámico por riesgo<br>
+                • <strong>Ellit Alert Tree</strong><br>
+            </div>
 
-    st.subheader("🎛 Funcionalidades activas")
+            <div class="license-price">
+                699 € <span style="font-size:16px;font-weight:500;">/ mes</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    for f in plan_conf["features"]:
-        st.markdown(f"- ✅ **{f}**")
-
-    st.markdown("---")
-
-    # ============================
-    # BLOQUE 3 — Comparativa completa
-    # ============================
-
-    st.subheader("📊 Comparativa de planes")
-
-    comp_cols = st.columns(len(PLANES))
-
-    for i, (plan, info) in enumerate(PLANES.items()):
-        with comp_cols[i]:
-            st.markdown(f"""
-                <div style="
-                    border-radius:12px;
-                    border:1px solid #E5E7EB;
-                    padding:15px;
-                    background-color:white;
-                    box-shadow:0 2px 10px rgba(0,0,0,0.05);
-                    text-align:center;">
-                    <h4 style='color:{info["color"]};margin:0;'>{plan}</h4>
-                </div>
-            """, unsafe_allow_html=True)
-
-            for f in info["features"]:
-                st.markdown(f"- {f}")
-
-    st.markdown("---")
-
-    # ============================
-    # BLOQUE 4 — Upgrade
-    # ============================
-
-    st.subheader("🚀 Cambiar de plan")
-
-    nuevo_plan = st.selectbox(
-        "Selecciona un plan superior",
-        ["PRO", "ENTERPRISE", "PRIME"],
-        index=1 if plan_actual == "FREE" else 0
-    )
-
-    if st.button("Aplicar cambio de plan"):
-        if nuevo_plan == plan_actual:
-            st.warning("Ya estás en este plan.")
-        else:
-            st.session_state["tenant_plan"] = nuevo_plan
-            st.success(f"Plan actualizado a **{nuevo_plan}**.")
-            st.experimental_rerun()
+        if st.button("Añadir Prime", key="prime_pay", help="Añadir Prime Predictive Intelligence"):
+            try:
+                session = stripe.checkout.Session.create(
+                    payment_method_types=["card"],
+                    mode="subscription",
+                    line_items=[{
+                        "price": st.secrets["STRIPE_PRICE_PREDICTIVE_ID"],
+                        "quantity": 1
+                    }],
+                    success_url=f"{APP_URL}?success=prime",
+                    cancel_url=f"{APP_URL}?canceled=true",
+                )
+                st.markdown(f"[Añadir Prime ahora →]({session.url})")
+            except Exception as e:
+                st.error(f"Stripe error: {e}")
