@@ -130,7 +130,7 @@ DEFAULT_SESSION = {
 
     "tenant_id": None,
     "tenant_name": None,
-    "primary_color": "#FF0080",
+    "primary_color": "#123A6A",
 
     "tenant_enterprise": False,
     "tenant_prime": False,
@@ -581,16 +581,15 @@ with st.sidebar:
 def render_top_panel():
     tenant = st.session_state.get("tenant_name", "Ellit Shield")
     role = st.session_state.get("auth_status", "").replace("_", " ").title()
-    color = st.session_state.get("primary_color", "#FF0080")
 
     st.markdown(
-        f"""
+        """
         <div style="
-            background: linear-gradient(135deg,{color} 0%,#00B4FF 100%);
-            padding:24px;
+            background: linear-gradient(135deg,#0F2F57 0%,#123A6A 100%);
+            padding:28px;
             border-radius:18px;
             color:white;
-            margin-bottom:24px;
+            margin-bottom:28px;
             box-shadow:0 12px 30px rgba(0,0,0,0.25);
         ">
             <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -602,71 +601,9 @@ def render_top_panel():
                 </div>
             </div>
         </div>
-        """,
+        """.format(tenant=tenant, role=role),
         unsafe_allow_html=True
     )
-
-
-# ============================================================
-# LICENCIAS — DISEÑO PREMIUM (ENTERPRISE / PRIME)
-# ============================================================
-
-def render_licenses_premium():
-
-    st.markdown("""
-    <div style="text-align:center;margin-bottom:30px;">
-        <h2>Ellit Shield · Licencias</h2>
-        <p style="opacity:.7">Activa capacidades avanzadas de inteligencia y gobierno corporativo</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-
-    # ENTERPRISE
-    with col1:
-        st.markdown("""
-        <div style="
-            background:#0F355F;
-            color:white;
-            padding:28px;
-            border-radius:20px;
-            box-shadow:0 10px 30px rgba(0,0,0,0.25);
-        ">
-            <h3>Enterprise</h3>
-            <p style="opacity:.85;">Gobierno, cumplimiento y resiliencia</p>
-            <ul>
-                <li>Radar IA completo</li>
-                <li>SGSI & ENS</li>
-                <li>BCP & Crisis</li>
-                <li>Políticas IA</li>
-            </ul>
-            <h2 style="margin-top:20px;">4.900 € / año</h2>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # PRIME
-    with col2:
-        st.markdown("""
-        <div style="
-            background:linear-gradient(135deg,#FF0080 0%,#FF5DB1 100%);
-            color:white;
-            padding:32px;
-            border-radius:22px;
-            box-shadow:0 14px 40px rgba(255,0,128,0.45);
-        ">
-            <h3>Prime — Predictive Intelligence</h3>
-            <p style="opacity:.9;">IA anticipativa y simulaciones avanzadas</p>
-            <ul>
-                <li>Predicción cognitiva avanzada</li>
-                <li>Simulaciones estratégicas</li>
-                <li>Scoring dinámico por riesgo</li>
-                <li>Roadmaps predictivos</li>
-            </ul>
-            <h2 style="margin-top:20px;">699 € / mes</h2>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.info("💳 Contacta con Ellit para activar o ampliar licencias.")
 
 
 # ============================================================
@@ -677,8 +614,8 @@ render_top_panel()
 
 content = st.container()
 
-menu = st.session_state.menu
-submenu = st.session_state.submenu
+menu = st.session_state.get("menu")
+submenu = st.session_state.get("submenu")
 
 # ------------------------------------------------------------
 # RADAR IA
@@ -690,16 +627,12 @@ if menu == "radar":
     with content:
         if submenu == "kpis":
             render_radar_kpis()
-
         elif submenu == "profile":
             render_radar_profile()
-
         elif submenu == "cognitive":
             render_radar_cognitivo()
-
         elif submenu == "maturity":
             render_radar_madurez()
-
         elif submenu == "pdf":
             render_radar_pdf()
 
@@ -713,10 +646,8 @@ elif menu == "sgsi":
     with content:
         if submenu == "dashboard":
             render_sgsi_monitor_dashboard()
-
         elif submenu == "history":
             render_sgsi_monitor_history()
-
         elif submenu == "evidence":
             render_sgsi_monitor_evidences()
 
@@ -730,13 +661,10 @@ elif menu == "bcp":
     with content:
         if submenu == "generator":
             render_bcp_generator()
-
         elif submenu == "analysis":
             render_bcp_analisis()
-
         elif submenu == "simulator":
             render_bcp_simulador()
-
         elif submenu == "alert_tree":
             render_bcp_alert_tree()
 
@@ -765,10 +693,11 @@ elif menu == "predictive":
             render_predictive_prime()
 
 # ------------------------------------------------------------
-# LICENCIAS
+# LICENCIAS (MÓDULO REAL)
 # ------------------------------------------------------------
 elif menu == "licenses":
 
     with content:
-        render_licenses_premium()
+        render_licencias_tab()
+
 
