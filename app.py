@@ -378,11 +378,11 @@ if not st.session_state.get("auth_status"):
     login_screen()
     st.stop()
 # ============================================================
-# PARTE 2 / 3 — SIDEBAR PREMIUM DEFINITIVO (ELLIT)
+# PARTE 2 / 3 — SIDEBAR ACCORDION PROFESIONAL (ELLIT)
 # ============================================================
 
 # ============================================================
-# ESTILOS GLOBALES SIDEBAR (BOTONES RÍGIDOS Y UNIFORMES)
+# ESTILOS SIDEBAR (ACCORDION ENTERPRISE)
 # ============================================================
 
 st.markdown("""
@@ -396,40 +396,24 @@ section[data-testid="stSidebar"] {
 
 /* ===== LOGO ===== */
 .ellit-logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 18px 0;
-    border-bottom: 1px solid #1E3A8A;
-    margin-bottom: 14px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:18px 0;
+    border-bottom:1px solid #1E3A8A;
+    margin-bottom:10px;
 }
 .ellit-logo img {
     width: 120px;
 }
 
-/* ===== MENÚ CONTENEDORES (ANCHO FIJO REAL) ===== */
-.ellit-main-menu,
-.ellit-submenu {
-    width: calc(100% - 24px);
-    margin-left: 12px;
-    margin-right: 12px;
-}
-
-/* ===== BOTONES MENÚ PRINCIPAL ===== */
-.ellit-main-menu div[data-testid="stButton"] {
-    width: 100%;
-}
-
-.ellit-main-menu div[data-testid="stButton"] > button {
+/* ===== BOTÓN NIVEL 1 (MENÚ PRINCIPAL) ===== */
+button[kind="secondary"].ellit-main {
     width: 100% !important;
     height: 48px;
 
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-
+    margin: 6px 10px;
     padding-left: 18px;
-    margin: 6px 0;
 
     border-radius: 14px;
     border: none;
@@ -438,40 +422,44 @@ section[data-testid="stSidebar"] {
     color: #E5E7EB;
 
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     text-align: left;
 
-    transition: all 0.15s ease;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    transition:all .15s ease;
 }
 
-.ellit-main-menu div[data-testid="stButton"] > button:hover {
-    background: #1E3A8A;
-    color: white;
+button[kind="secondary"].ellit-main:hover {
+    background:#1E3A8A;
+    color:white;
 }
 
-/* ===== ACTIVO MENÚ PRINCIPAL (FUSCIA TECNOLÓGICO) ===== */
-.ellit-active-main div[data-testid="stButton"] > button {
+/* ACTIVO NIVEL 1 */
+button[kind="secondary"].ellit-main-active {
     background: linear-gradient(135deg,#FF0080 0%,#FF5DB1 100%) !important;
-    color: white !important;
-    font-weight: 700 !important;
-    box-shadow: 0 6px 18px rgba(255,0,128,0.35);
+    color:white !important;
+    box-shadow:0 6px 18px rgba(255,0,128,.35);
 }
 
-/* ===== BOTONES SUBMENÚ ===== */
-.ellit-submenu div[data-testid="stButton"] {
-    width: 100%;
+/* ===== CONTENEDOR SUBMENÚ ===== */
+.ellit-submenu-group {
+    margin-left: 26px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    padding-left: 8px;
+    border-left: 2px solid #1E3A8A;
 }
 
-.ellit-submenu div[data-testid="stButton"] > button {
+/* ===== BOTÓN NIVEL 2 (SUBMENÚ) ===== */
+button[kind="secondary"].ellit-sub {
     width: 100% !important;
-    height: 38px;
+    height: 36px;
 
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-
-    padding-left: 28px;
     margin: 4px 0;
+    padding-left: 14px;
 
     border-radius: 10px;
     border: none;
@@ -483,73 +471,82 @@ section[data-testid="stSidebar"] {
     font-weight: 500;
     text-align: left;
 
-    transition: all 0.15s ease;
+    transition:all .15s ease;
 }
 
-.ellit-submenu div[data-testid="stButton"] > button:hover {
-    background: rgba(255,255,255,0.06);
-    color: white;
+button[kind="secondary"].ellit-sub:hover {
+    background: rgba(255,255,255,.07);
+    color:white;
 }
 
-/* ===== ACTIVO SUBMENÚ ===== */
-.ellit-active-sub div[data-testid="stButton"] > button {
-    background: rgba(255,0,128,0.18) !important;
-    color: #FF80C0 !important;
-    font-weight: 700 !important;
+/* ACTIVO NIVEL 2 */
+button[kind="secondary"].ellit-sub-active {
+    background: rgba(255,0,128,.18) !important;
+    color:#FF80C0 !important;
+    font-weight:700 !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# DEFINICIÓN DE MENÚS (IDS LIMPIOS + LABELS UI)
+# DEFINICIÓN MENÚS (ESTRUCTURA ACCORDION)
 # ============================================================
 
-MENU_UI = {
-    "radar": translate("Radar IA", "AI Radar"),
-    "sgsi": translate("Monitorización SGSI", "ISMS Monitoring"),
-    "bcp": translate("Continuidad de Negocio (BCP)", "Business Continuity"),
-    "policies": translate("Políticas IA", "AI Policies"),
-    "predictive": translate("Predictive Intelligence", "Predictive Intelligence"),
-    "licenses": translate("Licencias", "Licenses"),
-}
-
-SUBMENU_UI = {
+MENU_STRUCTURE = {
     "radar": {
-        "kpis": translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
-        "profile": translate("Perfil de la organización", "Organization Profile"),
-        "cognitive": translate("Radar Cognitivo", "Cognitive Radar"),
-        "maturity": translate("Madurez SGSI", "ISMS Maturity"),
-        "pdf": translate("Informe PDF", "PDF Report"),
+        "label": translate("Radar IA", "AI Radar"),
+        "subs": {
+            "kpis": translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
+            "profile": translate("Perfil de la organización", "Organization Profile"),
+            "cognitive": translate("Radar Cognitivo", "Cognitive Radar"),
+            "maturity": translate("Madurez SGSI", "ISMS Maturity"),
+            "pdf": translate("Informe PDF", "PDF Report"),
+        }
     },
     "sgsi": {
-        "dashboard": translate("Panel general", "General Dashboard"),
-        "history": translate("Registro histórico", "History Log"),
-        "evidence": translate("Evidencias y mantenimiento", "Evidence & Maintenance"),
+        "label": translate("Monitorización SGSI", "ISMS Monitoring"),
+        "subs": {
+            "dashboard": translate("Panel general", "General Dashboard"),
+            "history": translate("Registro histórico", "History Log"),
+            "evidence": translate("Evidencias y mantenimiento", "Evidence & Maintenance"),
+        }
     },
     "bcp": {
-        "generator": translate("Generador BCP", "BCP Generator"),
-        "analysis": translate("Análisis cognitivo", "Cognitive Analysis"),
-        "simulator": translate("Simulador de crisis", "Crisis Simulator"),
-        "alert_tree": translate(
-            "ELLIT ALERT TREE – Crisis Communication Demo",
-            "ELLIT ALERT TREE – Crisis Communication Demo"
-        ),
+        "label": translate("Continuidad de Negocio (BCP)", "Business Continuity"),
+        "subs": {
+            "generator": translate("Generador BCP", "BCP Generator"),
+            "analysis": translate("Análisis cognitivo", "Cognitive Analysis"),
+            "simulator": translate("Simulador de crisis", "Crisis Simulator"),
+            "alert_tree": translate(
+                "ELLIT ALERT TREE – Crisis Communication Demo",
+                "ELLIT ALERT TREE – Crisis Communication Demo"
+            ),
+        }
     },
     "policies": {
-        "generator": translate("Generador multinormativo", "Multistandard Policy Generator"),
+        "label": translate("Políticas IA", "AI Policies"),
+        "subs": {
+            "generator": translate("Generador multinormativo", "Multistandard Policy Generator"),
+        }
     },
     "predictive": {
-        "standard": translate("Predicción estándar", "Standard Prediction"),
-        "prime": translate("Predicción Prime", "Prime Prediction"),
+        "label": translate("Predictive Intelligence", "Predictive Intelligence"),
+        "subs": {
+            "standard": translate("Predicción estándar", "Standard Prediction"),
+            "prime": translate("Predicción Prime", "Prime Prediction"),
+        }
     },
     "licenses": {
-        "management": translate("Gestión de licencias", "License Management"),
+        "label": translate("Licencias", "Licenses"),
+        "subs": {
+            "management": translate("Gestión de licencias", "License Management"),
+        }
     },
 }
 
 # ============================================================
-# SIDEBAR ÚNICO — RENDER REAL
+# RENDER SIDEBAR (ACCORDION REAL)
 # ============================================================
 
 with st.sidebar:
@@ -563,7 +560,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # Estado por defecto seguro
+    # Estado seguro inicial
     if not st.session_state.menu:
         st.session_state.menu = "radar"
     if not st.session_state.submenu:
@@ -572,40 +569,75 @@ with st.sidebar:
     active_menu = st.session_state.menu
     active_submenu = st.session_state.submenu
 
-    # ===== MENÚ PRINCIPAL =====
-    with st.container():
-        st.markdown('<div class="ellit-main-menu">', unsafe_allow_html=True)
+    # ACCORDION
+    for menu_id, data in MENU_STRUCTURE.items():
 
-        for menu_id, label in MENU_UI.items():
-            wrapper_class = "ellit-active-main" if menu_id == active_menu else ""
-            st.markdown(f'<div class="{wrapper_class}">', unsafe_allow_html=True)
+        is_active = menu_id == active_menu
+        chevron = "▼" if is_active else "▶"
 
-            if st.button(label, key=f"menu_{menu_id}"):
-                st.session_state.menu = menu_id
-                subs = list(SUBMENU_UI.get(menu_id, {}).keys())
-                st.session_state.submenu = subs[0] if subs else None
-                st.rerun()
+        main_class = "ellit-main-active" if is_active else "ellit-main"
 
-            st.markdown('</div>', unsafe_allow_html=True)
+        if st.button(
+            f"{data['label']}  {chevron}",
+            key=f"menu_{menu_id}",
+            help=data['label'],
+            args=None,
+            use_container_width=True
+        ):
+            st.session_state.menu = menu_id
+            # Si cambio de menú, activo primer submenú
+            st.session_state.submenu = list(data["subs"].keys())[0]
+            st.rerun()
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Hack limpio para clases CSS (Streamlit-safe)
+        st.markdown(
+            f"<script></script>",
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            f"""
+            <style>
+            div[data-testid="stButton"]:has(button[title="{data['label']}"]) > button {{
+                {'background: linear-gradient(135deg,#FF0080 0%,#FF5DB1 100%) !important;' if is_active else ''}
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
 
-    # ===== SUBMENÚ =====
-    if active_menu in SUBMENU_UI:
-        with st.container():
-            st.markdown('<div class="ellit-submenu">', unsafe_allow_html=True)
+        # SUBMENÚS (solo si activo)
+        if is_active:
+            st.markdown("<div class='ellit-submenu-group'>", unsafe_allow_html=True)
 
-            for sub_id, sub_label in SUBMENU_UI[active_menu].items():
-                wrapper_class = "ellit-active-sub" if sub_id == active_submenu else ""
-                st.markdown(f'<div class="{wrapper_class}">', unsafe_allow_html=True)
+            for sub_id, sub_label in data["subs"].items():
+                sub_active = (sub_id == active_submenu)
+                sub_class = "ellit-sub-active" if sub_active else "ellit-sub"
 
-                if st.button(sub_label, key=f"submenu_{active_menu}_{sub_id}"):
+                if st.button(
+                    sub_label,
+                    key=f"submenu_{menu_id}_{sub_id}",
+                    use_container_width=True
+                ):
                     st.session_state.submenu = sub_id
                     st.rerun()
 
-                st.markdown('</div>', unsafe_allow_html=True)
+                # aplicar estilo activo
+                if sub_active:
+                    st.markdown(
+                        f"""
+                        <style>
+                        div[data-testid="stButton"]:has(button:contains("{sub_label}")) > button {{
+                            background: rgba(255,0,128,.18) !important;
+                            color:#FF80C0 !important;
+                            font-weight:700 !important;
+                        }}
+                        </style>
+                        """,
+                        unsafe_allow_html=True
+                    )
 
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
 
 
 # ============================================================
