@@ -117,6 +117,32 @@ SUPERADMIN_NAME = "Ellit Super Admin"
 DEMO_EMAIL = "demo@ellitnow.com"
 DEMO_PASSWORD = "Demo2025!g*E"
 DEMO_TENANT_NAME = "DEMO - Ellit Shield"
+# ==============================
+# IDs INTERNOS DE MENÚ (ESTABLES)
+# ==============================
+MENU_IDS = {
+    "RADAR": "radar",
+    "SGSI": "sgsi",
+    "BCP": "bcp",
+    "POLICIES": "policies",
+    "PREDICTIVE": "predictive",
+    "LICENSES": "licenses"
+}
+
+SUBMENU_IDS = {
+    "RADAR": {
+        "KPIS": "kpis",
+        "PROFILE": "profile",
+        "COGNITIVE": "cognitive",
+        "MATURITY": "maturity",
+        "PDF": "pdf"
+    },
+    "SGSI": {
+        "DASHBOARD": "dashboard",
+        "HISTORY": "history",
+        "EVIDENCE": "evidence"
+    }
+}
 
 default_session = {
     "auth_status": None,
@@ -811,14 +837,15 @@ if st.session_state.get("auth_status"):
         # ===============================
         # MENÚ PRINCIPAL CONFIG
         # ===============================
-        main_options = [
-            translate("Radar IA", "AI Radar"),
-            translate("Monitorización SGSI", "ISMS Monitoring"),
-            translate("Continuidad de Negocio (BCP)", "Business Continuity"),
-            translate("Políticas IA", "AI Policies"),
-            translate("Predictive Intelligence", "Predictive Intelligence"),
-            translate("Licencias", "Licenses")
+        main_menu = [
+            (MENU_IDS["RADAR"], translate("Radar IA", "AI Radar")),
+            (MENU_IDS["SGSI"], translate("Monitorización SGSI", "ISMS Monitoring")),
+            (MENU_IDS["BCP"], translate("Continuidad de Negocio (BCP)", "Business Continuity")),
+            (MENU_IDS["POLICIES"], translate("Políticas IA", "AI Policies")),
+            (MENU_IDS["PREDICTIVE"], translate("Predictive Intelligence", "Predictive Intelligence")),
+            (MENU_IDS["LICENSES"], translate("Licencias", "Licenses")),
         ]
+
 
         submenu_map = {
             translate("Radar IA", "AI Radar"): [
@@ -856,10 +883,10 @@ if st.session_state.get("auth_status"):
         # ESTADO INICIAL
         # ===============================
         if "menu" not in st.session_state:
-            st.session_state.menu = main_options[0]
+            st.session_state.menu = MENU_IDS["RADAR"]
 
         if "submenu" not in st.session_state:
-            st.session_state.submenu = submenu_map[st.session_state.menu][0]
+            st.session_state.submenu = SUBMENU_IDS["RADAR"]["KPIS"]
 
         # ===============================
         # CSS MENÚ LATERAL
@@ -904,25 +931,49 @@ if st.session_state.get("auth_status"):
         # ===============================
         # MENÚ PRINCIPAL
         # ===============================
-        for opt in main_options:
-            active = (opt == st.session_state.menu)
-            css_class = "ellit-btn-active" if active else "ellit-btn"
+        for menu_id, label in main_menu:
+            active = (menu_id == st.session_state.menu)
+            css = "ellit-btn-active" if active else "ellit-btn"
 
-            if st.button(opt, key=f"menu_{opt}"):
-                st.session_state.menu = opt
-                st.session_state.submenu = submenu_map[opt][0]
+            if st.button(label, key=f"menu_{menu_id}"):
+                st.session_state.menu = menu_id
+
+                # Submenú por defecto del menú
+                if menu_id in SUBMENU_IDS:
+                    st.session_state.submenu = list(SUBMENU_IDS[menu_id].values())[0]
+                else:
+                    st.session_state.submenu = None
+
                 st.rerun()
+
+            st.markdown(
+                f"<div class='{css}'>{label}</div>",
+                unsafe_allow_html=True
+            )
+
 
         # ===============================
         # SUBMENÚ
         # ===============================
-        for sub in submenu_map[st.session_state.menu]:
-            is_active = (sub == st.session_state.submenu)
-            css_class = "submenu-item submenu-active" if is_active else "submenu-item"
+        if st.session_state.menu in SUBMENU_IDS:
 
-            if st.button(sub, key=f"submenu_{sub}"):
-                st.session_state.submenu = sub
-                st.rerun()
+            for sub_id, label in SUBMENU_IDS[st.session_state.menu].items():
+                active = (sub_id == st.session_state.submenu)
+                css = (
+                    "ellit-submenu-item ellit-submenu-active"
+                    if active else
+                    "ellit-submenu-item"
+                )
+
+                if st.button(label, key=f"submenu_{sub_id}"):
+                    st.session_state.submenu = sub_id
+                    st.rerun()
+
+                st.markdown(
+                    f"<div class='{css}'>{label}</div>",
+                    unsafe_allow_html=True
+                )
+
 
         # ===============================
         # CONTROLES DE ROL
