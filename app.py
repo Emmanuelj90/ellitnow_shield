@@ -995,51 +995,48 @@ if st.session_state.get("auth_status"):
 
     if menu and submenu:
         st.session_state["breadcrumb"] = f"{menu} → {submenu}"
+        
 
     # =====================================
     # RADAR IA (Enterprise)
     # =====================================
-    if menu == translate("Radar IA", "AI Radar"):
+    if menu == MENU_IDS["RADAR"]:
 
         require_enterprise()
 
-        if submenu == translate("Cuadro de mando (KPIs)", "Dashboard KPIs"):
-            with content_area:
+        with content_area:
+
+            if submenu == SUBMENU_IDS["RADAR"]["KPIS"]:
                 render_radar_kpis()
 
-        elif submenu == translate("Perfil de la organización", "Organization Profile"):
-            with content_area:
+            elif submenu == SUBMENU_IDS["RADAR"]["PROFILE"]:
                 render_radar_profile()
 
-        elif submenu == translate("Radar Cognitivo", "Cognitive Radar"):
-            with content_area:
+            elif submenu == SUBMENU_IDS["RADAR"]["COGNITIVE"]:
                 render_radar_cognitivo()
 
-        elif submenu == translate("Madurez SGSI", "ISMS Maturity"):
-            with content_area:
+            elif submenu == SUBMENU_IDS["RADAR"]["MATURITY"]:
                 render_radar_madurez()
 
-        elif submenu == translate("Informe PDF", "PDF Report"):
-            with content_area:
+            elif submenu == SUBMENU_IDS["RADAR"]["PDF"]:
                 render_radar_pdf()
+
 
     # =====================================
     # MONITORIZACIÓN SGSI (Enterprise)
     # =====================================
-    elif menu == translate("Monitorización SGSI", "ISMS Monitoring"):
+    elif menu == MENU_IDS["SGSI"]:
 
         require_enterprise()
 
-        if submenu == translate("Panel general", "General Dashboard"):
-            with content_area:
+        with content_area:
+            if submenu == SUBMENU_IDS["SGSI"]["DASHBOARD"]:
                 render_sgsi_monitor_dashboard()
 
-        elif submenu == translate("Registro histórico", "History Log"):
-            with content_area:
+            elif submenu == SUBMENU_IDS["SGSI"]["HISTORY"]:
                 render_sgsi_monitor_history()
 
-        elif submenu == translate("Evidencias y mantenimiento", "Evidence & Maintenance"):
-            with content_area:
+            elif submenu == SUBMENU_IDS["SGSI"]["EVIDENCE"]:
                 render_sgsi_monitor_evidences()
 
     # =====================================
