@@ -312,7 +312,7 @@ def render_radar_pdf():
 
         contenido = "\n".join(texto)
 
-        from app import download_pdf_button
+
         download_pdf_button(
             "Informe Radar IA",
             profile.get("organizacion", ""),
