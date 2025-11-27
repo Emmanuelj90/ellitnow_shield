@@ -378,99 +378,94 @@ if not st.session_state.get("auth_status"):
     login_screen()
     st.stop()
 # ============================================================
-# PARTE 2 / 3 — SIDEBAR PREMIUM (ÚNICO)
+# PARTE 2 / 3 — SIDEBAR PREMIUM (SIN DUPLICADOS)
 # ============================================================
 
-# ============================================================
-# ESTILOS SIDEBAR PREMIUM
-# ============================================================
+# ===== ESTILOS DEL SIDEBAR PARA LOS BOTONES REALES =====
 
 st.markdown("""
 <style>
 
-/* ===== SIDEBAR WRAPPER ===== */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg,#0B2A55 0%,#061A36 100%);
     border-right: 1px solid #1E3A8A;
 }
 
-/* ===== LOGO ===== */
+/* Logo */
 .ellit-logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 22px 0 18px 0;
-    border-bottom: 1px solid #1E3A8A;
-    margin-bottom: 14px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:18px 0 18px 0;
+    border-bottom:1px solid #1E3A8A;
+    margin-bottom:10px;
 }
-
 .ellit-logo img {
-    max-width: 140px;
-    opacity: 0.95;
+    max-width: 130px;
+    opacity:0.95;
 }
 
-/* ===== MENU ITEM ===== */
-.ellit-menu-item {
-    display: flex;
-    align-items: center;
-    height: 48px;
-    padding: 0 16px;
-    margin: 6px 12px;
-    border-radius: 14px;
-    cursor: pointer;
-    color: #E5E7EB;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.18s ease;
-    background: transparent;
+/* Contenedor de menú principal */
+.ellit-main-menu > div[data-testid="stButton"] > button {
+    width:100%;
+    height:46px;
+    margin:4px 10px;
+    border-radius:14px;
+    border:0;
+    background:#0F355F;
+    color:#E5E7EB;
+    font-size:14px;
+    font-weight:500;
+    text-align:left;
+    padding-left:16px;
+    transition:all .15s ease;
 }
 
-.ellit-menu-item:hover {
-    background: rgba(255,255,255,0.07);
+/* Hover menú */
+.ellit-main-menu > div[data-testid="stButton"] > button:hover {
+    background:#1E3A8A;
+    color:#FFFFFF;
 }
 
-.ellit-menu-item-active {
-    background: linear-gradient(135deg,#FF0080 0%,#FF5DB1 100%);
-    color: white;
-    font-weight: 700;
+/* Contenedor submenú */
+.ellit-submenu > div[data-testid="stButton"] > button {
+    width:100%;
+    height:38px;
+    margin:2px 16px;
+    border-radius:10px;
+    border:0;
+    background:transparent;
+    color:#CBD5F5;
+    font-size:13px;
+    font-weight:500;
+    text-align:left;
+    padding-left:28px;
+    transition:all .15s ease;
 }
 
-/* ===== SUBMENU ===== */
-.ellit-submenu {
-    margin-top: 6px;
-    margin-bottom: 10px;
+/* Hover submenú */
+.ellit-submenu > div[data-testid="stButton"] > button:hover {
+    background:rgba(255,255,255,0.06);
+    color:#FFFFFF;
 }
 
-.ellit-submenu-item {
-    display: flex;
-    align-items: center;
-    height: 38px;
-    padding: 0 16px 0 34px;
-    margin: 3px 18px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 13px;
-    color: #CBD5F5;
-    transition: all 0.15s ease;
+/* Simulación de "activo": lo pintamos con otro gradient usando una clase auxiliar */
+.ellit-active-main > div[data-testid="stButton"] > button {
+    background:linear-gradient(135deg,#FF0080 0%,#FF5DB1 100%) !important;
+    color:white !important;
+    font-weight:700 !important;
 }
 
-.ellit-submenu-item:hover {
-    background: rgba(255,255,255,0.06);
-    color: white;
-}
-
-.ellit-submenu-item-active {
-    background: rgba(255,0,128,0.15);
-    color: #FF0080;
-    font-weight: 700;
+.ellit-active-sub > div[data-testid="stButton"] > button {
+    background:rgba(255,0,128,0.16) !important;
+    color:#FF80C0 !important;
+    font-weight:700 !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ============================================================
-# MENÚ — DEFINICIÓN UI (LABELS)
-# ============================================================
+# ===== DEFINICIÓN DE MENÚS (LABELS) =====
 
 MENU_UI = {
     "radar": translate("Radar IA", "AI Radar"),
@@ -515,9 +510,7 @@ SUBMENU_UI = {
     },
 }
 
-# ============================================================
-# SIDEBAR RENDER
-# ============================================================
+# ===== RENDER ÚNICO DEL SIDEBAR =====
 
 with st.sidebar:
 
@@ -533,48 +526,51 @@ with st.sidebar:
     # Estado inicial de navegación
     if not st.session_state.menu:
         st.session_state.menu = "radar"
-        st.session_state.submenu = list(SUBMENU_UI["radar"].keys())[0]
+    if not st.session_state.submenu:
+        st.session_state.submenu = "kpis"
 
-    # Render menú principal
-    for menu_id, label in MENU_UI.items():
+    active_menu = st.session_state.menu
+    active_submenu = st.session_state.submenu
 
-        is_active = (menu_id == st.session_state.menu)
-        css_class = (
-            "ellit-menu-item ellit-menu-item-active"
-            if is_active else
-            "ellit-menu-item"
-        )
+    # ===== MENÚ PRINCIPAL =====
+    main_container = st.container()
+    with main_container:
+        st.markdown('<div class="ellit-main-menu">', unsafe_allow_html=True)
 
-        if st.button(label, key=f"menu_{menu_id}"):
-            st.session_state.menu = menu_id
-            st.session_state.submenu = list(SUBMENU_UI.get(menu_id, {}).keys())[0]
-            st.rerun()
+        for menu_id, label in MENU_UI.items():
+            # contenedor por cada botón para poder marcar activo
+            css_wrapper = "ellit-main-item"
+            if menu_id == active_menu:
+                css_wrapper += " ellit-active-main"
+            with st.container():
+                st.markdown(f'<div class="{css_wrapper}">', unsafe_allow_html=True)
+                if st.button(label, key=f"menu_{menu_id}"):
+                    st.session_state.menu = menu_id
+                    # submenú por defecto
+                    first_sub = list(SUBMENU_UI.get(menu_id, {}).keys())
+                    st.session_state.submenu = first_sub[0] if first_sub else None
+                    st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown(f"<div class='{css_class}'>{label}</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-        # Submenú desplegable
-        if is_active and menu_id in SUBMENU_UI:
-            st.markdown("<div class='ellit-submenu'>", unsafe_allow_html=True)
+    # ===== SUBMENÚ DEL MENÚ ACTIVO =====
+    if active_menu in SUBMENU_UI:
+        st.markdown('<div class="ellit-submenu">', unsafe_allow_html=True)
 
-            for sub_id, sub_label in SUBMENU_UI[menu_id].items():
-
-                is_sub_active = (sub_id == st.session_state.submenu)
-                sub_class = (
-                    "ellit-submenu-item ellit-submenu-item-active"
-                    if is_sub_active else
-                    "ellit-submenu-item"
-                )
-
-                if st.button(sub_label, key=f"submenu_{menu_id}_{sub_id}"):
+        for sub_id, sub_label in SUBMENU_UI[active_menu].items():
+            css_wrapper = "ellit-sub-item"
+            if sub_id == active_submenu:
+                css_wrapper += " ellit-active-sub"
+            with st.container():
+                st.markdown(f'<div class="{css_wrapper}">', unsafe_allow_html=True)
+                if st.button(sub_label, key=f"submenu_{active_menu}_{sub_id}"):
                     st.session_state.submenu = sub_id
                     st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
 
-                st.markdown(
-                    f"<div class='{sub_class}'>{sub_label}</div>",
-                    unsafe_allow_html=True
-                )
+        st.markdown("</div>", unsafe_allow_html=True)
 
-            st.markdown("</div>", unsafe_allow_html=True)
 # ============================================================
 # PARTE 3 / 3 — ROUTER FINAL & CONTENIDO
 # ============================================================
