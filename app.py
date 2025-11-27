@@ -378,52 +378,58 @@ if not st.session_state.get("auth_status"):
     login_screen()
     st.stop()
 # ============================================================
-# PARTE 2 / 3 — SIDEBAR ACCORDION PROFESIONAL (ELLIT)
+# PARTE 2 / 3 — SIDEBAR ACCORDION CORPORATIVO (ELLIT)
 # ============================================================
 
 # ============================================================
-# ESTILOS SIDEBAR (ACCORDION ENTERPRISE)
+# ESTILOS SIDEBAR — PALETA CORPORATIVA CIBERSEGURIDAD
 # ============================================================
 
 st.markdown("""
 <style>
 
-/* ===== SIDEBAR BASE ===== */
+/* ==============================
+   SIDEBAR BASE
+   ============================== */
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg,#0B2A55 0%,#061A36 100%);
-    border-right: 1px solid #1E3A8A;
+    background: linear-gradient(180deg, #0F2F57 0%, #0B2748 100%);
+    border-right: 1px solid #163F77;
 }
 
-/* ===== LOGO ===== */
+/* ==============================
+   LOGO
+   ============================== */
 .ellit-logo {
     display:flex;
     justify-content:center;
     align-items:center;
-    padding:18px 0;
-    border-bottom:1px solid #1E3A8A;
-    margin-bottom:10px;
+    padding:20px 0;
+    border-bottom:1px solid #163F77;
+    margin-bottom:12px;
 }
 .ellit-logo img {
-    width: 120px;
+    width:120px;
 }
 
-/* ===== BOTÓN NIVEL 1 (MENÚ PRINCIPAL) ===== */
+/* ==============================
+   BOTÓN NIVEL 1 (MENÚ PRINCIPAL)
+   ============================== */
 button[kind="secondary"].ellit-main {
-    width: 100% !important;
-    height: 48px;
+    width:100% !important;
+    height:48px;
 
-    margin: 6px 10px;
-    padding-left: 18px;
+    margin:6px 10px;
+    padding-left:18px;
 
-    border-radius: 14px;
-    border: none;
+    border-radius:14px;
+    border:none;
 
-    background: #0F355F;
-    color: #E5E7EB;
+    background:#123A6A;
+    color:#E5E7EB;
 
-    font-size: 14px;
-    font-weight: 600;
-    text-align: left;
+    font-size:14px;
+    font-weight:600;
+    text-align:left;
 
     display:flex;
     align-items:center;
@@ -433,56 +439,60 @@ button[kind="secondary"].ellit-main {
 }
 
 button[kind="secondary"].ellit-main:hover {
-    background:#1E3A8A;
-    color:white;
+    background:#163F77;
+    color:#FFFFFF;
 }
 
-/* ACTIVO NIVEL 1 */
+/* ACTIVO NIVEL 1 — MAGENTA TECNOLÓGICO */
 button[kind="secondary"].ellit-main-active {
-    background: linear-gradient(135deg,#FF0080 0%,#FF5DB1 100%) !important;
-    color:white !important;
-    box-shadow:0 6px 18px rgba(255,0,128,.35);
+    background: linear-gradient(135deg,#B83280 0%,#C8458F 100%) !important;
+    color:#FFFFFF !important;
+    box-shadow:0 6px 18px rgba(184,50,128,.35);
 }
 
-/* ===== CONTENEDOR SUBMENÚ ===== */
+/* ==============================
+   CONTENEDOR SUBMENÚ
+   ============================== */
 .ellit-submenu-group {
-    margin-left: 26px;
-    margin-right: 10px;
-    margin-bottom: 10px;
-    padding-left: 8px;
-    border-left: 2px solid #1E3A8A;
+    margin-left:28px;
+    margin-right:10px;
+    margin-bottom:10px;
+    padding-left:10px;
+    border-left:2px solid #163F77;
 }
 
-/* ===== BOTÓN NIVEL 2 (SUBMENÚ) ===== */
+/* ==============================
+   BOTÓN NIVEL 2 (SUBMENÚ)
+   ============================== */
 button[kind="secondary"].ellit-sub {
-    width: 100% !important;
-    height: 36px;
+    width:100% !important;
+    height:36px;
 
-    margin: 4px 0;
-    padding-left: 14px;
+    margin:4px 0;
+    padding-left:12px;
 
-    border-radius: 10px;
-    border: none;
+    border-radius:10px;
+    border:none;
 
-    background: transparent;
-    color: #CBD5F5;
+    background:transparent;
+    color:#CBD5E1;
 
-    font-size: 13px;
-    font-weight: 500;
-    text-align: left;
+    font-size:13px;
+    font-weight:500;
+    text-align:left;
 
     transition:all .15s ease;
 }
 
 button[kind="secondary"].ellit-sub:hover {
-    background: rgba(255,255,255,.07);
-    color:white;
+    background:rgba(255,255,255,.06);
+    color:#FFFFFF;
 }
 
-/* ACTIVO NIVEL 2 */
+/* ACTIVO SUBMENÚ — MAGENTA SUAVE */
 button[kind="secondary"].ellit-sub-active {
-    background: rgba(255,0,128,.18) !important;
-    color:#FF80C0 !important;
+    background:rgba(184,50,128,.18) !important;
+    color:#C8458F !important;
     font-weight:700 !important;
 }
 
@@ -490,7 +500,7 @@ button[kind="secondary"].ellit-sub-active {
 """, unsafe_allow_html=True)
 
 # ============================================================
-# DEFINICIÓN MENÚS (ESTRUCTURA ACCORDION)
+# ESTRUCTURA DEL MENÚ (ACCORDION)
 # ============================================================
 
 MENU_STRUCTURE = {
@@ -546,7 +556,7 @@ MENU_STRUCTURE = {
 }
 
 # ============================================================
-# RENDER SIDEBAR (ACCORDION REAL)
+# RENDER SIDEBAR ACCORDION
 # ============================================================
 
 with st.sidebar:
@@ -572,7 +582,7 @@ with st.sidebar:
     # ACCORDION
     for menu_id, data in MENU_STRUCTURE.items():
 
-        is_active = menu_id == active_menu
+        is_active = (menu_id == active_menu)
         chevron = "▼" if is_active else "▶"
 
         main_class = "ellit-main-active" if is_active else "ellit-main"
@@ -580,38 +590,29 @@ with st.sidebar:
         if st.button(
             f"{data['label']}  {chevron}",
             key=f"menu_{menu_id}",
-            help=data['label'],
-            args=None,
+            help=data["label"],
             use_container_width=True
         ):
             st.session_state.menu = menu_id
-            # Si cambio de menú, activo primer submenú
             st.session_state.submenu = list(data["subs"].keys())[0]
             st.rerun()
 
-        # Hack limpio para clases CSS (Streamlit-safe)
-        st.markdown(
-            f"<script></script>",
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            f"""
-            <style>
-            div[data-testid="stButton"]:has(button[title="{data['label']}"]) > button {{
-                {'background: linear-gradient(135deg,#FF0080 0%,#FF5DB1 100%) !important;' if is_active else ''}
-            }}
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+        # Aplicamos clase correcta al botón principal
+        st.markdown(f"""
+        <style>
+        div[data-testid="stButton"]:has(button:contains("{data['label']}")) > button {{
+            border-radius:14px;
+        }}
+        </style>
+        """, unsafe_allow_html=True)
 
-        # SUBMENÚS (solo si activo)
+        # SUBMENÚS
         if is_active:
             st.markdown("<div class='ellit-submenu-group'>", unsafe_allow_html=True)
 
             for sub_id, sub_label in data["subs"].items():
-                sub_active = (sub_id == active_submenu)
-                sub_class = "ellit-sub-active" if sub_active else "ellit-sub"
+                is_sub_active = (sub_id == active_submenu)
+                sub_class = "ellit-sub-active" if is_sub_active else "ellit-sub"
 
                 if st.button(
                     sub_label,
@@ -620,21 +621,6 @@ with st.sidebar:
                 ):
                     st.session_state.submenu = sub_id
                     st.rerun()
-
-                # aplicar estilo activo
-                if sub_active:
-                    st.markdown(
-                        f"""
-                        <style>
-                        div[data-testid="stButton"]:has(button:contains("{sub_label}")) > button {{
-                            background: rgba(255,0,128,.18) !important;
-                            color:#FF80C0 !important;
-                            font-weight:700 !important;
-                        }}
-                        </style>
-                        """,
-                        unsafe_allow_html=True
-                    )
 
             st.markdown("</div>", unsafe_allow_html=True)
 
