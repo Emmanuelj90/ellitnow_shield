@@ -1,6 +1,6 @@
 # ==============================
 # AI Executive Shield — EllitNow Cognitive Core Edition
-# VERSIÓN AUTH REFACTORED — CLEAN & STABLE
+# PARTE 1 / 3 — CORE & AUTH (PRODUCCIÓN)
 # ==============================
 
 import streamlit as st
@@ -36,7 +36,7 @@ import datetime as _dt
 # --- Ellit Cognitive Core ---
 from core.cognitive_core import EllitCognitiveCore, extract_json
 
-# --- Módulos externos ---
+# --- Módulos externos (NO SE TOCAN) ---
 from modules.radar_ia import (
     render_radar_kpis,
     render_radar_profile,
@@ -64,51 +64,48 @@ from modules.sgsi_monitoring import (
     render_sgsi_monitor_evidences
 )
 
-# lenguaje UI
+# --- Lenguaje UI ---
 from language import translate, set_language
 
-# DB helper
+# --- DB helper ---
 from core.database import get_conn
 
-# Desactivar componentes viejos
+# Desactivar componentes legacy (seguro en prod)
 st.components.v1.declare_component = lambda *args, **kwargs: None
 
-# Cliente Cognitivo
-st.session_state["client"] = EllitCognitiveCore(st.secrets["OPENAI_API_KEY"])
 
-# ==============================
-# CONFIGURACIÓN DE PÁGINA
-# ==============================
+# ============================================================
+# PAGE CONFIG (BRANDING)
+# ============================================================
+
 st.set_page_config(
-    page_title="AI Executive Shield — Ellit Cognitive Core",
+    page_title="Ellit Shield · AI Executive Platform",
     page_icon="https://i.ibb.co/h19Y9KKG/logo-white-background.jpg",
     layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # ============================================================
-# ESTILO GLOBAL BASE (NO MENÚ)
+# GLOBAL STYLE BASE (NO SIDEBAR)
 # ============================================================
 
 st.markdown("""
 <style>
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
-    background-color: #FFFFFF;
+    background-color: #ffffff;
     color: #0F172A;
 }
-
 div.block-container {
-    max-width: 1250px;
+    max-width: 1320px;
     padding-left: 2rem !important;
     padding-right: 2rem !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# CONSTANTES
+# CONSTANTES / IDS
 # ============================================================
 
 SUPERADMIN_EMAIL = "admin@ellitnow.com"
@@ -118,83 +115,44 @@ DEMO_EMAIL = "demo@ellitnow.com"
 DEMO_PASSWORD = "Demo2025!g*E"
 DEMO_TENANT_NAME = "DEMO — Ellit Shield"
 
-# ============================================================
-# IDs INTERNOS (ÚNICA FUENTE DE VERDAD)
-# ============================================================
-
-MENU_IDS = {
-    "RADAR": "radar",
-    "SGSI": "sgsi",
-    "BCP": "bcp",
-    "POLICIES": "policies",
-    "PREDICTIVE": "predictive",
-    "LICENSES": "licenses",
-}
-
-SUBMENU_IDS = {
-    "radar": {
-        "KPIS": "kpis",
-        "PROFILE": "profile",
-        "COGNITIVE": "cognitive",
-        "MATURITY": "maturity",
-        "PDF": "pdf",
-    },
-    "sgsi": {
-        "DASHBOARD": "dashboard",
-        "HISTORY": "history",
-        "EVIDENCE": "evidence",
-    },
-    "bcp": {
-        "GENERATOR": "generator",
-        "ANALYSIS": "analysis",
-        "SIMULATOR": "simulator",
-        "ALERT_TREE": "alert_tree",
-    },
-    "policies": {
-        "GENERATOR": "generator",
-    },
-    "predictive": {
-        "STANDARD": "standard",
-        "PRIME": "prime",
-    },
-    "licenses": {
-        "MANAGEMENT": "management",
-    },
-}
+MENU_IDS = ["radar", "sgsi", "bcp", "policies", "predictive", "licenses"]
 
 # ============================================================
-# SESIÓN — ESTADO BASE
+# SESSION BOOTSTRAP (A PRUEBA DE STREAMLIT)
 # ============================================================
 
-DEFAULT_SESSION_STATE = {
-    "auth_status": None,
+DEFAULT_SESSION = {
+    "auth_status": None,      # super_admin / partner / client / demo
     "user_role": None,
     "user_id": None,
+    "user_email": None,
+
     "tenant_id": None,
     "tenant_name": None,
-    "user_email": None,
     "primary_color": "#FF0080",
+
     "tenant_enterprise": False,
     "tenant_prime": False,
+
     "menu": None,
     "submenu": None,
 }
 
-for key, value in DEFAULT_SESSION_STATE.items():
+for key, value in DEFAULT_SESSION.items():
     if key not in st.session_state:
         st.session_state[key] = value
 
 # ============================================================
-# CLIENTE COGNITIVO (UNA SOLA INSTANCIA)
+# COGNITIVE CORE (INSTANCIA ÚNICA, SEGURA)
 # ============================================================
 
 if "client" not in st.session_state:
     st.session_state["client"] = EllitCognitiveCore(
-        st.secrets.get("OPENAI_API_KEY")
+        st.secrets["OPENAI_API_KEY"]
     )
 
 # ============================================================
-# BASE DE DATOS — INIT
+# DATABASE INIT (TOTALMENTE COMPATIBLE)
 # ============================================================
 
 def init_db():
@@ -202,12 +160,14 @@ def init_db():
     c = conn.cursor()
     c.execute("PRAGMA foreign_keys = ON;")
 
+    # TENANTS
     c.execute("""
     CREATE TABLE IF NOT EXISTS tenants (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         email TEXT UNIQUE,
         active INTEGER DEFAULT 1,
+        predictive INTEGER DEFAULT 0,
         enterprise INTEGER DEFAULT 0,
         prime INTEGER DEFAULT 0,
         primary_color TEXT DEFAULT '#FF0080',
@@ -216,6 +176,7 @@ def init_db():
     )
     """)
 
+    # USERS
     c.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -225,6 +186,9 @@ def init_db():
         role TEXT NOT NULL,
         password_hash TEXT,
         is_active INTEGER DEFAULT 1,
+        first_access_token TEXT,
+        reset_token TEXT,
+        reset_token_expiry TEXT,
         created_at TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (tenant_id) REFERENCES tenants(id)
     )
@@ -232,44 +196,50 @@ def init_db():
 
     conn.commit()
 
-    # === SUPER ADMIN ===
-    c.execute("SELECT id FROM tenants WHERE email = ?", (SUPERADMIN_EMAIL,))
+    # SUPER ADMIN TENANT
+    c.execute("SELECT id FROM tenants WHERE email=?", (SUPERADMIN_EMAIL,))
     if not c.fetchone():
-        super_id = str(uuid.uuid4())
+        tid = str(uuid.uuid4())
         c.execute("""
-        INSERT INTO tenants (id, name, email, active, enterprise, prime)
-        VALUES (?, ?, ?, 1, 1, 1)
-        """, (super_id, SUPERADMIN_NAME, SUPERADMIN_EMAIL))
+        INSERT INTO tenants (id,name,email,active,enterprise,prime)
+        VALUES (?,?,?,?,?,?)
+        """, (tid, SUPERADMIN_NAME, SUPERADMIN_EMAIL, 1, 1, 1))
 
-    # === DEMO TENANT ===
-    c.execute("SELECT id FROM tenants WHERE email = ?", (DEMO_EMAIL,))
+    # DEMO TENANT
+    c.execute("SELECT id FROM tenants WHERE email=?", (DEMO_EMAIL,))
     row = c.fetchone()
-
-    if row:
-        demo_tenant_id = row[0]
-    else:
-        demo_tenant_id = str(uuid.uuid4())
+    if not row:
+        demo_tid = str(uuid.uuid4())
         c.execute("""
-        INSERT INTO tenants (id, name, email, active, enterprise, prime, primary_color)
-        VALUES (?, ?, ?, 1, 1, 1, '#0048FF')
-        """, (demo_tenant_id, DEMO_TENANT_NAME, DEMO_EMAIL))
+        INSERT INTO tenants
+        (id,name,email,active,enterprise,prime,primary_color)
+        VALUES (?,?,?,?,?,?,?)
+        """, (
+            demo_tid,
+            DEMO_TENANT_NAME,
+            DEMO_EMAIL,
+            1,
+            1,
+            1,
+            "#0048FF"
+        ))
 
-    c.execute("SELECT id FROM users WHERE email = ?", (DEMO_EMAIL,))
-    if not c.fetchone():
         pwd_hash = bcrypt.hashpw(
             DEMO_PASSWORD.encode(),
             bcrypt.gensalt(12)
         ).decode()
 
         c.execute("""
-        INSERT INTO users (id, tenant_id, email, name, role, password_hash, is_active)
-        VALUES (?, ?, ?, ?, 'demo', ?, 1)
+        INSERT INTO users
+        (id,tenant_id,email,name,role,password_hash,is_active)
+        VALUES (?,?,?,?,?,?,1)
         """, (
             str(uuid.uuid4()),
-            demo_tenant_id,
+            demo_tid,
             DEMO_EMAIL,
             "Demo Comercial",
-            pwd_hash,
+            "demo",
+            pwd_hash
         ))
 
     conn.commit()
@@ -278,10 +248,10 @@ def init_db():
 init_db()
 
 # ============================================================
-# HELPERS — LICENCIAS
+# LICENCIAS / HELPERS
 # ============================================================
 
-def load_tenant_license_flags(tenant_id: str | None):
+def load_tenant_license_flags(tenant_id):
     if not tenant_id:
         st.session_state["tenant_enterprise"] = False
         st.session_state["tenant_prime"] = False
@@ -290,7 +260,7 @@ def load_tenant_license_flags(tenant_id: str | None):
     conn = get_conn()
     c = conn.cursor()
     c.execute(
-        "SELECT enterprise, prime FROM tenants WHERE id = ?",
+        "SELECT enterprise, prime FROM tenants WHERE id=?",
         (tenant_id,)
     )
     row = c.fetchone()
@@ -314,104 +284,192 @@ def require_prime():
     if not st.session_state["tenant_prime"]:
         st.warning("⚠️ Este módulo requiere Prime — Predictive Intelligence.")
         st.stop()
-# ============================================================
-# PARTE 2 — SIDEBAR & MENÚ PREMIUM
-# ============================================================
 
-from language import translate, set_language
 
 # ============================================================
-# SIDEBAR — ESTILO PREMIUM (UNIFORME)
+# LOGIN SCREEN (REAL, ESTABLE)
+# ============================================================
+
+def login_screen():
+
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg,#FF0080 0%,#0048FF 100%);
+        padding:42px;
+        border-radius:22px;
+        text-align:center;
+        color:white;
+        box-shadow:0 20px 50px rgba(0,0,0,0.25);
+        margin-top:70px;
+    ">
+        <h1>Ellit Shield</h1>
+        <p style="opacity:.9">Cognitive Security Platform</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+
+    # SUPER ADMIN
+    with col1:
+        st.subheader("Super Admin")
+        key = st.text_input("Clave maestra", type="password")
+
+        if st.button("Acceder como Super Admin"):
+            if key == st.secrets.get("SUPER_ADMIN_KEY"):
+                st.session_state.update({
+                    "auth_status": "super_admin",
+                    "user_role": "super_admin",
+                    "tenant_name": SUPERADMIN_NAME,
+                    "primary_color": "#FF0080",
+                    "menu": "radar",
+                    "submenu": "kpis",
+                })
+                st.rerun()
+            else:
+                st.error("Clave incorrecta")
+
+    # USUARIOS NORMALES
+    with col2:
+        st.subheader("Acceso corporativo")
+
+        email = st.text_input("Email corporativo")
+        password = st.text_input("Contraseña", type="password")
+
+        if st.button("Entrar"):
+            conn = get_conn()
+            c = conn.cursor()
+            c.execute("""
+            SELECT u.id,u.role,u.password_hash,
+                   u.tenant_id,t.name,t.primary_color
+            FROM users u
+            JOIN tenants t ON u.tenant_id=t.id
+            WHERE u.email=? AND u.is_active=1
+            """, (email,))
+            row = c.fetchone()
+            conn.close()
+
+            if not row:
+                st.error("Usuario no encontrado o inactivo.")
+                return
+
+            if not bcrypt.checkpw(password.encode(), row[2].encode()):
+                st.error("Credenciales incorrectas.")
+                return
+
+            st.session_state.update({
+                "auth_status": row[1],
+                "user_role": row[1],
+                "user_id": row[0],
+                "tenant_id": row[3],
+                "tenant_name": row[4],
+                "primary_color": row[5],
+                "menu": "radar",
+                "submenu": "kpis",
+            })
+
+            load_tenant_license_flags(row[3])
+            st.rerun()
+
+# ============================================================
+# ENTRY POINT (SEGURO)
+# ============================================================
+
+if not st.session_state.get("auth_status"):
+    login_screen()
+    st.stop()
+# ============================================================
+# PARTE 2 / 3 — SIDEBAR PREMIUM (ÚNICO)
+# ============================================================
+
+# ============================================================
+# ESTILOS SIDEBAR PREMIUM
 # ============================================================
 
 st.markdown("""
 <style>
 
-/* === SIDEBAR CONTENEDOR === */
+/* ===== SIDEBAR WRAPPER ===== */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg,#0B2A55 0%,#061A36 100%);
     border-right: 1px solid #1E3A8A;
-    padding-top: 16px;
 }
 
-/* === HEADER SIDEBAR === */
-.ellit-sidebar-header {
-    padding: 12px 16px 18px 16px;
+/* ===== LOGO ===== */
+.ellit-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 22px 0 18px 0;
     border-bottom: 1px solid #1E3A8A;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
-.ellit-sidebar-title {
-    color: #FFFFFF;
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0;
+.ellit-logo img {
+    max-width: 140px;
+    opacity: 0.95;
 }
 
-.ellit-sidebar-subtitle {
-    color: #94A3B8;
-    font-size: 13px;
-    margin: 4px 0 0 0;
-}
-
-/* === MENÚ PRINCIPAL === */
+/* ===== MENU ITEM ===== */
 .ellit-menu-item {
     display: flex;
     align-items: center;
     height: 48px;
     padding: 0 16px;
-    margin: 4px 10px;
-    border-radius: 12px;
+    margin: 6px 12px;
+    border-radius: 14px;
     cursor: pointer;
     color: #E5E7EB;
     font-size: 14px;
     font-weight: 500;
+    transition: all 0.18s ease;
     background: transparent;
-    transition: background 0.15s ease, color 0.15s ease;
 }
 
 .ellit-menu-item:hover {
-    background: #1E3A8A;
-    color: #FFFFFF;
+    background: rgba(255,255,255,0.07);
 }
 
 .ellit-menu-item-active {
-    background: #FF0080;
-    color: #FFFFFF;
+    background: linear-gradient(135deg,#FF0080 0%,#FF5DB1 100%);
+    color: white;
     font-weight: 700;
 }
 
-/* === SUBMENÚ === */
+/* ===== SUBMENU ===== */
+.ellit-submenu {
+    margin-top: 6px;
+    margin-bottom: 10px;
+}
+
 .ellit-submenu-item {
     display: flex;
     align-items: center;
-    height: 40px;
-    padding: 0 16px 0 32px;
-    margin: 2px 14px;
+    height: 38px;
+    padding: 0 16px 0 34px;
+    margin: 3px 18px;
     border-radius: 10px;
     cursor: pointer;
-    color: #CBD5F5;
     font-size: 13px;
-    background: transparent;
-    transition: background 0.15s ease, color 0.15s ease;
+    color: #CBD5F5;
+    transition: all 0.15s ease;
 }
 
 .ellit-submenu-item:hover {
     background: rgba(255,255,255,0.06);
-    color: #FFFFFF;
+    color: white;
 }
 
 .ellit-submenu-item-active {
+    background: rgba(255,0,128,0.15);
     color: #FF0080;
     font-weight: 700;
-    background: rgba(255,0,128,0.12);
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# DEFINICIÓN MENÚ (LABELS SOLO UI)
+# MENÚ — DEFINICIÓN UI (LABELS)
 # ============================================================
 
 MENU_UI = {
@@ -446,10 +504,7 @@ SUBMENU_UI = {
         ),
     },
     "policies": {
-        "generator": translate(
-            "Generador multinormativo",
-            "Multistandard Policy Generator"
-        ),
+        "generator": translate("Generador multinormativo", "Multistandard Policy Generator"),
     },
     "predictive": {
         "standard": translate("Predicción estándar", "Standard Prediction"),
@@ -461,30 +516,30 @@ SUBMENU_UI = {
 }
 
 # ============================================================
-# SIDEBAR — RENDER
+# SIDEBAR RENDER
 # ============================================================
 
 with st.sidebar:
+
     set_language()
 
-    # Header
+    # LOGO
     st.markdown("""
-        <div class="ellit-sidebar-header">
-            <div class="ellit-sidebar-title">Ellit Cognitive Core</div>
-            <div class="ellit-sidebar-subtitle">AI Executive Shield</div>
-        </div>
+    <div class="ellit-logo">
+        <img src="https://i.ibb.co/h19Y9KKG/logo-white-background.jpg" />
+    </div>
     """, unsafe_allow_html=True)
 
-    # Estado inicial
+    # Estado inicial de navegación
     if not st.session_state.menu:
         st.session_state.menu = "radar"
-        st.session_state.submenu = list(SUBMENU_IDS["radar"].values())[0]
+        st.session_state.submenu = list(SUBMENU_UI["radar"].keys())[0]
 
-    # Render menú
+    # Render menú principal
     for menu_id, label in MENU_UI.items():
 
         is_active = (menu_id == st.session_state.menu)
-        menu_css = (
+        css_class = (
             "ellit-menu-item ellit-menu-item-active"
             if is_active else
             "ellit-menu-item"
@@ -492,22 +547,19 @@ with st.sidebar:
 
         if st.button(label, key=f"menu_{menu_id}"):
             st.session_state.menu = menu_id
-            st.session_state.submenu = list(
-                SUBMENU_IDS.get(menu_id, {}).values()
-            )[0]
+            st.session_state.submenu = list(SUBMENU_UI.get(menu_id, {}).keys())[0]
             st.rerun()
 
-        st.markdown(
-            f"<div class='{menu_css}'>{label}</div>",
-            unsafe_allow_html=True
-        )
+        st.markdown(f"<div class='{css_class}'>{label}</div>", unsafe_allow_html=True)
 
         # Submenú desplegable
         if is_active and menu_id in SUBMENU_UI:
+            st.markdown("<div class='ellit-submenu'>", unsafe_allow_html=True)
+
             for sub_id, sub_label in SUBMENU_UI[menu_id].items():
 
                 is_sub_active = (sub_id == st.session_state.submenu)
-                sub_css = (
+                sub_class = (
                     "ellit-submenu-item ellit-submenu-item-active"
                     if is_sub_active else
                     "ellit-submenu-item"
@@ -518,181 +570,210 @@ with st.sidebar:
                     st.rerun()
 
                 st.markdown(
-                    f"<div class='{sub_css}'>{sub_label}</div>",
+                    f"<div class='{sub_class}'>{sub_label}</div>",
                     unsafe_allow_html=True
                 )
+
+            st.markdown("</div>", unsafe_allow_html=True)
 # ============================================================
-# PARTE 3 — CONTENT DISPATCH (ROUTER FINAL)
+# PARTE 3 / 3 — ROUTER FINAL & CONTENIDO
 # ============================================================
-
-# --- IMPORTS DE MÓDULOS ---
-from modules.radar_ia import (
-    render_radar_kpis,
-    render_radar_profile,
-    render_radar_cognitivo,
-    render_radar_madurez,
-    render_radar_pdf,
-)
-
-from modules.sgsi_monitoring import (
-    render_sgsi_monitor_dashboard,
-    render_sgsi_monitor_history,
-    render_sgsi_monitor_evidences,
-)
-
-from modules.bcp import (
-    render_bcp_generator,
-    render_bcp_analisis,
-    render_bcp_simulador,
-    render_bcp_alert_tree,
-)
-
-from modules.policies import render_policies_generator
-
-from modules.predictive import (
-    render_predictive_standard,
-    render_predictive_prime,
-)
 
 # ============================================================
-# PANEL SUPERIOR (HEADER)
+# PANEL SUPERIOR (HEADER EJECUTIVO)
 # ============================================================
 
 def render_top_panel():
-    tenant = st.session_state.get("tenant_name") or "Ellit Cognitive Core"
-    role = st.session_state.get("auth_status") or "demo"
+    tenant = st.session_state.get("tenant_name", "Ellit Shield")
+    role = st.session_state.get("auth_status", "").replace("_", " ").title()
     color = st.session_state.get("primary_color", "#FF0080")
 
     st.markdown(
         f"""
         <div style="
             background: linear-gradient(135deg,{color} 0%,#00B4FF 100%);
-            padding:20px;
-            border-radius:14px;
+            padding:24px;
+            border-radius:18px;
             color:white;
-            text-align:center;
-            margin-bottom:18px;
+            margin-bottom:24px;
+            box-shadow:0 12px 30px rgba(0,0,0,0.25);
         ">
-            <h1 style="margin:0;">{tenant}</h1>
-            <div style="opacity:0.85;font-size:13px;">
-                {role.title()} · Ellit Cognitive Core
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <h1 style="margin:0;font-size:26px;">{tenant}</h1>
+                    <div style="opacity:0.85;font-size:13px;">
+                        {role} · Ellit Cognitive Core
+                    </div>
+                </div>
             </div>
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
 
 # ============================================================
-# CONTENT DISPATCH
+# LICENCIAS — DISEÑO PREMIUM (ENTERPRISE / PRIME)
 # ============================================================
 
-if st.session_state.get("auth_status"):
+def render_licenses_premium():
 
-    # Header superior
-    render_top_panel()
+    st.markdown("""
+    <div style="text-align:center;margin-bottom:30px;">
+        <h2>Ellit Shield · Licencias</h2>
+        <p style="opacity:.7">Activa capacidades avanzadas de inteligencia y gobierno corporativo</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    content = st.container()
+    col1, col2 = st.columns(2)
 
-    menu = st.session_state.get("menu")
-    submenu = st.session_state.get("submenu")
+    # ENTERPRISE
+    with col1:
+        st.markdown("""
+        <div style="
+            background:#0F355F;
+            color:white;
+            padding:28px;
+            border-radius:20px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.25);
+        ">
+            <h3>Enterprise</h3>
+            <p style="opacity:.85;">Gobierno, cumplimiento y resiliencia</p>
+            <ul>
+                <li>Radar IA completo</li>
+                <li>SGSI & ENS</li>
+                <li>BCP & Crisis</li>
+                <li>Políticas IA</li>
+            </ul>
+            <h2 style="margin-top:20px;">4.900 € / año</h2>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # --------------------------------------------------------
-    # RADAR IA
-    # --------------------------------------------------------
-    if menu == "radar":
+    # PRIME
+    with col2:
+        st.markdown("""
+        <div style="
+            background:linear-gradient(135deg,#FF0080 0%,#FF5DB1 100%);
+            color:white;
+            padding:32px;
+            border-radius:22px;
+            box-shadow:0 14px 40px rgba(255,0,128,0.45);
+        ">
+            <h3>Prime — Predictive Intelligence</h3>
+            <p style="opacity:.9;">IA anticipativa y simulaciones avanzadas</p>
+            <ul>
+                <li>Predicción cognitiva avanzada</li>
+                <li>Simulaciones estratégicas</li>
+                <li>Scoring dinámico por riesgo</li>
+                <li>Roadmaps predictivos</li>
+            </ul>
+            <h2 style="margin-top:20px;">699 € / mes</h2>
+        </div>
+        """, unsafe_allow_html=True)
 
-        require_enterprise()
+    st.info("💳 Contacta con Ellit para activar o ampliar licencias.")
 
-        with content:
-            if submenu == "kpis":
-                render_radar_kpis()
 
-            elif submenu == "profile":
-                render_radar_profile()
+# ============================================================
+# ROUTER PRINCIPAL
+# ============================================================
 
-            elif submenu == "cognitive":
-                render_radar_cognitivo()
+render_top_panel()
 
-            elif submenu == "maturity":
-                render_radar_madurez()
+content = st.container()
 
-            elif submenu == "pdf":
-                render_radar_pdf()
+menu = st.session_state.menu
+submenu = st.session_state.submenu
 
-    # --------------------------------------------------------
-    # SGSI MONITORING
-    # --------------------------------------------------------
-    elif menu == "sgsi":
+# ------------------------------------------------------------
+# RADAR IA
+# ------------------------------------------------------------
+if menu == "radar":
 
-        require_enterprise()
+    require_enterprise()
 
-        with content:
-            if submenu == "dashboard":
-                render_sgsi_monitor_dashboard()
+    with content:
+        if submenu == "kpis":
+            render_radar_kpis()
 
-            elif submenu == "history":
-                render_sgsi_monitor_history()
+        elif submenu == "profile":
+            render_radar_profile()
 
-            elif submenu == "evidence":
-                render_sgsi_monitor_evidences()
+        elif submenu == "cognitive":
+            render_radar_cognitivo()
 
-    # --------------------------------------------------------
-    # BCP
-    # --------------------------------------------------------
-    elif menu == "bcp":
+        elif submenu == "maturity":
+            render_radar_madurez()
 
-        require_enterprise()
+        elif submenu == "pdf":
+            render_radar_pdf()
 
-        with content:
-            if submenu == "generator":
-                render_bcp_generator()
+# ------------------------------------------------------------
+# SGSI
+# ------------------------------------------------------------
+elif menu == "sgsi":
 
-            elif submenu == "analysis":
-                render_bcp_analisis()
+    require_enterprise()
 
-            elif submenu == "simulator":
-                render_bcp_simulador()
+    with content:
+        if submenu == "dashboard":
+            render_sgsi_monitor_dashboard()
 
-            elif submenu == "alert_tree":
-                render_bcp_alert_tree()
+        elif submenu == "history":
+            render_sgsi_monitor_history()
 
-    # --------------------------------------------------------
-    # POLÍTICAS IA
-    # --------------------------------------------------------
-    elif menu == "policies":
+        elif submenu == "evidence":
+            render_sgsi_monitor_evidences()
 
-        require_enterprise()
+# ------------------------------------------------------------
+# BCP
+# ------------------------------------------------------------
+elif menu == "bcp":
 
-        with content:
-            if submenu == "generator":
-                render_policies_generator()
+    require_enterprise()
 
-    # --------------------------------------------------------
-    # PREDICTIVE INTELLIGENCE
-    # --------------------------------------------------------
-    elif menu == "predictive":
+    with content:
+        if submenu == "generator":
+            render_bcp_generator()
 
-        with content:
-            if submenu == "standard":
-                require_enterprise()
-                render_predictive_standard()
+        elif submenu == "analysis":
+            render_bcp_analisis()
 
-            elif submenu == "prime":
-                require_prime()
-                render_predictive_prime()
+        elif submenu == "simulator":
+            render_bcp_simulador()
 
-    # --------------------------------------------------------
-    # LICENCIAS
-    # --------------------------------------------------------
-    elif menu == "licenses":
+        elif submenu == "alert_tree":
+            render_bcp_alert_tree()
 
-        with content:
-            from app import render_licencias_tab
-            render_licencias_tab()
+# ------------------------------------------------------------
+# POLÍTICAS IA
+# ------------------------------------------------------------
+elif menu == "policies":
 
-else:
-    # --------------------------------------------------------
-    # LOGIN / NO SESSION
-    # --------------------------------------------------------
-    login_screen()
+    require_enterprise()
+
+    with content:
+        render_policies_generator()
+
+# ------------------------------------------------------------
+# PREDICTIVE INTELLIGENCE
+# ------------------------------------------------------------
+elif menu == "predictive":
+
+    with content:
+        if submenu == "standard":
+            require_enterprise()
+            render_predictive_standard()
+
+        elif submenu == "prime":
+            require_prime()
+            render_predictive_prime()
+
+# ------------------------------------------------------------
+# LICENCIAS
+# ------------------------------------------------------------
+elif menu == "licenses":
+
+    with content:
+        render_licenses_premium()
+
