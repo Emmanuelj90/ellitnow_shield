@@ -378,51 +378,43 @@ if not st.session_state.get("auth_status"):
     login_screen()
     st.stop()
 # ============================================================
-# PARTE 2 / 3 — SIDEBAR ACCORDION CORPORATIVO (ELLIT)
-# ============================================================
-
-# ============================================================
-# ESTILOS SIDEBAR — PALETA CORPORATIVA CIBERSEGURIDAD
+# PARTE 2 / 3 — SIDEBAR ACCORDION ENTERPRISE (ELLIT · FIX REAL)
 # ============================================================
 
 st.markdown("""
 <style>
 
-/* ==============================
-   SIDEBAR BASE
-   ============================== */
+/* ================= SIDEBAR BASE ================= */
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0F2F57 0%, #0B2748 100%);
-    border-right: 1px solid #163F77;
+    background: linear-gradient(180deg,#0F2F57 0%,#0B2545 100%);
+    border-right: 1px solid #163A63;
 }
 
-/* ==============================
-   LOGO
-   ============================== */
+/* ================= LOGO ================= */
 .ellit-logo {
     display:flex;
     justify-content:center;
     align-items:center;
     padding:20px 0;
-    border-bottom:1px solid #163F77;
-    margin-bottom:12px;
+    border-bottom:1px solid #163A63;
+    margin-bottom:14px;
 }
 .ellit-logo img {
     width:120px;
 }
 
-/* ==============================
-   BOTÓN NIVEL 1 (MENÚ PRINCIPAL)
-   ============================== */
+/* ================= MENÚ PRINCIPAL ================= */
 button[kind="secondary"].ellit-main {
     width:100% !important;
     height:48px;
-
     margin:6px 10px;
     padding-left:18px;
 
-    border-radius:14px;
-    border:none;
+    border-radius:12px;
+    border-left:4px solid transparent;
+    border-top:none;
+    border-right:none;
+    border-bottom:none;
 
     background:#123A6A;
     color:#E5E7EB;
@@ -439,44 +431,37 @@ button[kind="secondary"].ellit-main {
 }
 
 button[kind="secondary"].ellit-main:hover {
-    background:#163F77;
+    background:#153A63;
     color:#FFFFFF;
 }
 
-/* ACTIVO NIVEL 1 — MAGENTA TECNOLÓGICO */
+/* ===== ACTIVO NIVEL 1 (BORDE MAGENTA) ===== */
 button[kind="secondary"].ellit-main-active {
-    background: linear-gradient(135deg,#B83280 0%,#C8458F 100%) !important;
+    background:#123A6A !important;
+    border-left:4px solid #9D2B6B;
     color:#FFFFFF !important;
-    box-shadow:0 6px 18px rgba(184,50,128,.35);
 }
 
-/* ==============================
-   CONTENEDOR SUBMENÚ
-   ============================== */
+/* ================= SUBMENÚ CONTENEDOR ================= */
 .ellit-submenu-group {
-    margin-left:28px;
-    margin-right:10px;
-    margin-bottom:10px;
-    padding-left:10px;
-    border-left:2px solid #163F77;
+    margin:6px 10px 12px 22px;
+    padding-left:12px;
+    border-left:2px solid rgba(157,43,107,0.6);
+    background:#0B2545;
+    border-radius:8px;
 }
 
-/* ==============================
-   BOTÓN NIVEL 2 (SUBMENÚ)
-   ============================== */
+/* ================= SUBMENÚ BOTÓN ================= */
 button[kind="secondary"].ellit-sub {
     width:100% !important;
-    height:36px;
-
+    height:34px;
     margin:4px 0;
-    padding-left:12px;
+    padding-left:6px;
 
-    border-radius:10px;
     border:none;
-
     background:transparent;
-    color:#CBD5E1;
 
+    color:#C7D2E0;
     font-size:13px;
     font-weight:500;
     text-align:left;
@@ -485,14 +470,12 @@ button[kind="secondary"].ellit-sub {
 }
 
 button[kind="secondary"].ellit-sub:hover {
-    background:rgba(255,255,255,.06);
     color:#FFFFFF;
 }
 
-/* ACTIVO SUBMENÚ — MAGENTA SUAVE */
+/* ===== ACTIVO SUBMENÚ ===== */
 button[kind="secondary"].ellit-sub-active {
-    background:rgba(184,50,128,.18) !important;
-    color:#C8458F !important;
+    color:#9D2B6B !important;
     font-weight:700 !important;
 }
 
@@ -500,119 +483,81 @@ button[kind="secondary"].ellit-sub-active {
 """, unsafe_allow_html=True)
 
 # ============================================================
-# ESTRUCTURA DEL MENÚ (ACCORDION)
+# MENU STRUCTURE
 # ============================================================
 
 MENU_STRUCTURE = {
-    "radar": {
-        "label": translate("Radar IA", "AI Radar"),
-        "subs": {
-            "kpis": translate("Cuadro de mando (KPIs)", "Dashboard KPIs"),
-            "profile": translate("Perfil de la organización", "Organization Profile"),
-            "cognitive": translate("Radar Cognitivo", "Cognitive Radar"),
-            "maturity": translate("Madurez SGSI", "ISMS Maturity"),
-            "pdf": translate("Informe PDF", "PDF Report"),
-        }
-    },
-    "sgsi": {
-        "label": translate("Monitorización SGSI", "ISMS Monitoring"),
-        "subs": {
-            "dashboard": translate("Panel general", "General Dashboard"),
-            "history": translate("Registro histórico", "History Log"),
-            "evidence": translate("Evidencias y mantenimiento", "Evidence & Maintenance"),
-        }
-    },
-    "bcp": {
-        "label": translate("Continuidad de Negocio (BCP)", "Business Continuity"),
-        "subs": {
-            "generator": translate("Generador BCP", "BCP Generator"),
-            "analysis": translate("Análisis cognitivo", "Cognitive Analysis"),
-            "simulator": translate("Simulador de crisis", "Crisis Simulator"),
-            "alert_tree": translate(
-                "ELLIT ALERT TREE – Crisis Communication Demo",
-                "ELLIT ALERT TREE – Crisis Communication Demo"
-            ),
-        }
-    },
-    "policies": {
-        "label": translate("Políticas IA", "AI Policies"),
-        "subs": {
-            "generator": translate("Generador multinormativo", "Multistandard Policy Generator"),
-        }
-    },
-    "predictive": {
-        "label": translate("Predictive Intelligence", "Predictive Intelligence"),
-        "subs": {
-            "standard": translate("Predicción estándar", "Standard Prediction"),
-            "prime": translate("Predicción Prime", "Prime Prediction"),
-        }
-    },
-    "licenses": {
-        "label": translate("Licencias", "Licenses"),
-        "subs": {
-            "management": translate("Gestión de licencias", "License Management"),
-        }
-    },
+    "radar": ("Radar IA", {
+        "kpis": "Cuadro de mando (KPIs)",
+        "profile": "Perfil de la organización",
+        "cognitive": "Radar Cognitivo",
+        "maturity": "Madurez SGSI",
+        "pdf": "Informe PDF"
+    }),
+    "sgsi": ("Monitorización SGSI", {
+        "dashboard": "Panel general",
+        "history": "Registro histórico",
+        "evidence": "Evidencias y mantenimiento"
+    }),
+    "bcp": ("Continuidad de Negocio (BCP)", {
+        "generator": "Generador BCP",
+        "analysis": "Análisis cognitivo",
+        "simulator": "Simulador de crisis",
+        "alert_tree": "ELLIT ALERT TREE – Crisis Communication Demo"
+    }),
+    "policies": ("Políticas IA", {
+        "generator": "Generador multinormativo"
+    }),
+    "predictive": ("Predictive Intelligence", {
+        "standard": "Predicción estándar",
+        "prime": "Predicción Prime"
+    }),
+    "licenses": ("Licencias", {
+        "management": "Gestión de licencias"
+    }),
 }
 
 # ============================================================
-# RENDER SIDEBAR ACCORDION
+# RENDER SIDEBAR
 # ============================================================
 
 with st.sidebar:
 
     set_language()
 
-    # LOGO
     st.markdown("""
     <div class="ellit-logo">
-        <img src="https://i.ibb.co/h19Y9KKG/logo-white-background.jpg"/>
+        <img src="https://i.ibb.co/h19Y9KKG/logo-white-background.jpg">
     </div>
     """, unsafe_allow_html=True)
 
-    # Estado seguro inicial
     if not st.session_state.menu:
         st.session_state.menu = "radar"
     if not st.session_state.submenu:
         st.session_state.submenu = "kpis"
 
-    active_menu = st.session_state.menu
-    active_submenu = st.session_state.submenu
+    for menu_id, (label, subs) in MENU_STRUCTURE.items():
 
-    # ACCORDION
-    for menu_id, data in MENU_STRUCTURE.items():
-
-        is_active = (menu_id == active_menu)
-        chevron = "▼" if is_active else "▶"
-
-        main_class = "ellit-main-active" if is_active else "ellit-main"
+        active_menu = (menu_id == st.session_state.menu)
+        chevron = "▼" if active_menu else "▶"
+        main_class = "ellit-main-active" if active_menu else "ellit-main"
 
         if st.button(
-            f"{data['label']}  {chevron}",
+            f"{label} {chevron}",
             key=f"menu_{menu_id}",
-            help=data["label"],
             use_container_width=True
         ):
             st.session_state.menu = menu_id
-            st.session_state.submenu = list(data["subs"].keys())[0]
+            st.session_state.submenu = list(subs.keys())[0]
             st.rerun()
 
-        # Aplicamos clase correcta al botón principal
-        st.markdown(f"""
-        <style>
-        div[data-testid="stButton"]:has(button:contains("{data['label']}")) > button {{
-            border-radius:14px;
-        }}
-        </style>
-        """, unsafe_allow_html=True)
-
         # SUBMENÚS
-        if is_active:
+        if active_menu:
             st.markdown("<div class='ellit-submenu-group'>", unsafe_allow_html=True)
 
-            for sub_id, sub_label in data["subs"].items():
-                is_sub_active = (sub_id == active_submenu)
-                sub_class = "ellit-sub-active" if is_sub_active else "ellit-sub"
+            for sub_id, sub_label in subs.items():
+                sub_active = (sub_id == st.session_state.submenu)
+                sub_class = "ellit-sub-active" if sub_active else "ellit-sub"
 
                 if st.button(
                     sub_label,
@@ -623,8 +568,6 @@ with st.sidebar:
                     st.rerun()
 
             st.markdown("</div>", unsafe_allow_html=True)
-
-
 
 # ============================================================
 # PARTE 3 / 3 — ROUTER FINAL & CONTENIDO
