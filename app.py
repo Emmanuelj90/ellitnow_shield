@@ -69,6 +69,7 @@ from language import translate, set_language
 
 # --- DB helper ---
 from core.database import get_conn
+from modules.licencias import render_licencias_tab
 
 # Desactivar componentes legacy (seguro en prod)
 st.components.v1.declare_component = lambda *args, **kwargs: None
