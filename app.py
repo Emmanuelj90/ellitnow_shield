@@ -143,6 +143,12 @@ DEFAULT_SESSION = {
 for key, value in DEFAULT_SESSION.items():
     if key not in st.session_state:
         st.session_state[key] = value
+# ============================================================
+# SUPER ADMIN OVERRIDE (ENTERPRISE / PRIME)
+# ============================================================
+if st.session_state.get("user_role") == "super_admin":
+    st.session_state["tenant_enterprise"] = True
+    st.session_state["tenant_prime"] = True
 
 # ============================================================
 # COGNITIVE CORE (INSTANCIA ÚNICA, SEGURA)
