@@ -1,6 +1,6 @@
 # ==========================================================
 # ELLIT COGNITIVE CORE — MOTOR COGNITIVO CENTRAL (2025)
-# CCISO + BCP + PREDICTIVE · BACKWARD COMPATIBLE
+# CCISO · BCP · PREDICTIVE · FULL BACKWARD COMPATIBLE
 # ==========================================================
 
 import json
@@ -18,6 +18,7 @@ def extract_json(text: str):
         return None
     except Exception:
         return None
+
 
 # ==========================================================
 # ⭐ CCISO RADAR ENGINE
@@ -68,7 +69,7 @@ Contexto:
                 "Compliance & Assurance": 50,
                 "Culture & Leadership": 50,
             },
-            "resumen_ejecutivo": "Evaluación preliminar.",
+            "resumen_ejecutivo": "Evaluación preliminar automática.",
             "riesgos_clave": [],
             "gaps_detectados": [],
             "acciones_recomendadas": []
@@ -76,24 +77,80 @@ Contexto:
 
     return parsed
 
+
 # ==========================================================
-# ✅ BCP ENGINES (RESTORED)
+# ✅ PREDICTIVE STANDARD ENGINE
+# ==========================================================
+def predictive_standard_engine(client, query: str):
+    prompt = f"""
+Eres Ellit Cognitive Core — Predictive Standard Engine.
+
+Consulta:
+\"\"\"{query}\"\"\"
+
+Entrega:
+- Resumen ejecutivo
+- Riesgos probables
+- Impactos
+- Recomendaciones 30 / 90 días
+"""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Ellit Predictive Engine — Standard"},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3,
+        max_tokens=1000
+    )
+    return response.choices[0].message.content.strip()
+
+
+# ==========================================================
+# ✅ PREDICTIVE PRIME ENGINE
+# ==========================================================
+def predictive_prime_engine(client, query: str, benchmark=True, alerts=True, horizon="90 días"):
+    prompt = f"""
+Eres Ellit Cognitive Core — Predictive PRIME Engine.
+
+Consulta: \"\"\"{query}\"\"\"
+Benchmark: {"Sí" if benchmark else "No"}
+Alertas: {"Sí" if alerts else "No"}
+Horizonte: {horizon}
+
+Entrega:
+- Executive briefing
+- Riesgos correlacionados
+- Tendencias
+- Alertas
+- Recomendaciones estratégicas
+"""
+    response = client.chat.completions.create(
+        model="gpt-4.1",
+        messages=[
+            {"role": "system", "content": "Ellit Predictive Engine — PRIME"},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.25,
+        max_tokens=1600
+    )
+    return response.choices[0].message.content.strip()
+
+
+# ==========================================================
+# ✅ BCP ENGINES
 # ==========================================================
 def generate_bcp_plan(client, data):
     prompt = f"""
 Eres Ellit Cognitive Core — experto ISO 22301 & ENS BCP.
-
-Genera un plan BCP estructurado:
-
 {json.dumps(data, indent=2)}
 """
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role":"system","content":"BCP Expert Engine"},
-            {"role":"user","content":prompt}
+            {"role": "system", "content": "BCP Expert Engine"},
+            {"role": "user", "content": prompt}
         ],
-        temperature=0.25,
         max_tokens=2000
     )
     return response.choices[0].message.content.strip()
@@ -101,15 +158,13 @@ Genera un plan BCP estructurado:
 def analyze_bcp_context(client, contexto):
     prompt = f"""
 Eres Ellit Cognitive Core — Crisis Analyst.
-Analiza el contexto:
-
 \"\"\"{contexto}\"\"\"
 """
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role":"system","content":"BCP Crisis Analyst"},
-            {"role":"user","content":prompt}
+            {"role": "system", "content": "BCP Crisis Analyst"},
+            {"role": "user", "content": prompt}
         ],
         max_tokens=1200
     )
@@ -118,19 +173,18 @@ Analiza el contexto:
 def analyze_bcp_scenario(client, data):
     prompt = f"""
 Eres Ellit Cognitive Core — Crisis Simulator.
-
-Escenario:
 {json.dumps(data, indent=2)}
 """
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role":"system","content":"BCP Crisis Simulator"},
-            {"role":"user","content":prompt}
+            {"role": "system", "content": "BCP Crisis Simulator"},
+            {"role": "user", "content": prompt}
         ],
         max_tokens=1600
     )
     return response.choices[0].message.content.strip()
+
 
 # ==========================================================
 # ✅ MADUREZ SGSI
@@ -140,7 +194,6 @@ def compute_sgsi_maturity(client, evidencias, controles):
 Eres Auditor SGSI senior.
 
 Devuelve SOLO JSON:
-
 {{
   "nivel": "",
   "madurez": 0,
@@ -158,24 +211,16 @@ Controles:
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role":"system","content":"SGSI Auditor"},
-            {"role":"user","content":prompt}
+            {"role": "system", "content": "SGSI Auditor"},
+            {"role": "user", "content": prompt}
         ],
-        temperature=0.2,
         max_tokens=1200
     )
+    return extract_json(response.choices[0].message.content)
 
-    parsed = extract_json(response.choices[0].message.content)
-    return parsed if parsed else {
-        "nivel": "No determinado",
-        "madurez": 0,
-        "fortalezas": [],
-        "debilidades": [],
-        "plan_accion": []
-    }
 
 # ==========================================================
-# ✅ WRAPPER PRINCIPAL (NO ROMPE IMPORTS)
+# ✅ CLASE PRINCIPAL (NO ROMPE NADA)
 # ==========================================================
 class EllitCognitiveCore:
 
@@ -190,6 +235,13 @@ class EllitCognitiveCore:
     def compute_maturity(self, evidencias, controles):
         return compute_sgsi_maturity(self.client, evidencias, controles)
 
+    # Predictive
+    def predict_standard(self, query):
+        return predictive_standard_engine(self.client, query)
+
+    def predict_prime(self, query, benchmark=True, alerts=True, horizon="90 días"):
+        return predictive_prime_engine(self.client, query, benchmark, alerts, horizon)
+
     # BCP
     def generate_bcp(self, data):
         return generate_bcp_plan(self.client, data)
@@ -199,4 +251,3 @@ class EllitCognitiveCore:
 
     def analyze_bcp_scenario(self, data):
         return analyze_bcp_scenario(self.client, data)
-
