@@ -173,3 +173,33 @@ class EllitCognitiveCore:
 
     def generate_bcp(self, data):
         return bcp_engine(self.client, data)
+        # ==========================================================
+# BACKWARD COMPATIBILITY — NO TOCAR
+# Mantiene vivos los imports antiguos de los módulos
+# ==========================================================
+
+# ---- BCP (legacy imports) ----
+def generate_bcp_plan(client, data):
+    return EllitCognitiveCore("").generate_bcp(data)
+
+def analyze_bcp_context(client, contexto):
+    return predictive_standard_engine(client, contexto)
+
+def analyze_bcp_scenario(client, data):
+    return predictive_standard_engine(client, str(data))
+
+
+# ---- Predictive legacy ----
+def generate_predictive_analysis(client, data):
+    return predictive_prime_engine(client, json.dumps(data))
+
+
+# ---- Radar legacy ----
+def analyze_radar_ia(client, context):
+    return cciso_radar_engine(client, context)
+
+
+# ---- SGSI legacy ----
+def compute_sgsi_maturity(client, evidencias, controles):
+    return sgsi_maturity_engine(client, evidencias, controles)
+
