@@ -219,3 +219,61 @@ def _sgsi_gap_engine(raw: dict):
         "debilidades": raw.get("debilidades", []),
         "plan_accion": raw.get("acciones_recomendadas", []),
     }
+# ==========================================================
+# BACKWARD COMPATIBILITY — DO NOT REMOVE
+# Required by modules/bcp.py and legacy code
+# ==========================================================
+
+def generate_bcp_plan(client, data):
+    """
+    Legacy BCP entry point
+    """
+    core = EllitCognitiveCore(client.api_key if hasattr(client, "api_key") else None)
+    return core.generate_bcp(data)
+
+
+def analyze_bcp_context(client, contexto):
+    prompt = f"""
+    Eres Ellit Cognitive Core — Crisis Analyst.
+    Analiza el siguiente contexto de continuidad:
+
+    {contexto}
+
+    Devuelve:
+    - Riesgos
+    - Impactos
+    - Recomendaciones
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "BCP Context Analyzer"},
+            {"role": "user", "content": prompt},
+        ],
+        max_tokens=1200,
+    )
+    return response.choices[0].message.content.strip()
+
+
+def analyze_bcp_scenario(client, data):
+    prompt = f"""
+    Eres Ellit Cognitive Core — Crisis Simulator.
+    Evalúa el siguiente escenario:
+
+    {json.dumps(data, indent=2)}
+
+    Devuelve:
+    - Impacto operativo
+    - Impacto reputacional
+    - Tiempo de recuperación
+    - Recomendaciones ejecutivas
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "BCP Scenario Simulator"},
+            {"role": "user", "content": prompt},
+        ],
+        max_tokens=1500,
+    )
+    return response.choices[0].message.content.strip()
