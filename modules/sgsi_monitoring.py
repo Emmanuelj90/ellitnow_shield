@@ -77,15 +77,19 @@ def metric_card(label, value):
 # BASE DE DATOS – KPIs
 # ==========================================================
 def db_get_kpi_log(tenant_id):
-    conn = get_conn()
-    df = pd.read_sql_query("""
-        SELECT id, kpi_date, kpi_name, kpi_value
-        FROM sgsi_kpis
-        WHERE tenant_id = ?
-        ORDER BY kpi_date ASC
-    """, conn, params=(tenant_id,))
-    conn.close()
-    return df
+    try:
+        conn = get_conn()
+        df = pd.read_sql_query("""
+            SELECT id, kpi_date, kpi_name, kpi_value
+            FROM sgsi_kpis
+            WHERE tenant_id = ?
+            ORDER BY kpi_date ASC
+        """, conn, params=(tenant_id,))
+        conn.close()
+        return df
+    except Exception:
+        return pd.DataFrame(columns=["id", "kpi_date", "kpi_name", "kpi_value"])
+
 
 
 def db_insert_kpi(tenant_id, name, value):
