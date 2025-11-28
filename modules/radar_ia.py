@@ -273,3 +273,27 @@ def render_radar_pdf():
         st.button("Generar informe ejecutivo PDF", type="primary")
 
     st.markdown("</div>", unsafe_allow_html=True)
+    # ============================================================
+# BACKWARD COMPATIBILITY LAYER (APP ROUTER SAFE)
+# ============================================================
+# Estas funciones existen solo para no romper app.py
+# Toda la experiencia REAL vive en render_radar_cognitivo()
+
+def render_radar_profile():
+    """
+    Perfil ya está integrado en el Radar Cognitivo.
+    Mantener esta función evita errores de importación.
+    """
+    render_radar_cognitivo()
+
+def render_radar_kpis():
+    """
+    KPIs ya están integrados en Radar Cognitivo.
+    Esta función redirige a la vista principal.
+    """
+    render_radar_cognitivo()
+
+# render_radar_cognitivo() → ya existe
+# render_radar_madurez() → ya existe
+# render_radar_pdf() → ya existe
+
