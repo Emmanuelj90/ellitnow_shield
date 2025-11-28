@@ -319,4 +319,43 @@ class EllitCognitiveCore:
 
     def predict_prime(self, query: str, horizon="90 days"):
         return predictive_prime_engine(self.client, query, horizon)
+# ==========================================================
+# 🔁 BACKWARD COMPATIBILITY — LEGACY MODULE SUPPORT
+# No romper módulos existentes (BCP / Predictive / etc.)
+# ==========================================================
+
+# --- Radar IA legacy ---
+def analyze_radar_ia(client, context):
+    return cciso_radar_engine(client, context)
+
+# --- SGSI legacy ---
+def compute_sgsi_maturity(client, evidencias, controles):
+    return sgsi_maturity_engine(client, evidencias, controles)
+
+# --- Normativa ---
+def generate_predictive_analysis(client, data):
+    return normative_intelligence_engine(client, data)
+
+# --- BCP legacy ---
+def generate_bcp_plan(client, data):
+    return bcp_engine(client, data)
+
+def analyze_bcp_context(client, contexto):
+    """
+    Legacy BCP context analysis
+    """
+    return predictive_standard_engine(client, contexto)
+
+def analyze_bcp_scenario(client, data):
+    """
+    Legacy BCP scenario simulation
+    """
+    return predictive_prime_engine(client, json.dumps(data))
+
+# --- Predictive legacy ---
+def predictive_standard_engine(client, query):
+    return predictive_standard_engine(client, query)
+
+def predictive_prime_engine(client, query, benchmark=True, alerts=True, horizon="90 días"):
+    return predictive_prime_engine(client, query, horizon)
 
