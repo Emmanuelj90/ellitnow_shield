@@ -8,6 +8,15 @@ import plotly.graph_objects as go
 import json
 
 # ============================================================
+# SESSION STATE SAFE INIT (OBLIGATORIO)
+# ============================================================
+
+if "radar_profile" not in st.session_state:
+    st.session_state["radar_profile"] = None
+
+
+
+# ============================================================
 # STATE INIT (ENTERPRISE SAFE)
 # ============================================================
 
@@ -86,7 +95,8 @@ st.markdown("""
 # ============================================================
 
 def _render_profile():
-    profile = st.session_state["radar_profile"] or {}
+    profile = st.session_state.get("radar_profile") or {}
+
 
     with st.expander("Contexto de la organización", expanded=not profile):
         c1, c2, c3 = st.columns(3)
