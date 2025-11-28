@@ -277,3 +277,27 @@ def analyze_bcp_scenario(client, data):
         max_tokens=1500,
     )
     return response.choices[0].message.content.strip()
+# ==========================================================
+# BACKWARD COMPATIBILITY — PREDICTIVE MODULE
+# Required by modules/predictive.py
+# ==========================================================
+
+def predictive_standard_engine(client, query: str):
+    """
+    Legacy entry point — Predictive Standard
+    """
+    core = EllitCognitiveCore(client.api_key if hasattr(client, "api_key") else None)
+    return core.predict_standard(query)
+
+
+def predictive_prime_engine(client, query: str, benchmark=True, alerts=True, horizon="90 días"):
+    """
+    Legacy entry point — Predictive PRIME
+    """
+    core = EllitCognitiveCore(client.api_key if hasattr(client, "api_key") else None)
+    return core.predict_prime(
+        query=query,
+        benchmark=benchmark,
+        alerts=alerts,
+        horizon=horizon
+    )
