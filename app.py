@@ -118,6 +118,7 @@ DEMO_TENANT_NAME = "DEMO — Ellit Shield"
 
 MENU_IDS = ["radar", "sgsi", "bcp", "policies", "predictive", "licenses"]
 
+
 # ============================================================
 # SESSION BOOTSTRAP (A PRUEBA DE STREAMLIT)
 # ============================================================
@@ -161,7 +162,9 @@ def init_db():
     c = conn.cursor()
     c.execute("PRAGMA foreign_keys = ON;")
 
+    # --------------------------------------------------------
     # TENANTS
+    # --------------------------------------------------------
     c.execute("""
     CREATE TABLE IF NOT EXISTS tenants (
         id TEXT PRIMARY KEY,
@@ -177,7 +180,9 @@ def init_db():
     )
     """)
 
+    # --------------------------------------------------------
     # USERS
+    # --------------------------------------------------------
     c.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -195,9 +200,27 @@ def init_db():
     )
     """)
 
+    # --------------------------------------------------------
+    # SGSI KPI LOG (MONITORING)
+    # --------------------------------------------------------
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS sgsi_kpi_log (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL,
+        kpi_date TEXT NOT NULL,
+        kpi_name TEXT NOT NULL,
+        kpi_value REAL NOT NULL,
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+    )
+    """)
+
+    # ✅ PRIMER COMMIT: ESTRUCTURA
     conn.commit()
 
+    # --------------------------------------------------------
     # SUPER ADMIN TENANT
+    # --------------------------------------------------------
     c.execute("SELECT id FROM tenants WHERE email=?", (SUPERADMIN_EMAIL,))
     if not c.fetchone():
         tid = str(uuid.uuid4())
@@ -206,7 +229,9 @@ def init_db():
         VALUES (?,?,?,?,?,?)
         """, (tid, SUPERADMIN_NAME, SUPERADMIN_EMAIL, 1, 1, 1))
 
-    # DEMO TENANT
+    # --------------------------------------------------------
+    # DEMO TENANT + USER
+    # --------------------------------------------------------
     c.execute("SELECT id FROM tenants WHERE email=?", (DEMO_EMAIL,))
     row = c.fetchone()
     if not row:
@@ -243,6 +268,7 @@ def init_db():
             pwd_hash
         ))
 
+    # ✅ SEGUNDO COMMIT: DATOS
     conn.commit()
     conn.close()
 
