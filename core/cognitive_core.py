@@ -202,7 +202,17 @@ class EllitCognitiveCore:
             "controles": controles
         }
         return generate_predictive_analysis(self.client, payload)
-
+    # -------------------------------------------------
+    # POLÍTICAS CORPORATIVAS (ISO / ENS / NIST / ETC)
+    # -------------------------------------------------
+    def generate_policy(self, tipo, normativa, organizacion, detalle=3):
+        return generate_policy(
+            self.client,
+            tipo,
+            normativa,
+            organizacion,
+            detalle
+        )
     # Predictive
     def predict_standard(self, query: str):
         return predictive_standard_engine(self.client, query)
