@@ -1,283 +1,322 @@
-# ============================================================
-# RADAR IA — ELLIT COGNITIVE CORE (CCISO MODEL)
-# Executive Radar · Risk · Controls · Culture
-# ============================================================
+# ==========================================================
+# ELLIT COGNITIVE CORE — ENTERPRISE SECURITY INTELLIGENCE BRAIN
+# CCISO · GRC · RISK · COMPLIANCE · RESILIENCE · STRATEGY
+# ==========================================================
 
-import streamlit as st
-import plotly.graph_objects as go
 import json
+import re
+import openai
+from typing import Dict, Any
 
-# ============================================================
-# SESSION STATE (ROBUST, SAFE)
-# ============================================================
+# ==========================================================
+# OPENAI INIT (SAFE & CLOUD READY)
+# ==========================================================
 
-_RADAR_DEFAULTS = {
-    "radar_profile": None,
-    "radar_result": None,
-    "radar_indicators": {},
-    "radar_risks": [],
-    "radar_actions": [],
-    "sgsi_assessment": None,
-}
-
-for k, v in _RADAR_DEFAULTS.items():
-    if k not in st.session_state:
-        st.session_state[k] = v
+def init_openai(api_key: str):
+    openai.api_key = api_key
+    return openai
 
 
-# ============================================================
-# BRAND STYLES (ELLIT ENTERPRISE)
-# ============================================================
+# ==========================================================
+# JSON EXTRACTOR (HARDENED)
+# ==========================================================
 
-st.markdown("""
-<style>
-.ellit-card{
-    background:#FFFFFF;
-    border:1px solid #E5E7EB;
-    border-radius:16px;
-    padding:28px;
-    margin-bottom:28px;
-    box-shadow:0 10px 28px rgba(0,0,0,.06);
-}
-.ellit-title{
-    font-size:22px;
-    font-weight:800;
-    color:#0F172A;
-    margin-bottom:6px;
-}
-.ellit-sub{
-    font-size:14px;
-    color:#475569;
-    margin-bottom:22px;
-}
-.ellit-kpi{
-    background:#F8FAFC;
-    border-radius:12px;
-    padding:18px;
-    text-align:center;
-    border:1px solid #E5E7EB;
-}
-.ellit-kpi h3{
-    margin:0;
-    font-size:26px;
-    color:#7C1F5E;
-}
-.ellit-kpi span{
-    font-size:13px;
-    color:#64748B;
-}
-.ellit-info{
-    background:#FDF2F8;
-    border-left:4px solid #7C1F5E;
-    padding:14px;
-    border-radius:8px;
-}
-</style>
-""", unsafe_allow_html=True)
+def extract_json(text: str):
+    """
+    Extracts first valid JSON object from LLM output.
+    """
+    try:
+        match = re.search(r"\{.*\}", text, re.S)
+        if match:
+            return json.loads(match.group(0))
+    except Exception:
+        pass
+    return None
 
 
-# ============================================================
-# CONTEXTO ORGANIZACIÓN (GUIADO)
-# ============================================================
+# ==========================================================
+# 🧠 CCISO RADAR ENGINE (CORE OF THE PLATFORM)
+# ==========================================================
 
-def _render_profile_context():
+def cciso_radar_engine(client, context: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Executive Security Radar aligned with CCISO Domains.
+    """
 
-    with st.expander("Contexto organizativo (base del análisis)", expanded=not st.session_state["radar_profile"]):
+    prompt = f"""
+You are **Ellit Cognitive Core**, an enterprise-grade security intelligence engine,
+designed to assist Chief Information Security Officers (CISOs).
 
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            org = st.text_input(
-                "Organización",
-                st.session_state.get("radar_profile", {}).get("organizacion", "")
-            )
-        with c2:
-            sector = st.selectbox(
-                "Sector",
-                ["Banca","Seguros","Salud","Tecnología","Energía","Industrial","Sector Público","Otro"]
-            )
-        with c3:
-            ens = st.selectbox("Nivel ENS", ["No aplica","Básico","Medio","Alto"])
+You operate using the **CCISO Domain Model**, aligned with:
+- ENS
+- ISO/IEC 27001
+- ISO/IEC 22301
+- NIST CSF
+- NIS2
+- DORA
+- TISAX
+- Third-Party & Supply Chain Risk
 
-        c4, c5, c6 = st.columns(3)
-        with c4:
-            size = st.selectbox("Tamaño", ["Pequeña","Mediana","Grande","Multinacional"])
-        with c5:
-            region = st.text_input("Región / País")
-        with c6:
-            owner = st.text_input("Responsable de Seguridad")
+Analyze the following organization context:
 
-        riesgos = st.text_area("Riesgos relevantes conocidos")
-        certs = st.text_area("Certificaciones / Marcos")
+{json.dumps(context, indent=2)}
 
-        if st.button("Guardar contexto organizativo"):
-            if not org.strip():
-                st.error("El nombre de la organización es obligatorio.")
-            else:
-                st.session_state["radar_profile"] = {
-                    "organizacion": org,
-                    "sector": sector,
-                    "nivel_ens": ens,
-                    "tamano": size,
-                    "region": region,
-                    "responsable": owner,
-                    "riesgos_detectados": riesgos,
-                    "certificaciones": certs
-                }
-                st.success("Contexto guardado correctamente.")
+### OUTPUT — RETURN ONLY VALID JSON
 
+{{
+  "cciso_domains": {{
+    "Governance & Risk Management (CCISO D1)": 0-100,
+    "Controls & Compliance (CCISO D2)": 0-100,
+    "Security Operations & Resilience (CCISO D3)": 0-100,
+    "Security Program Capability (CCISO D4)": 0-100,
+    "Strategy, Finance & Leadership (CCISO D5)": 0-100
+  }},
+  "top_risks": [
+    "Executive-level risk description 1",
+    "Executive-level risk description 2",
+    "Executive-level risk description 3"
+  ],
+  "priority_actions": [
+    "Board-level action within 30 days",
+    "Strategic action within 90 days",
+    "Structural action within 12 months"
+  ],
+  "executive_readout": "5–6 lines written for CEO / Board, summarizing posture, exposure and priorities."
+}}
+"""
 
-# ============================================================
-# RADAR COGNITIVO CENTRAL (CCISO VIEW)
-# ============================================================
-
-def render_radar_cognitivo():
-
-    st.markdown("<div class='ellit-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='ellit-title'>Radar Cognitivo de Seguridad (CCISO)</div>", unsafe_allow_html=True)
-    st.markdown(
-        "<div class='ellit-sub'>Visión ejecutiva 360° del estado de la organización: gobierno, riesgo, controles, resiliencia y cultura.</div>",
-        unsafe_allow_html=True
+    response = client.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Ellit Cognitive Core — CCISO Radar Engine"},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.20,
+        max_tokens=1600
     )
 
-    _render_profile_context()
-
-    profile = st.session_state.get("radar_profile")
-    if not profile:
-        st.info("Completa el contexto para ejecutar el Radar Cognitivo.")
-        st.markdown("</div>", unsafe_allow_html=True)
-        return
-
-    if st.button("Ejecutar Radar Cognitivo"):
-        with st.spinner("Ejecutando análisis CCISO…"):
-            raw = st.session_state["client"].analyze_radar(profile)
-
-        if not raw or not isinstance(raw, dict):
-            st.markdown(
-                "<div class='ellit-info'><b>No hay datos suficientes todavía.</b><br>"
-                "Se ha generado un baseline inicial para continuar el análisis.</div>",
-                unsafe_allow_html=True
-            )
-            return
-
-        st.session_state["radar_result"] = raw
-        st.session_state["radar_indicators"] = raw.get("indicadores", {})
-        st.session_state["radar_risks"] = raw.get("riesgos_clave", [])
-        st.session_state["radar_actions"] = raw.get("acciones_recomendadas", [])
-
-        st.success("Radar cognitivo completado.")
-
-    indicators = st.session_state.get("radar_indicators")
-    if not indicators:
-        st.markdown("</div>", unsafe_allow_html=True)
-        return
-
-    # ================= KPIs =================
-    st.markdown("### Indicadores estratégicos (CCISO)")
-    cols = st.columns(len(indicators))
-    for i, (k, v) in enumerate(indicators.items()):
-        with cols[i]:
-            st.markdown(
-                f"<div class='ellit-kpi'><h3>{int(v)}%</h3><span>{k}</span></div>",
-                unsafe_allow_html=True
-            )
-
-    # ================= RADAR CCISO =================
-    labels = list(indicators.keys())
-    values = list(indicators.values())
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=values + [values[0]],
-        theta=labels + [labels[0]],
-        fill="toself",
-        line_color="#7C1F5E"
-    ))
-    fig.update_layout(
-        title="Postura global de Seguridad (modelo CCISO)",
-        polar=dict(radialaxis=dict(range=[0,100])),
-        showlegend=False,
-        height=420
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-    # ================= RIESGOS =================
-    if st.session_state["radar_risks"]:
-        st.markdown("### Riesgos prioritarios")
-        for r in st.session_state["radar_risks"]:
-            st.markdown(f"- {r}")
-
-    # ================= ACCIONES =================
-    if st.session_state["radar_actions"]:
-        st.markdown("### Acciones recomendadas (Board-level)")
-        for a in st.session_state["radar_actions"][:5]:
-            st.markdown(f"- {a}")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    return extract_json(response.choices[0].message["content"])
 
 
-# ============================================================
-# MADUREZ SGSI (EXECUTIVE GAP VIEW)
-# ============================================================
+# ==========================================================
+# 🛡 SGSI MATURITY & GAP ANALYSIS ENGINE
+# ==========================================================
 
-def render_radar_madurez():
+def sgsi_maturity_engine(client, evidences: str, controls: str) -> Dict[str, Any]:
+    prompt = f"""
+You are **Ellit Cognitive Core — SGSI Auditor**.
 
-    st.markdown("<div class='ellit-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='ellit-title'>Madurez del SGSI</div>", unsafe_allow_html=True)
-    st.markdown(
-        "<div class='ellit-sub'>Evaluación ejecutiva del grado de madurez del sistema de gestión de seguridad.</div>",
-        unsafe_allow_html=True
+Evaluate the REAL maturity of an Information Security Management System
+based on ISO/IEC 27001 and ENS.
+
+Evidences:
+{evidences}
+
+Controls:
+{controls}
+
+### OUTPUT — ONLY JSON
+
+{{
+  "maturity_level": "Initial | Managed | Defined | Quantitatively Controlled | Optimized",
+  "maturity_score": 0-100,
+  "domain_gaps": {{
+    "Governance": 0-100,
+    "Risk Management": 0-100,
+    "Controls Implementation": 0-100,
+    "Operations & Monitoring": 0-100,
+    "Continuous Improvement": 0-100
+  }},
+  "strengths": [
+    "Key strength 1",
+    "Key strength 2"
+  ],
+  "weaknesses": [
+    "Key weakness 1",
+    "Key weakness 2"
+  ],
+  "action_plan": {{
+    "30_days": ["Action 1"],
+    "90_days": ["Action 1"],
+    "180_days": ["Action 1"]
+  }}
+}}
+"""
+
+    response = client.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Ellit Cognitive Core — SGSI Maturity Engine"},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.25,
+        max_tokens=1200
     )
 
-    evidencias = st.text_area("Evidencias clave (resumen)")
-    controles = st.text_area("Controles implementados (resumen)")
-
-    if st.button("Evaluar madurez SGSI"):
-        with st.spinner("Analizando madurez del SGSI…"):
-            raw = st.session_state["client"].compute_maturity(evidencias, controles)
-
-        if raw and isinstance(raw, dict):
-            st.session_state["sgsi_assessment"] = raw
-            st.success("Madurez evaluada correctamente.")
-        else:
-            st.error("No se pudo completar la evaluación.")
-
-    result = st.session_state.get("sgsi_assessment")
-    if result:
-        st.metric(
-            "Nivel de madurez",
-            f"{result.get('nivel','-')} ({result.get('madurez',0)}%)"
-        )
-
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("**Fortalezas**")
-            for f in result.get("fortalezas", []):
-                st.markdown(f"- {f}")
-        with c2:
-            st.markdown("**Debilidades**")
-            for d in result.get("debilidades", []):
-                st.markdown(f"- {d}")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    return extract_json(response.choices[0].message["content"])
 
 
-# ============================================================
-# PDF HOOK (READY)
-# ============================================================
+# ==========================================================
+# 📚 NORMATIVE / REGULATORY INTELLIGENCE ENGINE
+# ==========================================================
 
-def render_radar_pdf():
-    st.markdown("<div class='ellit-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='ellit-title'>Informe ejecutivo</div>", unsafe_allow_html=True)
-    st.button("Generar informe ejecutivo PDF")
-    st.markdown("</div>", unsafe_allow_html=True)
+def normative_intelligence_engine(client, payload: Dict[str, Any]) -> Dict[str, Any]:
+    prompt = f"""
+You are **Ellit Cognitive Core — Regulatory Intelligence Engine**.
+
+Assess the organization against:
+ENS, ISO 27001, NIST CSF, NIS2, DORA, TISAX.
+
+Input:
+{json.dumps(payload, indent=2)}
+
+### OUTPUT — ONLY JSON
+
+{{
+  "primary_framework": "Recommended primary framework",
+  "secondary_frameworks": ["Framework 1", "Framework 2"],
+  "regulatory_exposure": "LOW | MEDIUM | HIGH",
+  "roadmap": {{
+    "30_days": ["Action 1"],
+    "90_days": ["Action 1"],
+    "12_months": ["Action 1"]
+  }}
+}}
+"""
+
+    response = client.ChatCompletion.create(
+        model="gpt-4.1",
+        messages=[
+            {"role": "system", "content": "Ellit Cognitive Core — Normative Intelligence"},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.2,
+        max_tokens=1400
+    )
+
+    return extract_json(response.choices[0].message["content"])
 
 
-# ============================================================
-# BACKWARD COMPATIBILITY (ROUTER SAFE)
-# ============================================================
+# ==========================================================
+# 🔁 BCP & RESILIENCE ENGINE (ISO 22301)
+# ==========================================================
 
-def render_radar_profile():
-    render_radar_cognitivo()
+def bcp_engine(client, data: Dict[str, Any]) -> str:
+    prompt = f"""
+You are **Ellit Cognitive Core — Business Continuity & Resilience Expert**.
 
-def render_radar_kpis():
-    render_radar_cognitivo()
+Generate an executive-grade BCP aligned with ISO 22301 and ENS.
+
+Data:
+{json.dumps(data, indent=2)}
+"""
+
+    response = client.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "BCP & Resilience Intelligence"},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.25,
+        max_tokens=2000
+    )
+
+    return response.choices[0].message["content"].strip()
+
+
+# ==========================================================
+# 🔮 PREDICTIVE INTELLIGENCE ENGINES
+# ==========================================================
+
+def predictive_standard_engine(client, query: str) -> str:
+    prompt = f"""
+Generate executive predictive intelligence for a CISO.
+
+Query:
+{query}
+
+Deliver:
+- Executive summary
+- Probable risks
+- Business impacts
+- Recommendations (30/90 days)
+"""
+
+    response = client.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Ellit Predictive — Standard"},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3,
+        max_tokens=900
+    )
+
+    return response.choices[0].message["content"].strip()
+
+
+def predictive_prime_engine(client, query: str, horizon="90 days") -> str:
+    prompt = f"""
+You are Ellit Cognitive Core — Predictive PRIME.
+
+Horizon: {horizon}
+Query:
+{query}
+
+Deliver strategic, board-level foresight, correlations and alerts.
+"""
+
+    response = client.ChatCompletion.create(
+        model="gpt-4.1",
+        messages=[
+            {"role": "system", "content": "Ellit Predictive — PRIME"},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.25,
+        max_tokens=1600
+    )
+
+    return response.choices[0].message["content"].strip()
+
+
+# ==========================================================
+# ⭐ MAIN ENTERPRISE WRAPPER (STABLE API)
+# ==========================================================
+
+class EllitCognitiveCore:
+    """
+    Enterprise-grade cognitive brain for Ellit Shield.
+    """
+
+    def __init__(self, api_key: str):
+        self.client = init_openai(api_key)
+
+    # === CCISO RADAR ===
+    def analyze_radar(self, profile: Dict[str, Any]):
+        return cciso_radar_engine(self.client, profile)
+
+    # === SGSI ===
+    def compute_maturity(self, evidences: str, controls: str):
+        return sgsi_maturity_engine(self.client, evidences, controls)
+
+    # === REGULATORY INTELLIGENCE ===
+    def analyze_normativa(self, profile, radar, evidences, controls):
+        payload = {
+            "profile": profile,
+            "radar": radar,
+            "evidences": evidences,
+            "controls": controls
+        }
+        return normative_intelligence_engine(self.client, payload)
+
+    # === BCP ===
+    def generate_bcp(self, data: Dict[str, Any]):
+        return bcp_engine(self.client, data)
+
+    # === PREDICTIVE ===
+    def predict_standard(self, query: str):
+        return predictive_standard_engine(self.client, query)
+
+    def predict_prime(self, query: str, horizon="90 days"):
+        return predictive_prime_engine(self.client, query, horizon)
+
