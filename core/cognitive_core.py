@@ -209,3 +209,61 @@ class EllitCognitiveCore:
 
     def predict_prime(self, query: str, benchmark=True, alerts=True, horizon="12 meses"):
         return predictive_prime_engine(self.client, query, benchmark, alerts, horizon)
+        # ==========================================================
+# BCP ENGINE — COMPATIBILITY LAYER (DO NOT REMOVE)
+# ==========================================================
+# Estas funciones existen para no romper modules.bcp
+# La lógica puede evolucionar internamente
+
+def generate_bcp_plan(client, data):
+    prompt = f"""
+Eres Ellit Cognitive Core — BCP Expert.
+Genera un plan de continuidad según ISO 22301 y ENS.
+Contexto:
+{json.dumps(data, indent=2)}
+"""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Ellit BCP Engine"},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.25,
+        max_tokens=2000
+    )
+    return response.choices[0].message.content.strip()
+
+
+def analyze_bcp_context(client, contexto):
+    prompt = f"""
+Eres Ellit Cognitive Core — Crisis Analyst.
+Analiza el siguiente contexto operativo:
+\"\"\"{contexto}\"\"\"
+"""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Ellit Crisis Analyst"},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=900
+    )
+    return response.choices[0].message.content.strip()
+
+
+def analyze_bcp_scenario(client, data):
+    prompt = f"""
+Eres Ellit Cognitive Core — Crisis Simulator.
+Evalúa el siguiente escenario:
+{json.dumps(data, indent=2)}
+"""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Ellit Crisis Simulator"},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=1600
+    )
+    return response.choices[0].message.content.strip()
+
