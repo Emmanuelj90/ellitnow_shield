@@ -1,6 +1,7 @@
 # ==========================================================
-# ELLIT COGNITIVE CORE — CENTRAL INTELLIGENCE ENGINE (2025)
-# Radar · CCISO · Predictive · GRC · BCP · Normativa
+# ELLIT COGNITIVE CORE — MOTOR COGNITIVO CENTRAL (2025)
+# ==========================================================
+# GRC · CCISO · ENS · ISO 27001 · NIST · NIS2 · BCP · Predictive
 # ==========================================================
 
 import json
@@ -8,9 +9,8 @@ import re
 from openai import OpenAI
 
 # ==========================================================
-# JSON NORMALIZER (COMPATIBILIDAD GLOBAL)
+# JSON NORMALIZER (SEGURO)
 # ==========================================================
-
 def extract_json(text: str):
     try:
         match = re.search(r"\{.*\}", text, re.S)
@@ -20,25 +20,25 @@ def extract_json(text: str):
     except Exception:
         return None
 
-# ==========================================================
-# PREDICTIVE — STANDARD ENGINE
-# ==========================================================
 
+# ==========================================================
+# PREDICTIVE STANDARD ENGINE
+# ==========================================================
 def predictive_standard_engine(client, query: str):
     prompt = f"""
 Eres Ellit Cognitive Core — Predictive Standard Engine.
 
-Consulta:
+Genera una predicción ejecutiva para:
+
 \"\"\"{query}\"\"\"
 
 Entrega:
 - Resumen ejecutivo
-- 3 riesgos probables
-- 3 impactos probables
-- Recomendaciones a 30 días
-- Recomendaciones a 90 días
-- Texto claro, sin JSON
+- Riesgos principales
+- Impactos esperados
+- Recomendaciones a 30 / 90 días
 """
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -46,34 +46,32 @@ Entrega:
             {"role": "user", "content": prompt}
         ],
         temperature=0.3,
-        max_tokens=900,
+        max_tokens=900
     )
+
     return response.choices[0].message.content.strip()
 
-# ==========================================================
-# PREDICTIVE — PRIME ENGINE
-# ==========================================================
 
-def predictive_prime_engine(client, query: str, benchmark=True, alerts=True, horizon="12 meses"):
+# ==========================================================
+# PREDICTIVE PRIME ENGINE
+# ==========================================================
+def predictive_prime_engine(client, query: str, benchmark=True, alerts=True, horizon="90 días"):
     prompt = f"""
 Eres Ellit Cognitive Core — Predictive PRIME Engine.
 
-Consulta:
-\"\"\"{query}\"\"\"
-
+Consulta: {query}
 Benchmark sectorial: {"Sí" if benchmark else "No"}
 Alertas globales: {"Sí" if alerts else "No"}
-Horizonte temporal: {horizon}
+Horizonte: {horizon}
 
 Entrega:
 - Executive briefing
 - Riesgos correlacionados
-- Tendencias emergentes
-- Benchmark sectorial (si aplica)
-- Alertas globales (si aplica)
+- Factores emergentes
+- Tendencias clave
 - Recomendaciones estratégicas
-- Texto claro, sin JSON
 """
+
     response = client.chat.completions.create(
         model="gpt-4.1",
         messages=[
@@ -81,57 +79,36 @@ Entrega:
             {"role": "user", "content": prompt}
         ],
         temperature=0.25,
-        max_tokens=1600,
+        max_tokens=1600
     )
+
     return response.choices[0].message.content.strip()
 
-# ==========================================================
-# NORMATIVA / INTELIGENCIA REGULATORIA (JSON)
-# ==========================================================
-
-def generate_predictive_analysis(client, data: dict):
-    prompt = f"""
-Eres Ellit Cognitive Core — Intelligence Engine.
-
-Analiza y devuelve JSON estructurado para:
-ENS, ISO 27001, NIS2, DORA, NIST CSF, ISO 22301
-
-Contexto:
-{json.dumps(data, indent=2)}
-"""
-    response = client.chat.completions.create(
-        model="gpt-4.1",
-        messages=[
-            {"role": "system", "content": "Ellit Normative Intelligence Engine"},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=1600,
-    )
-    return extract_json(response.choices[0].message.content)
 
 # ==========================================================
-# RADAR IA (BASE + CCISO)
+# RADAR IA — CCISO / GRC ENGINE
 # ==========================================================
-
 def analyze_radar_ia(client, context: dict):
     prompt = f"""
-Eres Ellit Cognitive Core — Chief Information Security Officer (CCISO).
+Eres Ellit Cognitive Core, CISO virtual experto en:
 
-Evalúa:
-- Gobierno de seguridad
-- Gestión de riesgos
-- Controles y cumplimiento
-- Resiliencia operacional
-- Cultura y liderazgo
+- CCISO domains
+- ISO 27001 / 22301
+- ENS
+- NIST CSF
+- NIS2
+- Gobierno, Riesgo y Cumplimiento
 
-Contexto:
+Analiza este contexto organizativo:
+
 {json.dumps(context, indent=2)}
 
-Devuelve JSON con:
-- indicadores (porcentajes)
+Entrega EXCLUSIVAMENTE en JSON con:
+- indicadores (0–100)
 - riesgos_clave
 - acciones_recomendadas
 """
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -139,123 +116,78 @@ Devuelve JSON con:
             {"role": "user", "content": prompt}
         ],
         temperature=0.25,
-        max_tokens=1500,
+        max_tokens=1500
     )
+
     return extract_json(response.choices[0].message.content)
 
-# ==========================================================
-# SGSI — MADUREZ (ISO 27001 / ENS)
-# ==========================================================
 
-def compute_sgsi_maturity(client, evidencias, controles):
+# ==========================================================
+# MOTOR DE POLÍTICAS CORPORATIVAS
+# ==========================================================
+def generate_policy(client, tipo, normativa, organizacion, detalle=3):
     prompt = f"""
-Eres Ellit Cognitive Core — Auditor SGSI Senior.
+Eres Ellit Cognitive Core — Policy Generator.
 
-Evalúa madurez SGSI según ISO 27001 y ENS.
+Redacta una política corporativa profesional:
 
-Evidencias:
-{evidencias}
+Tipo: {tipo}
+Normativa: {normativa}
+Organización: {organizacion}
+Nivel de detalle: {detalle}/5
 
-Controles:
-{controles}
-
-Devuelve JSON con:
-- nivel
-- madurez (0-100)
-- fortalezas
-- debilidades
+Debe incluir:
+- Objetivo
+- Alcance
+- Responsabilidades
+- Directrices
+- Controles
+- Cumplimiento
+- Revisión
 """
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "Ellit SGSI Audit Engine"},
+            {"role": "system", "content": "Ellit Policy Generator — GRC Expert"},
             {"role": "user", "content": prompt}
         ],
         temperature=0.25,
-        max_tokens=900,
+        max_tokens=1800
     )
-    return extract_json(response.choices[0].message.content)
+
+    return response.choices[0].message.content.strip()
+
 
 # ==========================================================
-# CLASE PRINCIPAL — ELLIT COGNITIVE CORE
+# BCP ENGINE (COMPATIBLE CON modules.bcp)
 # ==========================================================
-
-class EllitCognitiveCore:
-
-    def __init__(self, api_key: str):
-        self.client = OpenAI(api_key=api_key)
-
-    # Radar CCISO
-    def analyze_radar(self, profile: dict):
-        return analyze_radar_ia(self.client, profile)
-
-    # SGSI
-    def compute_maturity(self, evidencias, controles):
-        return compute_sgsi_maturity(self.client, evidencias, controles)
-
-    # Normativa inteligente
-    def analyze_normativa(self, perfil, radar, evidencias, controles):
-        payload = {
-            "perfil": perfil,
-            "radar": radar,
-            "evidencias": evidencias,
-            "controles": controles
-        }
-        return generate_predictive_analysis(self.client, payload)
-    # -------------------------------------------------
-    # POLÍTICAS CORPORATIVAS (ISO / ENS / NIST / ETC)
-    # -------------------------------------------------
-    def generate_policy(self, tipo, normativa, organizacion, detalle=3):
-        return generate_policy(
-            self.client,
-            tipo,
-            normativa,
-            organizacion,
-            detalle
-        )
-    # Predictive
-    def predict_standard(self, query: str):
-        return predictive_standard_engine(self.client, query)
-
-    def predict_prime(self, query: str, benchmark=True, alerts=True, horizon="12 meses"):
-        return predictive_prime_engine(self.client, query, benchmark, alerts, horizon)
-# ==========================================================
-# BCP ENGINE — COMPATIBILITY LAYER (DO NOT REMOVE)
-# ==========================================================
-# Estas funciones existen para no romper modules.bcp
-# La lógica puede evolucionar internamente
-# ==========================================================
-
-import json
-
-
 def generate_bcp_plan(client, data):
     prompt = f"""
-Eres Ellit Cognitive Core — BCP Expert.
-Genera un plan de continuidad según ISO 22301 y ENS.
+Eres Ellit Cognitive Core — BCP Expert (ISO 22301 / ENS).
 
-Contexto:
 {json.dumps(data, indent=2)}
 """
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "Ellit BCP Engine"},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.25,
         max_tokens=2000
     )
+
     return response.choices[0].message.content.strip()
 
 
 def analyze_bcp_context(client, contexto):
     prompt = f"""
 Eres Ellit Cognitive Core — Crisis Analyst.
-Analiza el siguiente contexto operativo:
 
-\"\"\"{contexto}\"\"\"
+{contexto}
 """
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -264,16 +196,17 @@ Analiza el siguiente contexto operativo:
         ],
         max_tokens=900
     )
+
     return response.choices[0].message.content.strip()
 
 
 def analyze_bcp_scenario(client, data):
     prompt = f"""
 Eres Ellit Cognitive Core — Crisis Simulator.
-Evalúa el siguiente escenario:
 
 {json.dumps(data, indent=2)}
 """
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -282,30 +215,116 @@ Evalúa el siguiente escenario:
         ],
         max_tokens=1600
     )
+
     return response.choices[0].message.content.strip()
 
 
 # ==========================================================
-# TEXT ANALYSIS ENGINE (SGSI / EXECUTIVE / DASHBOARD)
+# MADUREZ SGSI ENGINE
 # ==========================================================
-# Motor genérico de análisis textual (NO UI)
+def compute_sgsi_maturity(client, evidencias, controles):
+    prompt = f"""
+Eres Ellit Cognitive Core — Auditor SGSI.
 
-def analyze_text_engine(client, prompt: str):
+Evidencias:
+{evidencias}
+
+Controles:
+{controles}
+
+Entrega en JSON:
+- nivel
+- madurez (%)
+- fortalezas
+- debilidades
+"""
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {
-                "role": "system",
-                "content": "Ellit Cognitive Core — Executive SGSI Analyst"
-            },
-            {
-                "role": "user",
-                "content": prompt
-            }
+            {"role": "system", "content": "Ellit SGSI Auditor"},
+            {"role": "user", "content": prompt}
         ],
-        temperature=0.3,
-        max_tokens=800
+        temperature=0.25,
+        max_tokens=900
     )
-    return response.choices[0].message.content.strip()
 
+    return extract_json(response.choices[0].message.content)
+
+
+# ==========================================================
+# CLASE PRINCIPAL — WRAPPER ÚNICO
+# ==========================================================
+class EllitCognitiveCore:
+
+    def __init__(self, api_key: str):
+        self.client = OpenAI(api_key=api_key)
+
+    # =============================
+    # RADAR IA (CCISO / GRC)
+    # =============================
+    def analyze_radar(self, profile):
+        return analyze_radar_ia(self.client, profile)
+
+    # =============================
+    # SGSI — MADUREZ
+    # =============================
+    def compute_maturity(self, evidencias, controles):
+        return compute_sgsi_maturity(self.client, evidencias, controles)
+
+    # =============================
+    # POLÍTICAS CORPORATIVAS
+    # =============================
+    def generate_policy(self, tipo, normativa, organizacion, detalle=3):
+        return generate_policy(self.client, tipo, normativa, organizacion, detalle)
+
+    # =============================
+    # BCP / CONTINUIDAD
+    # =============================
+    def generate_bcp(self, data):
+        return generate_bcp_plan(self.client, data)
+
+    def analyze_bcp_context(self, contexto):
+        return analyze_bcp_context(self.client, contexto)
+
+    def analyze_bcp_scenario(self, data):
+        return analyze_bcp_scenario(self.client, data)
+
+    # =============================
+    # PREDICTIVE INTELLIGENCE
+    # =============================
+    def predict_standard(self, query):
+        return predictive_standard_engine(self.client, query)
+
+    def predict_prime(self, query, benchmark=True, alerts=True, horizon="90 días"):
+        return predictive_prime_engine(self.client, query, benchmark, alerts, horizon)
+
+    # =============================
+    # ANÁLISIS TEXTUAL EJECUTIVO
+    # (SGSI, Dashboard, Board-level)
+    # =============================
+    def analyze_text(self, prompt: str):
+        """
+        Motor genérico de análisis ejecutivo.
+        Usado por:
+        - SGSI Monitoring
+        - Dashboards
+        - Resúmenes ejecutivos
+        """
+        response = self.client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Ellit Cognitive Core — Executive SGSI & Board Analyst"
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=800
+        )
+        return response.choices[0].message.content.strip()
 
