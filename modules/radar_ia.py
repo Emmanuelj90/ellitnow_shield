@@ -1,19 +1,21 @@
 # ============================================================
 # RADAR IA — ELLIT COGNITIVE CORE (CCISO EXECUTIVE RADAR)
+# Governance · Risk · Controls · Resilience · Culture
 # ============================================================
 
 import streamlit as st
 import plotly.graph_objects as go
 
 # ============================================================
-# SESSION STATE SAFE INIT (OBLIGATORIO)
+# SESSION STATE SAFE INIT
 # ============================================================
 
 def init_state():
     defaults = {
-        "radar_profile": {},
+        "radar_context": {},
         "cciso_scores": None,
-        "sgsi_result": None
+        "risk_landscape": None,
+        "sgsi_score": None,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -43,7 +45,7 @@ st.markdown("""
     text-align:center;
 }
 .kpi h3 {
-    font-size:26px;
+    font-size:28px;
     color:#7C1F5E;
     margin:0;
 }
@@ -51,75 +53,114 @@ st.markdown("""
     font-size:13px;
     color:#6B7280;
 }
+.info {
+    background:#FDF2F8;
+    border-left:4px solid #7C1F5E;
+    padding:16px;
+    border-radius:8px;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# CONTEXTO ORGANIZATIVO (CISO REAL)
+# CONTEXTO ORGANIZACIONAL
 # ============================================================
 
-def render_profile():
+def render_context():
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("## Contexto organizativo")
+    st.markdown("## Contexto organizacional")
 
     with st.form("context_form"):
-        board = st.selectbox("Patrocinio del Board", ["Sí", "Parcial", "No"])
-        ciso = st.selectbox("Rol CISO formal", ["Sí", "Parcial", "No"])
-        infra = st.multiselect(
-            "Infraestructura",
-            ["On-prem", "Cloud público", "Cloud híbrido", "OT / ICS"]
+
+        org = st.text_input("Nombre de la organización")
+        sector = st.selectbox(
+            "Sector principal",
+            ["Banca","Seguros","Salud","Tecnología","Industria","Energía","Retail","Sector Público","Otro"]
         )
-        third_party = st.selectbox(
-            "Gestión de terceros",
-            ["Formal", "Parcial", "No existente"]
+        size = st.selectbox(
+            "Tamaño",
+            ["PYME","Mid Market","Enterprise","Multinacional"]
+        )
+        regulations = st.multiselect(
+            "Marco regulatorio aplicable",
+            ["ENS","ISO 27001","NIS2","DORA","PCI DSS","HIPAA","TISAX"]
+        )
+        risks = st.text_area(
+            "Riesgos percibidos por el negocio",
+            placeholder="Ej: ransomware, dependencia de terceros, fuga de datos, impacto reputacional…"
         )
 
         submit = st.form_submit_button("Guardar contexto")
 
         if submit:
-            st.session_state["radar_profile"] = {
-                "board": board,
-                "ciso": ciso,
-                "infra": infra,
-                "third_party": third_party
-            }
-            st.success("Contexto guardado.")
+            if not org:
+                st.error("El nombre de la organización es obligatorio.")
+            else:
+                st.session_state["radar_context"] = {
+                    "org": org,
+                    "sector": sector,
+                    "size": size,
+                    "regulations": regulations,
+                    "risks": risks
+                }
+                st.success("Contexto guardado.")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# RADAR COGNITIVO (DASHBOARD ÚNICO)
+# CCISO ASSESSMENT (EXECUTIVE)
 # ============================================================
 
-def render_radar():
+def render_cciso_assessment():
 
-    render_profile()
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("## Evaluación CCISO")
 
-    profile = st.session_state.get("radar_profile") or {}
+    st.markdown("Responde desde una **perspectiva ejecutiva real**.")
 
-    if not profile:
-        st.info("Completa el contexto para generar el Radar Cognitivo.")
-        return
+    domains = {
+        "Governance & Leadership": "Gobierno, ownership y board",
+        "Risk Management": "Gestión de riesgo de negocio",
+        "Controls & Architecture": "Controles y arquitectura",
+        "Incident Readiness": "Preparación ante incidentes",
+        "Resilience & Continuity": "Continuidad y resiliencia"
+    }
 
-    if st.button(" Ejecutar Radar Cognitivo", type="primary"):
+    scores = {}
 
-        # ▶ SCORES CCISO (baseline coherente)
-        st.session_state["cciso_scores"] = {
-            "Governance & Risk": 62,
-            "Security Controls": 55,
-            "Program Management": 50,
-            "Incident Readiness": 47,
-            "Business Resilience": 42
-        }
+    for d, desc in domains.items():
+        st.subheader(d)
+        scores[d] = st.slider(desc, 0, 100, 50)
+
+    if st.button("Calcular Radar CCISO"):
+        st.session_state["cciso_scores"] = scores
+
+        # === RISK LANDSCAPE DERIVADO ===
+        st.session_state["risk_landscape"] = [
+            {"risk":"Ransomware", "impact":85, "prob":70},
+            {"risk":"Third-party breach", "impact":75, "prob":65},
+            {"risk":"Regulatory sanctions", "impact":80, "prob":55},
+        ]
+
+        st.success("Radar CCISO generado.")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ============================================================
+# RADAR + GRÁFICOS
+# ============================================================
+
+def render_radar_dashboard():
 
     scores = st.session_state.get("cciso_scores")
     if not scores:
         return
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("## Indicadores Ejecutivos (CCISO)")
+    st.markdown("## Postura global de Seguridad (CCISO)")
 
+    # KPIs
     cols = st.columns(len(scores))
     for i, (k, v) in enumerate(scores.items()):
         with cols[i]:
@@ -127,8 +168,6 @@ def render_radar():
                 f"<div class='kpi'><h3>{v}%</h3><span>{k}</span></div>",
                 unsafe_allow_html=True
             )
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
     # Radar
     fig = go.Figure()
@@ -139,20 +178,41 @@ def render_radar():
         line_color="#7C1F5E"
     ))
     fig.update_layout(
-        polar=dict(radialaxis=dict(range=[0, 100])),
+        polar=dict(radialaxis=dict(range=[0,100])),
         showlegend=False,
         height=420
     )
 
     st.plotly_chart(fig, use_container_width=True)
-    st.download_button(
-        "📥 Descargar radar (PNG)",
-        fig.to_image(format="png"),
-        "radar_cciso.png"
+    st.download_button("Descargar Radar (PNG)", fig.to_image("png"), "radar_cciso.png")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Heatmap Riesgo
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("## Landscape de Riesgo (Impacto vs Probabilidad)")
+
+    risks = st.session_state["risk_landscape"]
+    fig2 = go.Figure()
+    fig2.add_trace(go.Scatter(
+        x=[r["prob"] for r in risks],
+        y=[r["impact"] for r in risks],
+        text=[r["risk"] for r in risks],
+        mode="markers+text",
+        marker=dict(size=18, color="#7C1F5E"),
+        textposition="top center"
+    ))
+    fig2.update_layout(
+        xaxis_title="Probabilidad",
+        yaxis_title="Impacto",
+        height=420
     )
+    st.plotly_chart(fig2, use_container_width=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# MADUREZ SGSI (GAP ANALYSIS)
+# SGSI – GAP ANALYSIS
 # ============================================================
 
 def render_sgsi():
@@ -160,32 +220,42 @@ def render_sgsi():
     st.markdown("<div class='card'>", unsafe_allow_html=True)
     st.markdown("## Madurez del SGSI")
 
-    questions = {
-        "Políticas": st.slider("Políticas documentadas",0,5,2),
-        "Gestión de riesgos": st.slider("Análisis de riesgos",0,5,2),
-        "Controles": st.slider("Controles técnicos",0,5,2),
-        "Concienciación": st.slider("Formación",0,5,2),
-        "Mejora continua": st.slider("Mejora continua",0,5,1)
-    }
+    questions = [
+        "Políticas formales definidas",
+        "Gestión de riesgos periódica",
+        "Controles efectivos",
+        "Formación y concienciación",
+        "Mejora continua"
+    ]
+
+    values = [st.slider(q, 0, 5, 2) for q in questions]
 
     if st.button("Evaluar SGSI"):
-        score = int(sum(questions.values()) / (len(questions)*5) * 100)
-        st.session_state["sgsi_result"] = score
+        st.session_state["sgsi_score"] = int(sum(values)/(len(values)*5)*100)
 
-    result = st.session_state.get("sgsi_result")
-    if result is not None:
-        st.metric("Nivel de madurez SGSI", f"{result}%")
+    score = st.session_state.get("sgsi_score")
+    if score is not None:
+        st.metric("Madurez SGSI", f"{score}%")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# ROUTER SAFE – COMPATIBILIDAD TOTAL
+# ROUTER SAFE
 # ============================================================
 
-def render_radar_profile(): render_radar()
-def render_radar_kpis(): render_radar()
-def render_radar_cognitivo(): render_radar()
-def render_radar_madurez(): render_sgsi()
+def render_radar_profile():
+    render_context()
+
+def render_radar_kpis():
+    render_radar_cognitivo()
+
+def render_radar_cognitivo():
+    render_context()
+    render_cciso_assessment()
+    render_radar_dashboard()
+
+def render_radar_madurez():
+    render_sgsi()
 
 def render_radar_pdf():
-    st.info("Informe ejecutivo PDF — próximamente")
+    st.info("Informe ejecutivo PDF próximamente")
