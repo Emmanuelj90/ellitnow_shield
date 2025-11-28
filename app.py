@@ -201,6 +201,21 @@ def init_db():
     """)
 
     # --------------------------------------------------------
+    # SGSI KPIs (CANONICAL)
+    # --------------------------------------------------------
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS sgsi_kpis (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL,
+        kpi_date TEXT NOT NULL,
+        kpi_name TEXT NOT NULL,
+        kpi_value REAL NOT NULL,
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+    )
+    """)
+
+    # --------------------------------------------------------
     # SGSI KPI LOG (MONITORING)
     # --------------------------------------------------------
     c.execute("""
@@ -215,7 +230,7 @@ def init_db():
     )
     """)
 
-    # ✅ PRIMER COMMIT: ESTRUCTURA
+    # ✅ PRIMER COMMIT: ESTRUCTURA DE TABLAS
     conn.commit()
 
     # --------------------------------------------------------
@@ -225,12 +240,12 @@ def init_db():
     if not c.fetchone():
         tid = str(uuid.uuid4())
         c.execute("""
-        INSERT INTO tenants (id,name,email,active,enterprise,prime)
-        VALUES (?,?,?,?,?,?)
+        INSERT INTO tenants (id, name, email, active, enterprise, prime)
+        VALUES (?, ?, ?, ?, ?, ?)
         """, (tid, SUPERADMIN_NAME, SUPERADMIN_EMAIL, 1, 1, 1))
 
     # --------------------------------------------------------
-    # DEMO TENANT + USER
+    # DEMO TENANT
     # --------------------------------------------------------
     c.execute("SELECT id FROM tenants WHERE email=?", (DEMO_EMAIL,))
     row = c.fetchone()
@@ -238,8 +253,8 @@ def init_db():
         demo_tid = str(uuid.uuid4())
         c.execute("""
         INSERT INTO tenants
-        (id,name,email,active,enterprise,prime,primary_color)
-        VALUES (?,?,?,?,?,?,?)
+        (id, name, email, active, enterprise, prime, primary_color)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             demo_tid,
             DEMO_TENANT_NAME,
@@ -257,8 +272,8 @@ def init_db():
 
         c.execute("""
         INSERT INTO users
-        (id,tenant_id,email,name,role,password_hash,is_active)
-        VALUES (?,?,?,?,?,?,1)
+        (id, tenant_id, email, name, role, password_hash, is_active)
+        VALUES (?, ?, ?, ?, ?, ?, 1)
         """, (
             str(uuid.uuid4()),
             demo_tid,
@@ -268,11 +283,14 @@ def init_db():
             pwd_hash
         ))
 
-    # ✅ SEGUNDO COMMIT: DATOS
+    # ✅ COMMIT FINAL
     conn.commit()
     conn.close()
 
+
+# Ejecutar init una sola vez al arranque
 init_db()
+
 
 # ============================================================
 # LICENCIAS / HELPERS
