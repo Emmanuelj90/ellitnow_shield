@@ -209,16 +209,21 @@ class EllitCognitiveCore:
 
     def predict_prime(self, query: str, benchmark=True, alerts=True, horizon="12 meses"):
         return predictive_prime_engine(self.client, query, benchmark, alerts, horizon)
-        # ==========================================================
+# ==========================================================
 # BCP ENGINE — COMPATIBILITY LAYER (DO NOT REMOVE)
 # ==========================================================
 # Estas funciones existen para no romper modules.bcp
 # La lógica puede evolucionar internamente
+# ==========================================================
+
+import json
+
 
 def generate_bcp_plan(client, data):
     prompt = f"""
 Eres Ellit Cognitive Core — BCP Expert.
 Genera un plan de continuidad según ISO 22301 y ENS.
+
 Contexto:
 {json.dumps(data, indent=2)}
 """
@@ -238,6 +243,7 @@ def analyze_bcp_context(client, contexto):
     prompt = f"""
 Eres Ellit Cognitive Core — Crisis Analyst.
 Analiza el siguiente contexto operativo:
+
 \"\"\"{contexto}\"\"\"
 """
     response = client.chat.completions.create(
@@ -255,6 +261,7 @@ def analyze_bcp_scenario(client, data):
     prompt = f"""
 Eres Ellit Cognitive Core — Crisis Simulator.
 Evalúa el siguiente escenario:
+
 {json.dumps(data, indent=2)}
 """
     response = client.chat.completions.create(
@@ -266,4 +273,29 @@ Evalúa el siguiente escenario:
         max_tokens=1600
     )
     return response.choices[0].message.content.strip()
+
+
+# ==========================================================
+# TEXT ANALYSIS ENGINE (SGSI / EXECUTIVE / DASHBOARD)
+# ==========================================================
+# Motor genérico de análisis textual (NO UI)
+
+def analyze_text_engine(client, prompt: str):
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": "Ellit Cognitive Core — Executive SGSI Analyst"
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        temperature=0.3,
+        max_tokens=800
+    )
+    return response.choices[0].message.content.strip()
+
 
