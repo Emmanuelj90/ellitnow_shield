@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import json
 
 # ============================================================
-# STATE INIT (ROBUSTO)
+# STATE INIT (ROBUSTO · NO SE ROMPE)
 # ============================================================
 
 def ensure_radar_state():
@@ -69,29 +69,38 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# PERFIL CONTEXTUAL
+# PERFIL CONTEXTUAL (INTEGRADO EN RADAR)
 # ============================================================
 
 def _render_profile_context():
-    with st.expander("Contexto de la organización", expanded=not st.session_state["radar_profile"]):
+    with st.expander(
+        "Contexto de la organización",
+        expanded=st.session_state["radar_profile"] is None
+    ):
         c1, c2, c3 = st.columns(3)
         with c1:
-            org = st.text_input("Organización", st.session_state.get("radar_profile", {}).get("organizacion",""))
+            org = st.text_input(
+                "Organización",
+                st.session_state.get("radar_profile", {}).get("organizacion", "")
+            )
         with c2:
             sector = st.selectbox(
                 "Sector",
-                ["Banca","Seguros","Salud","Tecnología","Energía","Industrial","Sector Público","Otro"]
+                ["Banca", "Seguros", "Salud", "Tecnología",
+                 "Energía", "Industrial", "Sector Público", "Otro"]
             )
         with c3:
-            ens = st.selectbox("Nivel ENS", ["No aplica","Básico","Medio","Alto"])
+            ens = st.selectbox("Nivel ENS", ["No aplica", "Básico", "Medio", "Alto"])
 
         c4, c5, c6 = st.columns(3)
         with c4:
-            size = st.selectbox("Tamaño", ["Pequeña","Mediana","Grande","Multinacional"])
+            size = st.selectbox(
+                "Tamaño", ["Pequeña", "Mediana", "Grande", "Multinacional"]
+            )
         with c5:
-            region = st.text_input("Región")
+            region = st.text_input("Región / País")
         with c6:
-            owner = st.text_input("Responsable")
+            owner = st.text_input("Responsable / CISO")
 
         riesgos = st.text_area("Riesgos principales")
         certs = st.text_area("Certificaciones / Marcos")
@@ -108,34 +117,46 @@ def _render_profile_context():
                     "region": region,
                     "responsable": owner,
                     "riesgos_detectados": riesgos,
-                    "certificaciones": certs
+                    "certificaciones": certs,
                 }
-                st.success("Contexto guardado.")
+                st.success("Contexto guardado correctamente.")
 
 # ============================================================
-# RADAR CENTRAL (CORE VIEW)
+# RADAR COGNITIVO CENTRAL (VISTA PRINCIPAL)
 # ============================================================
 
 def render_radar_cognitivo():
 
     st.markdown("<div class='ellit-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='ellit-title'>Radar Cognitivo de Seguridad</div>", unsafe_allow_html=True)
-    st.markdown("<div class='ellit-sub'>Visión 360° del estado de seguridad, cumplimiento y resiliencia.</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='ellit-title'>Radar Cognitivo de Seguridad</div>",
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        "<div class='ellit-sub'>"
+        "Evaluación 360° del estado de seguridad, cumplimiento y resiliencia "
+        "basada en inteligencia cognitiva."
+        "</div>",
+        unsafe_allow_html=True
+    )
 
+    # ---------- CONTEXTO ----------
     _render_profile_context()
 
     profile = st.session_state.get("radar_profile")
     if not profile:
-        st.info("Completa el contexto para ejecutar el radar.")
+        st.info("Completa el contexto para ejecutar el radar cognitivo.")
         st.markdown("</div>", unsafe_allow_html=True)
         return
 
+    # ---------- EJECUCIÓN ----------
     if st.button("Ejecutar análisis cognitivo", type="primary"):
-        with st.spinner("Ejecutando análisis cognitivo…"):
+        with st.spinner("Ejecutando análisis cognitivo avanzado…"):
             raw = st.session_state["client"].analyze_radar(profile)
 
         if not raw:
             st.error("El motor cognitivo no devolvió resultados.")
+            st.markdown("**Contexto enviado al motor:**")
             st.json(profile)
             st.markdown("</div>", unsafe_allow_html=True)
             return
@@ -144,16 +165,21 @@ def render_radar_cognitivo():
             try:
                 raw = json.loads(raw)
             except Exception:
-                st.text_area("Respuesta del motor", raw, height=250)
+                st.warning("Respuesta del motor no estructurada.")
+                st.text_area("Salida del motor", raw, height=280)
                 st.markdown("</div>", unsafe_allow_html=True)
                 return
 
+        # Guardado único y consistente
         st.session_state["radar_result"] = raw
         st.session_state["radar_indicators"] = raw.get("indicadores", {})
-        st.session_state["radar_recommendations"] = raw.get("acciones_recomendadas", [])
+        st.session_state["radar_recommendations"] = raw.get(
+            "acciones_recomendadas", []
+        )
 
-        st.success("Análisis completado.")
+        st.success("Análisis cognitivo completado.")
 
+    # ---------- VISUALIZACIÓN ----------
     indicators = st.session_state.get("radar_indicators")
     if not indicators:
         st.markdown("</div>", unsafe_allow_html=True)
@@ -165,7 +191,12 @@ def render_radar_cognitivo():
     for i, (k, v) in enumerate(indicators.items()):
         with cols[i]:
             st.markdown(
-                f"<div class='ellit-kpi'><h3>{int(v)}%</h3><span>{k}</span></div>",
+                f"""
+                <div class="ellit-kpi">
+                    <h3>{int(v)}%</h3>
+                    <span>{k}</span>
+                </div>
+                """,
                 unsafe_allow_html=True
             )
 
@@ -174,16 +205,19 @@ def render_radar_cognitivo():
     values = list(indicators.values())
 
     fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=values + [values[0]],
-        theta=labels + [labels[0]],
-        fill="toself",
-        line_color="#7C1F5E"
-    ))
+    fig.add_trace(
+        go.Scatterpolar(
+            r=values + [values[0]],
+            theta=labels + [labels[0]],
+            fill="toself",
+            line_color="#7C1F5E"
+        )
+    )
     fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0,100])),
+        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
         showlegend=False,
-        height=420
+        height=420,
+        margin=dict(l=30, r=30, t=30, b=30)
     )
 
     st.plotly_chart(fig, use_container_width=True)
@@ -196,26 +230,36 @@ def render_radar_cognitivo():
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# MADUREZ SGSI
+# MADUREZ SGSI (MÓDULO SEPARADO)
 # ============================================================
 
 def render_radar_madurez():
 
     st.markdown("<div class='ellit-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='ellit-title'>Madurez del SGSI</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='ellit-title'>Madurez del SGSI</div>",
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        "<div class='ellit-sub'>Evaluación basada en evidencias y controles reales.</div>",
+        unsafe_allow_html=True
+    )
 
     evidencias = st.text_area("Evidencias")
     controles = st.text_area("Controles")
 
     if st.button("Evaluar madurez SGSI"):
-        with st.spinner("Analizando…"):
-            raw = st.session_state["client"].compute_maturity(evidencias, controles)
+        with st.spinner("Analizando madurez SGSI…"):
+            raw = st.session_state["client"].compute_maturity(
+                evidencias, controles
+            )
 
         if isinstance(raw, str):
             try:
                 raw = json.loads(raw)
             except Exception:
-                st.text_area("Respuesta del motor", raw, height=250)
+                st.error("Respuesta del motor no estructurada.")
+                st.text_area("Salida del motor", raw, height=260)
                 st.markdown("</div>", unsafe_allow_html=True)
                 return
 
@@ -223,22 +267,34 @@ def render_radar_madurez():
 
     result = st.session_state.get("radar_maturity")
     if result:
-        st.metric("Nivel de madurez", f"{result.get('nivel','-')} ({result.get('madurez',0)}%)")
+        st.metric(
+            "Nivel de madurez",
+            f"{result.get('nivel', '-')}"
+            f" ({result.get('madurez', 0)}%)"
+        )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# PDF
+# PDF (HOOK)
 # ============================================================
 
 def render_radar_pdf():
     st.markdown("<div class='ellit-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='ellit-title'>Informe ejecutivo</div>", unsafe_allow_html=True)
-    st.button("Generar informe PDF", type="primary")
+    st.markdown(
+        "<div class='ellit-title'>Informe ejecutivo</div>",
+        unsafe_allow_html=True
+    )
+
+    if not st.session_state.get("radar_result"):
+        st.warning("Ejecuta primero el radar cognitivo.")
+    else:
+        st.button("Generar informe ejecutivo PDF", type="primary")
+
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# COMPATIBILIDAD CON ROUTER
+# COMPATIBILIDAD CON ROUTER (APP.PY)
 # ============================================================
 
 def render_radar_profile():
@@ -246,4 +302,5 @@ def render_radar_profile():
 
 def render_radar_kpis():
     render_radar_cognitivo()
+
 
