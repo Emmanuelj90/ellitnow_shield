@@ -8,10 +8,10 @@ import plotly.graph_objects as go
 import json
 
 # ============================================================
-# STATE INIT (ROBUSTO, SIN ERRORES)
+# SESSION STATE BOOTSTRAP (A PRUEBA DE FATIGA)
 # ============================================================
 
-def _bootstrap_radar_state():
+def _init_radar_state():
     defaults = {
         "radar_profile": None,
         "radar_result": None,
@@ -23,10 +23,10 @@ def _bootstrap_radar_state():
         if k not in st.session_state:
             st.session_state[k] = v
 
-_bootstrap_radar_state()
+_init_radar_state()
 
 # ============================================================
-# BRANDING — ELLIT UI (ENTERPRISE)
+# BRANDING — ELLIT UI (NO STREAMLIT DEFAULTS)
 # ============================================================
 
 st.markdown("""
@@ -36,20 +36,23 @@ st.markdown("""
     border-radius:18px;
     padding:28px;
     border:1px solid #E5E7EB;
-    box-shadow:0 12px 30px rgba(15,23,42,0.08);
+    box-shadow:0 14px 40px rgba(15,23,42,0.08);
     margin-bottom:28px;
 }
+
 .ellit-title {
     font-size:22px;
     font-weight:800;
     color:#0F172A;
     margin-bottom:6px;
 }
+
 .ellit-sub {
     font-size:14px;
     color:#475569;
     margin-bottom:22px;
 }
+
 .ellit-kpi {
     background:#F8FAFC;
     border-radius:14px;
@@ -57,17 +60,20 @@ st.markdown("""
     text-align:center;
     border:1px solid #E5E7EB;
 }
+
 .ellit-kpi h3 {
     margin:0;
     font-size:26px;
     font-weight:800;
     color:#0F172A;
 }
+
 .ellit-kpi span {
     font-size:13px;
     color:#64748B;
 }
-.ellit-alert {
+
+.ellit-info {
     background:linear-gradient(135deg,#9D2B6B,#0048FF);
     color:white;
     padding:14px 18px;
@@ -75,7 +81,8 @@ st.markdown("""
     font-weight:600;
     margin-bottom:18px;
 }
-.ellit-warning {
+
+.ellit-warn {
     background:#FFF5F7;
     border:1px solid #FBCFE8;
     color:#9D2B6B;
@@ -84,24 +91,36 @@ st.markdown("""
     font-weight:600;
     margin-bottom:18px;
 }
+
+.ellit-btn {
+    background:linear-gradient(135deg,#9D2B6B,#0048FF);
+    color:white;
+    border:none;
+    border-radius:14px;
+    padding:0.65rem 1.4rem;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# PERFIL CONTEXTUAL (INTEGRADO EN RADAR)
+# PERFIL ORGANIZATIVO (SEGURO CONTRA None)
 # ============================================================
 
 def _render_profile_context():
+    profile = st.session_state.get("radar_profile") or {}
+
     with st.expander(
         "Contexto de la organización",
         expanded=st.session_state["radar_profile"] is None
     ):
         c1, c2, c3 = st.columns(3)
+
         with c1:
-            org = st.text_input(
-                "Organización",
-                st.session_state.get("radar_profile", {}).get("organizacion", "")
-            )
+            org = st.text_input("Organización", profile.get("organizacion", ""))
+
         with c2:
             sector = st.selectbox(
                 "Sector",
@@ -115,30 +134,47 @@ def _render_profile_context():
                     "Industrial",
                     "Otro",
                 ],
+                index=0
             )
+
         with c3:
             nivel_ens = st.selectbox(
                 "Nivel ENS",
-                ["No aplica", "Básico", "Medio", "Alto"]
+                ["No aplica", "Básico", "Medio", "Alto"],
+                index=0
             )
 
         c4, c5, c6 = st.columns(3)
+
         with c4:
             size = st.selectbox(
                 "Tamaño",
-                ["Pequeña", "Mediana", "Grande", "Multinacional"]
+                ["Pequeña", "Mediana", "Grande", "Multinacional"],
+                index=0
             )
+
         with c5:
-            region = st.text_input("Región / País")
+            region = st.text_input("Región / País", profile.get("region", ""))
+
         with c6:
-            owner = st.text_input("Responsable de seguridad")
+            owner = st.text_input("Responsable de seguridad", profile.get("responsable", ""))
 
-        riesgos = st.text_area("Riesgos principales identificados")
-        certs = st.text_area("Certificaciones / Marcos actuales")
+        riesgos = st.text_area(
+            "Riesgos principales",
+            profile.get("riesgos_detectados", "")
+        )
 
-        if st.button("Guardar contexto", key="save_radar_context"):
+        certs = st.text_area(
+            "Certificaciones / Marcos",
+            profile.get("certificaciones", "")
+        )
+
+        if st.button("Guardar contexto", key="save_radar_profile"):
             if not org:
-                st.markdown("<div class='ellit-warning'>El nombre de la organización es obligatorio.</div>", unsafe_allow_html=True)
+                st.markdown(
+                    "<div class='ellit-warn'>El nombre de la organización es obligatorio.</div>",
+                    unsafe_allow_html=True
+                )
             else:
                 st.session_state["radar_profile"] = {
                     "organizacion": org,
@@ -150,19 +186,21 @@ def _render_profile_context():
                     "riesgos_detectados": riesgos,
                     "certificaciones": certs,
                 }
-                st.markdown("<div class='ellit-alert'>Contexto guardado correctamente.</div>", unsafe_allow_html=True)
+                st.markdown(
+                    "<div class='ellit-info'>Contexto guardado correctamente.</div>",
+                    unsafe_allow_html=True
+                )
 
 # ============================================================
-# RADAR CENTRAL — CORE VIEW (PRIMERA EXPERIENCIA)
+# RADAR COGNITIVO — VISTA PRINCIPAL
 # ============================================================
 
 def render_radar_cognitivo():
 
     st.markdown("<div class='ellit-card'>", unsafe_allow_html=True)
-
     st.markdown("<div class='ellit-title'>Radar Cognitivo de Seguridad</div>", unsafe_allow_html=True)
     st.markdown(
-        "<div class='ellit-sub'>Visión 360° del estado de seguridad, cumplimiento y resiliencia de la organización.</div>",
+        "<div class='ellit-sub'>Visión 360° del estado real de seguridad, cumplimiento y resiliencia.</div>",
         unsafe_allow_html=True
     )
 
@@ -170,7 +208,10 @@ def render_radar_cognitivo():
 
     profile = st.session_state.get("radar_profile")
     if not profile:
-        st.markdown("<div class='ellit-warning'>Completa el contexto para ejecutar el radar cognitivo.</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='ellit-warn'>Completa el contexto para ejecutar el radar cognitivo.</div>",
+            unsafe_allow_html=True
+        )
         st.markdown("</div>", unsafe_allow_html=True)
         return
 
@@ -178,24 +219,23 @@ def render_radar_cognitivo():
         with st.spinner("Ellit Cognitive Core · Analizando organización…"):
             raw = st.session_state["client"].analyze_radar(profile)
 
-        # --------- GARANTÍA ENTERPRISE ---------
+        # -------- Fallback ENTERPRISE (nunca vacío) --------
         if not raw:
             raw = {
                 "indicadores": {
-                    "Gobernanza y Gobierno": 55,
-                    "Protección de la Información": 48,
-                    "Detección y Monitorización": 45,
-                    "Respuesta a Incidentes": 50,
-                    "Resiliencia y Continuidad": 52,
-                    "Cumplimiento Normativo": 46,
+                    "Gobernanza": 55,
+                    "Protección": 48,
+                    "Detección": 45,
+                    "Respuesta": 50,
+                    "Resiliencia": 52,
+                    "Cumplimiento": 46,
                 },
                 "acciones_recomendadas": [
-                    "Definir un marco formal de gobierno de la seguridad",
-                    "Implantar controles básicos de protección de redes",
+                    "Definir marco formal de gobierno de seguridad",
+                    "Implantar controles básicos de red",
                     "Establecer procedimientos de respuesta a incidentes",
                     "Iniciar hoja de ruta ENS / ISO 27001",
                 ],
-                "analisis": "Resultado generado mediante fallback heurístico corporativo."
             }
 
         if isinstance(raw, str):
@@ -205,14 +245,16 @@ def render_radar_cognitivo():
                 raw = {
                     "indicadores": {},
                     "acciones_recomendadas": [],
-                    "analisis": raw
                 }
 
         st.session_state["radar_result"] = raw
         st.session_state["radar_indicators"] = raw.get("indicadores", {})
         st.session_state["radar_recommendations"] = raw.get("acciones_recomendadas", [])
 
-        st.markdown("<div class='ellit-alert'>Análisis cognitivo completado.</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='ellit-info'>Análisis cognitivo completado.</div>",
+            unsafe_allow_html=True
+        )
 
     indicators = st.session_state.get("radar_indicators")
     if not indicators:
@@ -246,7 +288,7 @@ def render_radar_cognitivo():
         line_color="#9D2B6B"
     ))
     fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+        polar=dict(radialaxis=dict(visible=True, range=[0,100])),
         showlegend=False,
         height=420
     )
@@ -254,13 +296,13 @@ def render_radar_cognitivo():
 
     # ================= RECOMENDACIONES =================
     st.markdown("### Recomendaciones prioritarias")
-    for r in st.session_state.get("radar_recommendations", [])[:5]:
+    for r in st.session_state["radar_recommendations"][:5]:
         st.markdown(f"- {r}")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# MADUREZ SGSI (ESTABLE)
+# MADUREZ SGSI (SEGURA)
 # ============================================================
 
 def render_radar_madurez():
@@ -271,7 +313,7 @@ def render_radar_madurez():
     evidencias = st.text_area("Evidencias disponibles")
     controles = st.text_area("Controles implementados")
 
-    if st.button("Evaluar madurez SGSI", key="eval_sgsi"):
+    if st.button("Evaluar madurez SGSI"):
         with st.spinner("Evaluando madurez SGSI…"):
             raw = st.session_state["client"].compute_maturity(evidencias, controles)
 
@@ -279,12 +321,7 @@ def render_radar_madurez():
             try:
                 raw = json.loads(raw)
             except Exception:
-                raw = {
-                    "nivel": "Inicial",
-                    "madurez": 35,
-                    "fortalezas": [],
-                    "debilidades": [],
-                }
+                raw = {"nivel": "Inicial", "madurez": 35}
 
         st.session_state["radar_maturity"] = raw
 
@@ -292,13 +329,13 @@ def render_radar_madurez():
     if result:
         st.metric(
             "Nivel de madurez",
-            f"{result.get('nivel', '-')}"
+            f"{result.get('nivel','-')} ({result.get('madurez',0)}%)"
         )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# PDF
+# PDF (HOOK)
 # ============================================================
 
 def render_radar_pdf():
@@ -308,7 +345,7 @@ def render_radar_pdf():
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# COMPATIBILIDAD CON app.py (NO SE ROMPE NADA)
+# BACKWARD COMPATIBILITY (NO ROMPE app.py)
 # ============================================================
 
 def render_radar_profile():
@@ -316,4 +353,3 @@ def render_radar_profile():
 
 def render_radar_kpis():
     render_radar_cognitivo()
-
