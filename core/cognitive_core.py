@@ -269,4 +269,55 @@ def generate_predictive_prime(client, query, benchmark=True, alerts=True, horizo
     return predictive_prime_engine(client, query, benchmark, alerts, horizon)
 
 predictive_prime = generate_predictive_prime
+# ==========================================================
+# 🔁 ULTRA BACKWARD COMPATIBILITY LAYER (DO NOT REMOVE)
+# ==========================================================
+# Este bloque existe SOLO para que NUNCA se rompan imports
+
+# ---- Predictive (Standard) ----
+def generate_predictive_standard(client, query):
+    return predictive_standard_engine(client, query)
+
+def predictive_standard(client, query):
+    return predictive_standard_engine(client, query)
+
+# ---- Predictive (Prime) ----
+def generate_predictive_prime(client, query, benchmark=True, alerts=True, horizon="90 días"):
+    return predictive_prime_engine(client, query, benchmark, alerts, horizon)
+
+def predictive_prime(client, query, benchmark=True, alerts=True, horizon="90 días"):
+    return predictive_prime_engine(client, query, benchmark, alerts, horizon)
+
+# ---- Normativa Inteligente (LEGACY NAME) ----
+def generate_predictive_analysis(client, data):
+    # Re-usa el radar como motor genérico de análisis
+    return analyze_radar_ia(client, data)
+
+# ---- Safe exports (for star imports) ----
+__all__ = [
+    # Radar
+    "analyze_radar_ia",
+
+    # Predictive
+    "predictive_standard_engine",
+    "predictive_prime_engine",
+    "generate_predictive_standard",
+    "generate_predictive_prime",
+    "predictive_standard",
+    "predictive_prime",
+    "generate_predictive_analysis",
+
+    # SGSI
+    "compute_sgsi_maturity",
+
+    # BCP
+    "generate_bcp_plan",
+    "analyze_bcp_context",
+    "analyze_bcp_scenario",
+
+    # Utils
+    "extract_json",
+    "EllitCognitiveCore",
+]
+
 
