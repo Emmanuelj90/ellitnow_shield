@@ -1,323 +1,283 @@
-# ==========================================================
-# ELLIT COGNITIVE CORE — MOTOR COGNITIVO CENTRAL (2025)
-# CCISO · BCP · PREDICTIVE · FULL BACKWARD COMPATIBLE
-# ==========================================================
+# ============================================================
+# RADAR IA — ELLIT COGNITIVE CORE (CCISO MODEL)
+# Executive Radar · Risk · Controls · Culture
+# ============================================================
 
+import streamlit as st
+import plotly.graph_objects as go
 import json
-import re
-from openai import OpenAI
 
-# ==========================================================
-# JSON NORMALIZER
-# ==========================================================
-def extract_json(text: str):
-    try:
-        match = re.search(r"\{.*\}", text, re.S)
-        if match:
-            return json.loads(match.group(0))
-        return None
-    except Exception:
-        return None
+# ============================================================
+# SESSION STATE (ROBUST, SAFE)
+# ============================================================
+
+_RADAR_DEFAULTS = {
+    "radar_profile": None,
+    "radar_result": None,
+    "radar_indicators": {},
+    "radar_risks": [],
+    "radar_actions": [],
+    "sgsi_assessment": None,
+}
+
+for k, v in _RADAR_DEFAULTS.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
 
-# ==========================================================
-# ⭐ CCISO RADAR ENGINE
-# ==========================================================
-def analyze_radar_ia(client, context: dict):
+# ============================================================
+# BRAND STYLES (ELLIT ENTERPRISE)
+# ============================================================
 
-    prompt = f"""
-Eres Ellit Cognitive Core basado en CCISO.
+st.markdown("""
+<style>
+.ellit-card{
+    background:#FFFFFF;
+    border:1px solid #E5E7EB;
+    border-radius:16px;
+    padding:28px;
+    margin-bottom:28px;
+    box-shadow:0 10px 28px rgba(0,0,0,.06);
+}
+.ellit-title{
+    font-size:22px;
+    font-weight:800;
+    color:#0F172A;
+    margin-bottom:6px;
+}
+.ellit-sub{
+    font-size:14px;
+    color:#475569;
+    margin-bottom:22px;
+}
+.ellit-kpi{
+    background:#F8FAFC;
+    border-radius:12px;
+    padding:18px;
+    text-align:center;
+    border:1px solid #E5E7EB;
+}
+.ellit-kpi h3{
+    margin:0;
+    font-size:26px;
+    color:#7C1F5E;
+}
+.ellit-kpi span{
+    font-size:13px;
+    color:#64748B;
+}
+.ellit-info{
+    background:#FDF2F8;
+    border-left:4px solid #7C1F5E;
+    padding:14px;
+    border-radius:8px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-Devuelve SOLO JSON válido:
 
-{{
-  "indicadores": {{
-    "Governance & Risk": 0-100,
-    "Security Controls": 0-100,
-    "Operations & Resilience": 0-100,
-    "Compliance & Assurance": 0-100,
-    "Culture & Leadership": 0-100
-  }},
-  "resumen_ejecutivo": "",
-  "riesgos_clave": [],
-  "gaps_detectados": [],
-  "acciones_recomendadas": []
-}}
+# ============================================================
+# CONTEXTO ORGANIZACIÓN (GUIADO)
+# ============================================================
 
-Contexto:
-{json.dumps(context, indent=2)}
-"""
+def _render_profile_context():
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "Ellit Cognitive Core — CCISO Radar"},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.15,
-        max_tokens=1600
+    with st.expander("Contexto organizativo (base del análisis)", expanded=not st.session_state["radar_profile"]):
+
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            org = st.text_input(
+                "Organización",
+                st.session_state.get("radar_profile", {}).get("organizacion", "")
+            )
+        with c2:
+            sector = st.selectbox(
+                "Sector",
+                ["Banca","Seguros","Salud","Tecnología","Energía","Industrial","Sector Público","Otro"]
+            )
+        with c3:
+            ens = st.selectbox("Nivel ENS", ["No aplica","Básico","Medio","Alto"])
+
+        c4, c5, c6 = st.columns(3)
+        with c4:
+            size = st.selectbox("Tamaño", ["Pequeña","Mediana","Grande","Multinacional"])
+        with c5:
+            region = st.text_input("Región / País")
+        with c6:
+            owner = st.text_input("Responsable de Seguridad")
+
+        riesgos = st.text_area("Riesgos relevantes conocidos")
+        certs = st.text_area("Certificaciones / Marcos")
+
+        if st.button("Guardar contexto organizativo"):
+            if not org.strip():
+                st.error("El nombre de la organización es obligatorio.")
+            else:
+                st.session_state["radar_profile"] = {
+                    "organizacion": org,
+                    "sector": sector,
+                    "nivel_ens": ens,
+                    "tamano": size,
+                    "region": region,
+                    "responsable": owner,
+                    "riesgos_detectados": riesgos,
+                    "certificaciones": certs
+                }
+                st.success("Contexto guardado correctamente.")
+
+
+# ============================================================
+# RADAR COGNITIVO CENTRAL (CCISO VIEW)
+# ============================================================
+
+def render_radar_cognitivo():
+
+    st.markdown("<div class='ellit-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='ellit-title'>Radar Cognitivo de Seguridad (CCISO)</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='ellit-sub'>Visión ejecutiva 360° del estado de la organización: gobierno, riesgo, controles, resiliencia y cultura.</div>",
+        unsafe_allow_html=True
     )
 
-    parsed = extract_json(response.choices[0].message.content)
+    _render_profile_context()
 
-    if not parsed:
-        return {
-            "indicadores": {
-                "Governance & Risk": 50,
-                "Security Controls": 50,
-                "Operations & Resilience": 50,
-                "Compliance & Assurance": 50,
-                "Culture & Leadership": 50,
-            },
-            "resumen_ejecutivo": "Evaluación preliminar automática.",
-            "riesgos_clave": [],
-            "gaps_detectados": [],
-            "acciones_recomendadas": []
-        }
+    profile = st.session_state.get("radar_profile")
+    if not profile:
+        st.info("Completa el contexto para ejecutar el Radar Cognitivo.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
 
-    return parsed
+    if st.button("Ejecutar Radar Cognitivo"):
+        with st.spinner("Ejecutando análisis CCISO…"):
+            raw = st.session_state["client"].analyze_radar(profile)
 
+        if not raw or not isinstance(raw, dict):
+            st.markdown(
+                "<div class='ellit-info'><b>No hay datos suficientes todavía.</b><br>"
+                "Se ha generado un baseline inicial para continuar el análisis.</div>",
+                unsafe_allow_html=True
+            )
+            return
 
-# ==========================================================
-# ✅ PREDICTIVE STANDARD ENGINE
-# ==========================================================
-def predictive_standard_engine(client, query: str):
-    prompt = f"""
-Eres Ellit Cognitive Core — Predictive Standard Engine.
+        st.session_state["radar_result"] = raw
+        st.session_state["radar_indicators"] = raw.get("indicadores", {})
+        st.session_state["radar_risks"] = raw.get("riesgos_clave", [])
+        st.session_state["radar_actions"] = raw.get("acciones_recomendadas", [])
 
-Consulta:
-\"\"\"{query}\"\"\"
+        st.success("Radar cognitivo completado.")
 
-Entrega:
-- Resumen ejecutivo
-- Riesgos probables
-- Impactos
-- Recomendaciones 30 / 90 días
-"""
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "Ellit Predictive Engine — Standard"},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.3,
-        max_tokens=1000
+    indicators = st.session_state.get("radar_indicators")
+    if not indicators:
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    # ================= KPIs =================
+    st.markdown("### Indicadores estratégicos (CCISO)")
+    cols = st.columns(len(indicators))
+    for i, (k, v) in enumerate(indicators.items()):
+        with cols[i]:
+            st.markdown(
+                f"<div class='ellit-kpi'><h3>{int(v)}%</h3><span>{k}</span></div>",
+                unsafe_allow_html=True
+            )
+
+    # ================= RADAR CCISO =================
+    labels = list(indicators.keys())
+    values = list(indicators.values())
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatterpolar(
+        r=values + [values[0]],
+        theta=labels + [labels[0]],
+        fill="toself",
+        line_color="#7C1F5E"
+    ))
+    fig.update_layout(
+        title="Postura global de Seguridad (modelo CCISO)",
+        polar=dict(radialaxis=dict(range=[0,100])),
+        showlegend=False,
+        height=420
     )
-    return response.choices[0].message.content.strip()
+    st.plotly_chart(fig, use_container_width=True)
+
+    # ================= RIESGOS =================
+    if st.session_state["radar_risks"]:
+        st.markdown("### Riesgos prioritarios")
+        for r in st.session_state["radar_risks"]:
+            st.markdown(f"- {r}")
+
+    # ================= ACCIONES =================
+    if st.session_state["radar_actions"]:
+        st.markdown("### Acciones recomendadas (Board-level)")
+        for a in st.session_state["radar_actions"][:5]:
+            st.markdown(f"- {a}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
-# ==========================================================
-# ✅ PREDICTIVE PRIME ENGINE
-# ==========================================================
-def predictive_prime_engine(client, query: str, benchmark=True, alerts=True, horizon="90 días"):
-    prompt = f"""
-Eres Ellit Cognitive Core — Predictive PRIME Engine.
+# ============================================================
+# MADUREZ SGSI (EXECUTIVE GAP VIEW)
+# ============================================================
 
-Consulta: \"\"\"{query}\"\"\"
-Benchmark: {"Sí" if benchmark else "No"}
-Alertas: {"Sí" if alerts else "No"}
-Horizonte: {horizon}
+def render_radar_madurez():
 
-Entrega:
-- Executive briefing
-- Riesgos correlacionados
-- Tendencias
-- Alertas
-- Recomendaciones estratégicas
-"""
-    response = client.chat.completions.create(
-        model="gpt-4.1",
-        messages=[
-            {"role": "system", "content": "Ellit Predictive Engine — PRIME"},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.25,
-        max_tokens=1600
+    st.markdown("<div class='ellit-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='ellit-title'>Madurez del SGSI</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='ellit-sub'>Evaluación ejecutiva del grado de madurez del sistema de gestión de seguridad.</div>",
+        unsafe_allow_html=True
     )
-    return response.choices[0].message.content.strip()
+
+    evidencias = st.text_area("Evidencias clave (resumen)")
+    controles = st.text_area("Controles implementados (resumen)")
+
+    if st.button("Evaluar madurez SGSI"):
+        with st.spinner("Analizando madurez del SGSI…"):
+            raw = st.session_state["client"].compute_maturity(evidencias, controles)
+
+        if raw and isinstance(raw, dict):
+            st.session_state["sgsi_assessment"] = raw
+            st.success("Madurez evaluada correctamente.")
+        else:
+            st.error("No se pudo completar la evaluación.")
+
+    result = st.session_state.get("sgsi_assessment")
+    if result:
+        st.metric(
+            "Nivel de madurez",
+            f"{result.get('nivel','-')} ({result.get('madurez',0)}%)"
+        )
+
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("**Fortalezas**")
+            for f in result.get("fortalezas", []):
+                st.markdown(f"- {f}")
+        with c2:
+            st.markdown("**Debilidades**")
+            for d in result.get("debilidades", []):
+                st.markdown(f"- {d}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
-# ==========================================================
-# ✅ BCP ENGINES
-# ==========================================================
-def generate_bcp_plan(client, data):
-    prompt = f"""
-Eres Ellit Cognitive Core — experto ISO 22301 & ENS BCP.
-{json.dumps(data, indent=2)}
-"""
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "BCP Expert Engine"},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=2000
-    )
-    return response.choices[0].message.content.strip()
+# ============================================================
+# PDF HOOK (READY)
+# ============================================================
 
-def analyze_bcp_context(client, contexto):
-    prompt = f"""
-Eres Ellit Cognitive Core — Crisis Analyst.
-\"\"\"{contexto}\"\"\"
-"""
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "BCP Crisis Analyst"},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=1200
-    )
-    return response.choices[0].message.content.strip()
-
-def analyze_bcp_scenario(client, data):
-    prompt = f"""
-Eres Ellit Cognitive Core — Crisis Simulator.
-{json.dumps(data, indent=2)}
-"""
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "BCP Crisis Simulator"},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=1600
-    )
-    return response.choices[0].message.content.strip()
+def render_radar_pdf():
+    st.markdown("<div class='ellit-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='ellit-title'>Informe ejecutivo</div>", unsafe_allow_html=True)
+    st.button("Generar informe ejecutivo PDF")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
-# ==========================================================
-# ✅ MADUREZ SGSI
-# ==========================================================
-def compute_sgsi_maturity(client, evidencias, controles):
-    prompt = f"""
-Eres Auditor SGSI senior.
+# ============================================================
+# BACKWARD COMPATIBILITY (ROUTER SAFE)
+# ============================================================
 
-Devuelve SOLO JSON:
-{{
-  "nivel": "",
-  "madurez": 0,
-  "fortalezas": [],
-  "debilidades": [],
-  "plan_accion": []
-}}
+def render_radar_profile():
+    render_radar_cognitivo()
 
-Evidencias:
-{evidencias}
-
-Controles:
-{controles}
-"""
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "SGSI Auditor"},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=1200
-    )
-    return extract_json(response.choices[0].message.content)
-
-
-# ==========================================================
-# ✅ CLASE PRINCIPAL (NO ROMPE NADA)
-# ==========================================================
-class EllitCognitiveCore:
-
-    def __init__(self, api_key):
-        self.client = OpenAI(api_key=api_key)
-
-    # Radar CCISO
-    def analyze_radar(self, profile):
-        return analyze_radar_ia(self.client, profile)
-
-    # SGSI
-    def compute_maturity(self, evidencias, controles):
-        return compute_sgsi_maturity(self.client, evidencias, controles)
-
-    # Predictive
-    def predict_standard(self, query):
-        return predictive_standard_engine(self.client, query)
-
-    def predict_prime(self, query, benchmark=True, alerts=True, horizon="90 días"):
-        return predictive_prime_engine(self.client, query, benchmark, alerts, horizon)
-
-    # BCP
-    def generate_bcp(self, data):
-        return generate_bcp_plan(self.client, data)
-
-    def analyze_bcp_context(self, contexto):
-        return analyze_bcp_context(self.client, contexto)
-
-    def analyze_bcp_scenario(self, data):
-        return analyze_bcp_scenario(self.client, data)
-
-# ==========================================================
-# 🔁 BACKWARD COMPATIBILITY — PREDICTIVE (NO TOCAR)
-# ==========================================================
-# Estos alias existen SOLO para no romper imports antiguos
-
-# STANDARD
-def generate_predictive_standard(client, query):
-    return predictive_standard_engine(client, query)
-
-predictive_standard = generate_predictive_standard
-
-
-# PRIME
-def generate_predictive_prime(client, query, benchmark=True, alerts=True, horizon="90 días"):
-    return predictive_prime_engine(client, query, benchmark, alerts, horizon)
-
-predictive_prime = generate_predictive_prime
-# ==========================================================
-# 🔁 ULTRA BACKWARD COMPATIBILITY LAYER (DO NOT REMOVE)
-# ==========================================================
-# Este bloque existe SOLO para que NUNCA se rompan imports
-
-# ---- Predictive (Standard) ----
-def generate_predictive_standard(client, query):
-    return predictive_standard_engine(client, query)
-
-def predictive_standard(client, query):
-    return predictive_standard_engine(client, query)
-
-# ---- Predictive (Prime) ----
-def generate_predictive_prime(client, query, benchmark=True, alerts=True, horizon="90 días"):
-    return predictive_prime_engine(client, query, benchmark, alerts, horizon)
-
-def predictive_prime(client, query, benchmark=True, alerts=True, horizon="90 días"):
-    return predictive_prime_engine(client, query, benchmark, alerts, horizon)
-
-# ---- Normativa Inteligente (LEGACY NAME) ----
-def generate_predictive_analysis(client, data):
-    # Re-usa el radar como motor genérico de análisis
-    return analyze_radar_ia(client, data)
-
-# ---- Safe exports (for star imports) ----
-__all__ = [
-    # Radar
-    "analyze_radar_ia",
-
-    # Predictive
-    "predictive_standard_engine",
-    "predictive_prime_engine",
-    "generate_predictive_standard",
-    "generate_predictive_prime",
-    "predictive_standard",
-    "predictive_prime",
-    "generate_predictive_analysis",
-
-    # SGSI
-    "compute_sgsi_maturity",
-
-    # BCP
-    "generate_bcp_plan",
-    "analyze_bcp_context",
-    "analyze_bcp_scenario",
-
-    # Utils
-    "extract_json",
-    "EllitCognitiveCore",
-]
-
-
+def render_radar_kpis():
+    render_radar_cognitivo()
