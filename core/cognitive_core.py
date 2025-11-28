@@ -251,3 +251,22 @@ class EllitCognitiveCore:
 
     def analyze_bcp_scenario(self, data):
         return analyze_bcp_scenario(self.client, data)
+
+# ==========================================================
+# 🔁 BACKWARD COMPATIBILITY — PREDICTIVE (NO TOCAR)
+# ==========================================================
+# Estos alias existen SOLO para no romper imports antiguos
+
+# STANDARD
+def generate_predictive_standard(client, query):
+    return predictive_standard_engine(client, query)
+
+predictive_standard = generate_predictive_standard
+
+
+# PRIME
+def generate_predictive_prime(client, query, benchmark=True, alerts=True, horizon="90 días"):
+    return predictive_prime_engine(client, query, benchmark, alerts, horizon)
+
+predictive_prime = generate_predictive_prime
+
