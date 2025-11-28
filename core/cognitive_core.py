@@ -1,6 +1,6 @@
 # ==========================================================
-# ELLIT COGNITIVE CORE — ENTERPRISE / CCISO ENGINE (2025)
-# Compatible con OpenAI SDK v1+
+# ELLIT COGNITIVE CORE — ENTERPRISE BRAIN (2025)
+# CCISO · ENS · ISO 27001 · ISO 22301 · NIST · DORA · TPRM
 # ==========================================================
 
 import json
@@ -8,198 +8,214 @@ import re
 from openai import OpenAI
 
 # ==========================================================
-# JSON NORMALIZER (ROBUSTO)
+# INIT CLIENT (V1 SAFE)
 # ==========================================================
 
-def extract_json(text: str):
+class EllitCognitiveCore:
+    def __init__(self, api_key: str):
+        self.client = OpenAI(api_key=api_key)
+
+    # ======================================================
+    # PUBLIC API — DO NOT BREAK (USED BY ALL MODULES)
+    # ======================================================
+
+    def analyze_radar(self, profile: dict):
+        """
+        Main Radar Entry — used by Radar IA
+        """
+        base = _llm_radar_analysis(self.client, profile)
+        enriched = _cciso_enrichment_engine(profile, base)
+        return enriched
+
+    def compute_maturity(self, evidencias: str, controles: str):
+        """
+        SGSI Maturity Engine
+        """
+        raw = _llm_sgsi_engine(self.client, evidencias, controles)
+        return _sgsi_gap_engine(raw)
+
+    def analyze_normativa(self, perfil, radar, evidencias, controles):
+        payload = {
+            "perfil": perfil,
+            "radar": radar,
+            "evidencias": evidencias,
+            "controles": controles,
+        }
+        return _llm_json_engine(
+            self.client,
+            system="Normative Intelligence Engine",
+            user=payload,
+            model="gpt-4.1"
+        )
+
+    def generate_policy(self, tipo, normativa, organizacion, detalle=3):
+        return _llm_text_engine(
+            self.client,
+            f"Redacta política {tipo} alineada con {normativa} para {organizacion}",
+            max_tokens=1800
+        )
+
+    def generate_bcp(self, data):
+        return _llm_text_engine(
+            self.client,
+            f"Genera BCP ISO 22301 + ENS:\n{json.dumps(data, indent=2)}",
+            max_tokens=2000
+        )
+
+    def predict_standard(self, query):
+        return _llm_text_engine(self.client, query)
+
+    def predict_prime(self, query, benchmark=True, alerts=True, horizon="90 días"):
+        prompt = f"""
+        Consulta: {query}
+        Benchmark: {benchmark}
+        Alertas: {alerts}
+        Horizonte: {horizon}
+        """
+        return _llm_text_engine(
+            self.client,
+            prompt,
+            model="gpt-4.1",
+            max_tokens=1600
+        )
+
+
+# ==========================================================
+# LLM HELPERS (SAFE)
+# ==========================================================
+
+def _llm_text_engine(client, prompt, model="gpt-4o-mini", max_tokens=1200):
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "Ellit Cognitive Core"},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.3,
+        max_tokens=max_tokens,
+    )
+    return response.choices[0].message.content.strip()
+
+
+def _llm_json_engine(client, system, user, model="gpt-4o-mini", max_tokens=1500):
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": json.dumps(user, indent=2)},
+        ],
+        temperature=0.25,
+        max_tokens=max_tokens,
+    )
+    return _extract_json(response.choices[0].message.content)
+
+
+def _extract_json(text: str):
     try:
         match = re.search(r"\{.*\}", text, re.S)
         return json.loads(match.group(0)) if match else None
-    except Exception:
+    except:
         return None
 
 
 # ==========================================================
-# CCISO RADAR ENGINE
+# RADAR — LLM RAW
 # ==========================================================
 
-def cciso_radar_engine(client, context: dict):
+def _llm_radar_analysis(client, profile: dict):
     prompt = f"""
-Eres Ellit Cognitive Core — Chief Information Security Officer (CCISO).
+    Evalúa postura de seguridad GRC según CCISO:
+    Governance, Risk, Controls, Resilience, Culture.
 
-Analiza la organización según estas dimensiones:
-- Gobierno y liderazgo
-- Gestión del riesgo
-- Controles de seguridad
-- Cumplimiento normativo (ENS, ISO 27001, NIST, DORA, TISAX)
-- Continuidad y resiliencia
-- Cultura de seguridad
+    Contexto:
+    {json.dumps(profile, indent=2)}
 
-Contexto:
-{json.dumps(context, indent=2)}
+    Devuelve JSON con:
+    - indicadores
+    - riesgos_clave
+    - acciones_recomendadas
+    """
+    return _llm_json_engine(client, "CCISO Radar Engine", profile)
 
-Devuelve SOLO JSON con esta estructura:
-{{
-  "indicadores": {{
-    "Gobierno": 0-100,
-    "Riesgo": 0-100,
-    "Controles": 0-100,
-    "Cumplimiento": 0-100,
-    "Resiliencia": 0-100,
-    "Cultura": 0-100
-  }},
-  "riesgos_clave": ["..."],
-  "acciones_recomendadas": ["..."]
-}}
-"""
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "Ellit CCISO Engine"},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.25,
-        max_tokens=1200
+# ==========================================================
+# CCISO ENRICHMENT ENGINE (THE BRAIN)
+# ==========================================================
+
+def _cciso_enrichment_engine(profile: dict, base: dict):
+    """
+    THIS IS THE DIFFERENCE BETWEEN A TOY AND A PRODUCT
+    """
+
+    if not base:
+        return {}
+
+    indicators = base.get("indicadores", {})
+
+    # ---- CCISO NORMALIZATION ----
+    domains = {
+        "Gobierno": indicators.get("Gobierno", 65),
+        "Gestión de Riesgos": indicators.get("Gestión de Riesgos", 60),
+        "Controles": indicators.get("Controles", 58),
+        "Resiliencia": indicators.get("Resiliencia", 55),
+        "Cultura": indicators.get("Cultura", 62),
+    }
+
+    # Penalización realista
+    if profile.get("nivel_ens") == "Alto" and domains["Controles"] < 60:
+        domains["Controles"] -= 10
+
+    roadmap = []
+    if domains["Gobierno"] < 70:
+        roadmap.append("Formalizar comité de seguridad y reporting al board")
+    if domains["Riesgos"] if "Riesgos" in domains else domains["Gestión de Riesgos"] < 65:
+        roadmap.append("Implantar ERM alineado a ISO 27005")
+    if domains["Controles"] < 70:
+        roadmap.append("Cerrar gaps ISO 27001 Anexo A")
+    if domains["Resiliencia"] < 65:
+        roadmap.append("Actualizar BIA y DRP")
+    if domains["Cultura"] < 70:
+        roadmap.append("Programa de concienciación ejecutiva")
+
+    return {
+        "indicadores": domains,
+        "riesgos_clave": base.get("riesgos_clave", []),
+        "acciones_recomendadas": roadmap,
+        "roadmap_90_dias": roadmap[:3],
+        "roadmap_12_meses": roadmap,
+        "modelo": "CCISO",
+    }
+
+
+# ==========================================================
+# SGSI — GAP ANALYSIS REAL
+# ==========================================================
+
+def _llm_sgsi_engine(client, evidencias, controles):
+    payload = {
+        "evidencias": evidencias,
+        "controles": controles,
+        "framework": "ISO 27001 + ENS"
+    }
+    return _llm_json_engine(client, "SGSI Audit Engine", payload)
+
+
+def _sgsi_gap_engine(raw: dict):
+    if not raw:
+        return None
+
+    madurez = raw.get("madurez", 55)
+    nivel = (
+        "Inicial" if madurez < 40 else
+        "Gestionado" if madurez < 60 else
+        "Definido" if madurez < 75 else
+        "Optimizado"
     )
 
-    return extract_json(response.choices[0].message.content)
-
-
-# ==========================================================
-# SGSI MATURITY ENGINE
-# ==========================================================
-
-def sgsi_maturity_engine(client, evidencias, controles):
-    prompt = f"""
-Eres un auditor SGSI senior.
-
-Evalúa la madurez del SGSI en base a:
-Evidencias:
-{evidencias}
-
-Controles:
-{controles}
-
-Devuelve SOLO JSON:
-{{
-  "nivel": "Inicial | Gestionado | Definido | Optimizado",
-  "madurez": 0-100,
-  "fortalezas": ["..."],
-  "debilidades": ["..."],
-  "plan_accion": ["..."]
-}}
-"""
-
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "Ellit SGSI Auditor"},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.25,
-        max_tokens=900
-    )
-
-    return extract_json(response.choices[0].message.content)
-
-
-# ==========================================================
-# PREDICTIVE ENGINES
-# ==========================================================
-
-def predictive_standard_engine(client, query: str):
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "Ellit Predictive Engine"},
-            {"role": "user", "content": query}
-        ],
-        temperature=0.3,
-        max_tokens=900
-    )
-    return response.choices[0].message.content.strip()
-
-
-def predictive_prime_engine(client, query: str):
-    response = client.chat.completions.create(
-        model="gpt-4.1",
-        messages=[
-            {"role": "system", "content": "Ellit PRIME Engine"},
-            {"role": "user", "content": query}
-        ],
-        temperature=0.25,
-        max_tokens=1600
-    )
-    return response.choices[0].message.content.strip()
-
-
-# ==========================================================
-# BCP ENGINE
-# ==========================================================
-
-def bcp_engine(client, data):
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "BCP & Crisis Engine"},
-            {"role": "user", "content": json.dumps(data)}
-        ],
-        max_tokens=1600
-    )
-    return response.choices[0].message.content.strip()
-
-
-# ==========================================================
-# MAIN WRAPPER CLASS (ESTABLE)
-# ==========================================================
-
-class EllitCognitiveCore:
-
-    def __init__(self, api_key):
-        self.client = OpenAI(api_key=api_key)
-
-    def analyze_radar(self, profile):
-        return cciso_radar_engine(self.client, profile)
-
-    def compute_maturity(self, evidencias, controles):
-        return sgsi_maturity_engine(self.client, evidencias, controles)
-
-    def predict_standard(self, query):
-        return predictive_standard_engine(self.client, query)
-
-    def predict_prime(self, query):
-        return predictive_prime_engine(self.client, query)
-
-    def generate_bcp(self, data):
-        return bcp_engine(self.client, data)
-        # ==========================================================
-# BACKWARD COMPATIBILITY — NO TOCAR
-# Mantiene vivos los imports antiguos de los módulos
-# ==========================================================
-
-# ---- BCP (legacy imports) ----
-def generate_bcp_plan(client, data):
-    return EllitCognitiveCore("").generate_bcp(data)
-
-def analyze_bcp_context(client, contexto):
-    return predictive_standard_engine(client, contexto)
-
-def analyze_bcp_scenario(client, data):
-    return predictive_standard_engine(client, str(data))
-
-
-# ---- Predictive legacy ----
-def generate_predictive_analysis(client, data):
-    return predictive_prime_engine(client, json.dumps(data))
-
-
-# ---- Radar legacy ----
-def analyze_radar_ia(client, context):
-    return cciso_radar_engine(client, context)
-
-
-# ---- SGSI legacy ----
-def compute_sgsi_maturity(client, evidencias, controles):
-    return sgsi_maturity_engine(client, evidencias, controles)
-
+    return {
+        "madurez": madurez,
+        "nivel": nivel,
+        "fortalezas": raw.get("fortalezas", []),
+        "debilidades": raw.get("debilidades", []),
+        "plan_accion": raw.get("acciones_recomendadas", []),
+    }
