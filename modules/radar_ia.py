@@ -162,3 +162,33 @@ def render_radar_madurez():
 # ------------------------------------------------------------
 def render_radar_kpis(): render_radar_cognitivo()
 def render_radar_profile(): render_radar_cognitivo()
+
+# ------------------------------------------------------------
+# PDF EXECUTIVE REPORT (PLACEHOLDER SEGURO)
+# ------------------------------------------------------------
+def render_radar_pdf():
+
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("## Informe Ejecutivo – Radar IA")
+
+    if not st.session_state.get("cciso_scores"):
+        st.info("Ejecuta primero el Radar Cognitivo para generar el informe.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    st.markdown("""
+    <p>
+    Este informe consolidará:
+    <ul>
+        <li>Postura CCISO</li>
+        <li>Riesgos prioritarios</li>
+        <li>Landscape Impacto vs Probabilidad</li>
+        <li>Madurez SGSI y Gap Analysis</li>
+    </ul>
+    </p>
+    """, unsafe_allow_html=True)
+
+    st.button("📄 Generar informe ejecutivo PDF", type="primary")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
