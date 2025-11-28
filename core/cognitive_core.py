@@ -20,6 +20,39 @@ def extract_json(text: str):
     except Exception:
         return None
 
+# ==========================================================
+# POLICIES ENGINE — ISO / ENS / NIST
+# ==========================================================
+def generate_policy_engine(client, tipo, normativa, organizacion, detalle=3):
+    """
+    Generador profesional de políticas de seguridad corporativas
+    """
+    prompt = f"""
+Eres Ellit Cognitive Core — Policy Generator.
+
+Genera una política corporativa de seguridad con nivel profesional.
+
+Tipo de política: {tipo}
+Normativa / Marco: {normativa}
+Organización: {organizacion}
+Nivel de detalle (1-5): {detalle}
+
+Requisitos:
+- Lenguaje corporativo
+- Estructura clara
+- Orientada a auditoría
+- Lista para revisión de CISO
+"""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Ellit Policy Engine"},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.25,
+        max_tokens=2000
+    )
+    return response.choices[0].message.content.strip()
 
 # ==========================================================
 # PREDICTIVE STANDARD ENGINE
