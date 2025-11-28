@@ -332,24 +332,75 @@ class EllitCognitiveCore:
     def predict_prime(self, query, benchmark=True, alerts=True, horizon="90 días"):
         return predictive_prime_engine(self.client, query, benchmark, alerts, horizon)
 
-    # =============================
-    # ANÁLISIS TEXTUAL EJECUTIVO
-    # (SGSI, Dashboard, Board-level)
-    # =============================
+# ==========================================================
+# CLASE PRINCIPAL — WRAPPER ÚNICO
+# ==========================================================
+class EllitCognitiveCore:
+
+    def __init__(self, api_key: str):
+        self.client = OpenAI(api_key=api_key)
+
+    # ----------------------------
+    # Radar IA
+    # ----------------------------
+    def analyze_radar(self, profile):
+        return analyze_radar_ia(self.client, profile)
+
+    # ----------------------------
+    # SGSI
+    # ----------------------------
+    def compute_maturity(self, evidencias, controles):
+        return compute_sgsi_maturity(self.client, evidencias, controles)
+
+    # ----------------------------
+    # ✅ POLICIES (ARREGLADO AQUÍ)
+    # ----------------------------
+    def generate_policy(self, tipo, normativa, organizacion, detalle=3):
+        return generate_policy_engine(
+            self.client,
+            tipo,
+            normativa,
+            organizacion,
+            detalle
+        )
+
+    # ----------------------------
+    # BCP
+    # ----------------------------
+    def generate_bcp(self, data):
+        return generate_bcp_plan(self.client, data)
+
+    def analyze_bcp_context(self, contexto):
+        return analyze_bcp_context(self.client, contexto)
+
+    def analyze_bcp_scenario(self, data):
+        return analyze_bcp_scenario(self.client, data)
+
+    # ----------------------------
+    # Predictive
+    # ----------------------------
+    def predict_standard(self, query):
+        return predictive_standard_engine(self.client, query)
+
+    def predict_prime(self, query, benchmark=True, alerts=True, horizon="90 días"):
+        return predictive_prime_engine(
+            self.client,
+            query,
+            benchmark,
+            alerts,
+            horizon
+        )
+
+    # ----------------------------
+    # Texto libre IA (Executive)
+    # ----------------------------
     def analyze_text(self, prompt: str):
-        """
-        Motor genérico de análisis ejecutivo.
-        Usado por:
-        - SGSI Monitoring
-        - Dashboards
-        - Resúmenes ejecutivos
-        """
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
-                    "content": "Ellit Cognitive Core — Executive SGSI & Board Analyst"
+                    "content": "Ellit Cognitive Core — Executive Analyst"
                 },
                 {
                     "role": "user",
@@ -360,4 +411,5 @@ class EllitCognitiveCore:
             max_tokens=800
         )
         return response.choices[0].message.content.strip()
+
 
