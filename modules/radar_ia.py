@@ -63,13 +63,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# CONTEXTO ORGANIZACIONAL
+# CONTEXTO ORGANIZACIONAL (FORM — UNA SOLA VEZ)
 # ============================================================
 
 def render_context():
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("## Contexto organizacional")
+    st.markdown("##  Contexto organizacional")
 
     with st.form("context_form"):
 
@@ -115,9 +115,7 @@ def render_context():
 def render_cciso_assessment():
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("## Evaluación CCISO")
-
-    st.markdown("Responde desde una **perspectiva ejecutiva real**.")
+    st.markdown("##  Evaluación CCISO")
 
     domains = {
         "Governance & Leadership": "Gobierno, ownership y board",
@@ -135,20 +133,17 @@ def render_cciso_assessment():
 
     if st.button("Calcular Radar CCISO"):
         st.session_state["cciso_scores"] = scores
-
-        # === RISK LANDSCAPE DERIVADO ===
         st.session_state["risk_landscape"] = [
             {"risk":"Ransomware", "impact":85, "prob":70},
             {"risk":"Third-party breach", "impact":75, "prob":65},
             {"risk":"Regulatory sanctions", "impact":80, "prob":55},
         ]
-
         st.success("Radar CCISO generado.")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# RADAR + GRÁFICOS
+# RADAR + KPIS + HEATMAP
 # ============================================================
 
 def render_radar_dashboard():
@@ -158,9 +153,8 @@ def render_radar_dashboard():
         return
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("## Postura global de Seguridad (CCISO)")
+    st.markdown("##  Postura global de Seguridad (CCISO)")
 
-    # KPIs
     cols = st.columns(len(scores))
     for i, (k, v) in enumerate(scores.items()):
         with cols[i]:
@@ -169,7 +163,6 @@ def render_radar_dashboard():
                 unsafe_allow_html=True
             )
 
-    # Radar
     fig = go.Figure()
     fig.add_trace(go.Scatterpolar(
         r=list(scores.values()) + [list(scores.values())[0]],
@@ -182,15 +175,12 @@ def render_radar_dashboard():
         showlegend=False,
         height=420
     )
-
     st.plotly_chart(fig, use_container_width=True)
     st.download_button("Descargar Radar (PNG)", fig.to_image("png"), "radar_cciso.png")
-
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # Heatmap Riesgo
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("## Landscape de Riesgo (Impacto vs Probabilidad)")
+    st.markdown("##  Landscape de Riesgo")
 
     risks = st.session_state["risk_landscape"]
     fig2 = go.Figure()
@@ -208,17 +198,16 @@ def render_radar_dashboard():
         height=420
     )
     st.plotly_chart(fig2, use_container_width=True)
-
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# SGSI – GAP ANALYSIS
+# SGSI – MADUREZ
 # ============================================================
 
 def render_sgsi():
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("## Madurez del SGSI")
+    st.markdown("##  Madurez del SGSI")
 
     questions = [
         "Políticas formales definidas",
@@ -240,22 +229,25 @@ def render_sgsi():
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# ROUTER SAFE
+# RADAR IA — DASHBOARD ÚNICO (LO QUE LLAMA app.py)
 # ============================================================
 
-def render_radar_profile():
-    render_context()
-
 def render_radar_kpis():
-    render_radar_cognitivo()
-
-def render_radar_cognitivo():
-    render_context()
     render_cciso_assessment()
     render_radar_dashboard()
 
+def render_radar_profile():
+    with st.expander("🏢 Perfil de la organización", expanded=False):
+        render_context()
+
+def render_radar_cognitivo():
+    pass  # ya integrado en render_radar_kpis()
+
 def render_radar_madurez():
-    render_sgsi()
+    with st.expander("🛡️ Madurez SGSI", expanded=False):
+        render_sgsi()
 
 def render_radar_pdf():
-    st.info("Informe ejecutivo PDF próximamente")
+    with st.expander("📄 Informe ejecutivo PDF", expanded=False):
+        st.info("Informe ejecutivo PDF próximamente")
+
