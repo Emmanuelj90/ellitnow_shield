@@ -598,23 +598,19 @@ menu = st.session_state.get("menu")
 submenu = st.session_state.get("submenu")
 
 # ------------------------------------------------------------
-# RADAR IA
+# RADAR IA (DASHBOARD ÚNICO)
 # ------------------------------------------------------------
 if menu == "radar":
 
     require_enterprise()
 
     with content:
-        if submenu == "kpis":
-            render_radar_kpis()
-        elif submenu == "profile":
-            render_radar_profile()
-        elif submenu == "cognitive":
-            render_radar_cognitivo()
-        elif submenu == "maturity":
-            render_radar_madurez()
-        elif submenu == "pdf":
-            render_radar_pdf()
+        render_radar_kpis()
+        render_radar_profile()
+        render_radar_cognitivo()
+        render_radar_madurez()
+        render_radar_pdf()
+
 
 # ------------------------------------------------------------
 # SGSI
