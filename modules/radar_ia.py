@@ -307,18 +307,29 @@ def render_sgsi():
 
 def render_pdf_section():
 
-    with st.expander("📄 Informe ejecutivo corporativo", expanded=False):
+    with st.expander(" Informe ejecutivo corporativo", expanded=False):
 
         st.markdown("<div class='card'>", unsafe_allow_html=True)
 
         st.markdown(
-            "El informe se genera con identidad corporativa del cliente "
-            "y *powered by Ellit Cognitive Core*."
+            "El informe se genera con identidad corporativa del cliente y "
+            "*powered by Ellit Cognitive Core*."
         )
 
-        st.info("Generación PDF corporate disponible en versión Enterprise Plus.")
+        if st.session_state.get("cciso_scores"):
+            pdf = generate_corporate_pdf()
+
+            st.download_button(
+                label=" Descargar informe PDF",
+                data=pdf,
+                file_name="ellit_informe_ejecutivo.pdf",
+                mime="application/pdf"
+            )
+        else:
+            st.info("Primero debes generar la evaluación CCISO.")
 
         st.markdown("</div>", unsafe_allow_html=True)
+
 
 # ============================================================
 # MAIN ENTRY — LO QUE LLAMA app.py
@@ -343,3 +354,74 @@ def render_radar_madurez():
 
 def render_radar_pdf():
     pass
+    
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import cm
+
+def generate_corporate_pdf():
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    context = st.session_state.get("radar_context", {})
+    scores = st.session_state.get("cciso_scores", {})
+    risks = st.session_state.get("risk_landscape", [])
+
+    # ==== HEADER ====
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(2*cm, height - 2*cm, "Informe Ejecutivo de Seguridad")
+
+    c.setFont("Helvetica", 10)
+    c.drawRightString(
+        width - 2*cm,
+        height - 2.2*cm,
+        "Powered by Ellit Cognitive Core"
+    )
+
+    # ==== META ====
+    y = height - 3.5*cm
+    c.setFont("Helvetica", 11)
+    c.drawString(2*cm, y, f"Organización: {context.get('org','N/D')}")
+    y -= 0.6*cm
+    c.drawString(2*cm, y, f"Fecha: {datetime.utcnow().strftime('%d/%m/%Y')}")
+
+    # ==== CCISO SCORES ====
+    y -= 1.2*cm
+    c.setFont("Helvetica-Bold", 13)
+    c.drawString(2*cm, y, "Postura CCISO (Ellit Cognitive Score)")
+
+    c.setFont("Helvetica", 11)
+    y -= 0.8*cm
+    for k, v in scores.items():
+        c.drawString(2.5*cm, y, f"{k}: {v}%")
+        y -= 0.5*cm
+
+    # ==== RISK LANDSCAPE ====
+    if risks:
+        y -= 0.6*cm
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(2*cm, y, "Principales riesgos identificados")
+        y -= 0.8*cm
+        c.setFont("Helvetica", 11)
+        for r in risks:
+            c.drawString(
+                2.5*cm,
+                y,
+                f"- {r['risk']} (Impacto {r['impact']} / Prob {r['prob']})"
+            )
+            y -= 0.5*cm
+
+    # ==== FOOTER ====
+    c.setFont("Helvetica-Oblique", 8)
+    c.drawCentredString(
+        width / 2,
+        1.5*cm,
+        "Informe generado automáticamente · Uso interno del cliente"
+    )
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
