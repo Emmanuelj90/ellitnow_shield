@@ -429,13 +429,12 @@ if not st.session_state.get("auth_status"):
     login_screen()
     st.stop()
 # ============================================================
-# PARTE 2 / 3 — SIDEBAR (RESET FUNCIONAL ELLIT)
+# PARTE 2 / 3 — SIDEBAR (Radar IA SIN SUBMENÚS)
 # ============================================================
 
 st.markdown("""
 <style>
 
-/* Sidebar básico: solo colores, sin hacks */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg,#0F2F57 0%,#0B2545 100%);
     border-right: 1px solid #163A63;
@@ -453,58 +452,55 @@ section[data-testid="stSidebar"] {
     width:120px;
 }
 
-/* Que los botones del sidebar ocupen todo el ancho */
 [data-testid="stSidebar"] button[kind="secondary"] {
-    width: 100% !important;
-    text-align: left;
+    width:100% !important;
+    text-align:left;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# ESTRUCTURA ORIGINAL DEL MENÚ
-# (mantenemos exactamente los IDs para no romper app.py)
+# MENU STRUCTURE
+# Radar IA = módulo único (SIN SUBMENÚ)
 # ============================================================
 
 MENU_STRUCTURE = {
-    "radar": ("Radar IA", {
-        "kpis": "Cuadro de mando (KPIs)",
-        "profile": "Perfil de la organización",
-        "cognitive": "Radar Cognitivo",
-        "maturity": "Madurez SGSI",
-        "pdf": "Informe PDF"
-    }),
+    "radar": ("Radar IA", None),
+
     "sgsi": ("Monitorización SGSI", {
         "dashboard": "Panel general",
         "history": "Registro histórico",
         "evidence": "Evidencias y mantenimiento"
     }),
+
     "bcp": ("Continuidad de Negocio (BCP)", {
         "generator": "Generador BCP",
         "analysis": "Análisis cognitivo",
         "simulator": "Simulador de crisis",
         "alert_tree": "ELLIT ALERT TREE – Crisis Communication Demo"
     }),
+
     "policies": ("Políticas IA", {
         "generator": "Generador multinormativo"
     }),
+
     "predictive": ("Predictive Intelligence", {
         "standard": "Predicción estándar",
         "prime": "Predicción Prime"
     }),
+
     "licenses": ("Licencias", {
         "management": "Gestión de licencias"
     }),
 }
 
 # ============================================================
-# RENDER SIDEBAR (SOLO STREAMLIT, SIN HTML CLICABLE)
+# RENDER SIDEBAR
 # ============================================================
 
 with st.sidebar:
 
-    # idioma, como ya tenías
     set_language()
 
     st.markdown("""
@@ -513,15 +509,22 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # valores por defecto seguros
     if "menu" not in st.session_state:
         st.session_state.menu = "radar"
     if "submenu" not in st.session_state:
-        st.session_state.submenu = "kpis"
+        st.session_state.submenu = None
 
-    # MENÚ PRINCIPAL
     for menu_id, (label, subs) in MENU_STRUCTURE.items():
 
+        # Radar IA → simple
+        if subs is None:
+            if st.button(label, key=f"menu_{menu_id}", use_container_width=True):
+                st.session_state.menu = menu_id
+                st.session_state.submenu = None
+                st.rerun()
+            continue
+
+        # Menús con submenús
         active_menu = (menu_id == st.session_state.menu)
         chevron = "▼" if active_menu else "▶"
 
@@ -530,14 +533,10 @@ with st.sidebar:
             key=f"menu_{menu_id}",
             use_container_width=True
         ):
-            # al hacer click en un menú principal:
-            # - cambiamos menu
-            # - fijamos el primer submenú por defecto
             st.session_state.menu = menu_id
             st.session_state.submenu = list(subs.keys())[0]
             st.rerun()
 
-        # SUBMENÚS SOLO SI ESTE MENÚ ESTÁ ACTIVO
         if active_menu:
             for sub_id, sub_label in subs.items():
                 if st.button(
@@ -547,6 +546,7 @@ with st.sidebar:
                 ):
                     st.session_state.submenu = sub_id
                     st.rerun()
+
 
 
 
