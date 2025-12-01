@@ -429,113 +429,84 @@ if not st.session_state.get("auth_status"):
     login_screen()
     st.stop()
 # ============================================================
-# PARTE 2 / 3 — SIDEBAR ACCORDION ENTERPRISE (ELLIT · FIX REAL)
+# PARTE 2 / 3 — SIDEBAR ACCORDION ENTERPRISE (ELLIT · FINAL)
 # ============================================================
 
 st.markdown("""
 <style>
 
-/* ================= SIDEBAR BASE ================= */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg,#0F2F57 0%,#0B2545 100%);
     border-right: 1px solid #163A63;
 }
 
-/* ================= LOGO ================= */
 .ellit-logo {
     display:flex;
     justify-content:center;
     align-items:center;
     padding:20px 0;
     border-bottom:1px solid #163A63;
-    margin-bottom:14px;
+    margin-bottom:16px;
 }
 .ellit-logo img {
     width:120px;
 }
 
-/* ================= MENÚ PRINCIPAL ================= */
-button[kind="secondary"].ellit-main {
-    width:100% !important;
+.ellit-main {
     height:48px;
     margin:6px 10px;
-    padding-left:18px;
-
+    padding:0 18px;
     border-radius:12px;
     border-left:4px solid transparent;
-    border-top:none;
-    border-right:none;
-    border-bottom:none;
-
     background:#123A6A;
     color:#E5E7EB;
-
     font-size:14px;
     font-weight:600;
-    text-align:left;
-
     display:flex;
     align-items:center;
     justify-content:space-between;
-
-    transition:all .15s ease;
+    cursor:pointer;
 }
 
-button[kind="secondary"].ellit-main:hover {
+.ellit-main:hover {
     background:#153A63;
     color:#FFFFFF;
 }
 
-/* ===== ACTIVO NIVEL 1 (BORDE MAGENTA) ===== */
-button[kind="secondary"].ellit-main-active {
-    background:#123A6A !important;
+.ellit-main.active {
     border-left:4px solid #9D2B6B;
-    color:#FFFFFF !important;
+    color:#FFFFFF;
 }
 
-/* ================= SUBMENÚ CONTENEDOR ================= */
 .ellit-submenu-group {
-    margin:6px 10px 12px 22px;
-    padding-left:12px;
+    margin:6px 12px 12px 28px;
+    padding:6px 8px 6px 12px;
     border-left:2px solid rgba(157,43,107,0.6);
     background:#0B2545;
     border-radius:8px;
 }
 
-/* ================= SUBMENÚ BOTÓN ================= */
-button[kind="secondary"].ellit-sub {
-    width:100% !important;
-    height:34px;
-    margin:4px 0;
-    padding-left:6px;
-
-    border:none;
-    background:transparent;
-
+.ellit-sub {
+    height:32px;
+    display:flex;
+    align-items:center;
     color:#C7D2E0;
     font-size:13px;
     font-weight:500;
-    text-align:left;
-
-    transition:all .15s ease;
+    cursor:pointer;
 }
 
-button[kind="secondary"].ellit-sub:hover {
+.ellit-sub:hover {
     color:#FFFFFF;
 }
 
-/* ===== ACTIVO SUBMENÚ ===== */
-button[kind="secondary"].ellit-sub-active {
-    color:#9D2B6B !important;
-    font-weight:700 !important;
+.ellit-sub.active {
+    color:#9D2B6B;
+    font-weight:700;
 }
 
 </style>
 """, unsafe_allow_html=True)
-
-# ============================================================
-# MENU STRUCTURE
-# ============================================================
 
 MENU_STRUCTURE = {
     "radar": ("Radar IA", {
@@ -566,11 +537,12 @@ MENU_STRUCTURE = {
     "licenses": ("Licencias", {
         "management": "Gestión de licencias"
     }),
+    "ellitshield": ("Ellit Shield", {
+        "risk": "Análisis de Riesgos",
+        "controls": "Controles Activos",
+        "reports": "Informes"
+    })
 }
-
-# ============================================================
-# RENDER SIDEBAR
-# ============================================================
 
 with st.sidebar:
 
@@ -582,43 +554,41 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    if not st.session_state.menu:
+    if "menu" not in st.session_state:
         st.session_state.menu = "radar"
-    if not st.session_state.submenu:
+    if "submenu" not in st.session_state:
         st.session_state.submenu = "kpis"
 
     for menu_id, (label, subs) in MENU_STRUCTURE.items():
+        active = (st.session_state.menu == menu_id)
 
-        active_menu = (menu_id == st.session_state.menu)
-        chevron = "▼" if active_menu else "▶"
-        main_class = "ellit-main-active" if active_menu else "ellit-main"
+        st.markdown(
+            f"<div class='ellit-main {'active' if active else ''}'>{label}</div>",
+            unsafe_allow_html=True
+        )
 
-        if st.button(
-            f"{label} {chevron}",
-            key=f"menu_{menu_id}",
-            use_container_width=True
-        ):
+        if st.button("", key=f"menu_{menu_id}", help=label):
             st.session_state.menu = menu_id
             st.session_state.submenu = list(subs.keys())[0]
             st.rerun()
 
-        # SUBMENÚS
-        if active_menu:
+        if active:
             st.markdown("<div class='ellit-submenu-group'>", unsafe_allow_html=True)
 
             for sub_id, sub_label in subs.items():
-                sub_active = (sub_id == st.session_state.submenu)
-                sub_class = "ellit-sub-active" if sub_active else "ellit-sub"
+                sub_active = (st.session_state.submenu == sub_id)
 
-                if st.button(
-                    sub_label,
-                    key=f"submenu_{menu_id}_{sub_id}",
-                    use_container_width=True
-                ):
+                st.markdown(
+                    f"<div class='ellit-sub {'active' if sub_active else ''}'>{sub_label}</div>",
+                    unsafe_allow_html=True
+                )
+
+                if st.button("", key=f"sub_{menu_id}_{sub_id}", help=sub_label):
                     st.session_state.submenu = sub_id
                     st.rerun()
 
             st.markdown("</div>", unsafe_allow_html=True)
+
 
 # ============================================================
 # PARTE 3 / 3 — ROUTER FINAL & CONTENIDO
