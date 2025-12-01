@@ -429,78 +429,74 @@ if not st.session_state.get("auth_status"):
     login_screen()
     st.stop()
 # ============================================================
-# PARTE 2 / 3 — SIDEBAR ACCORDION ENTERPRISE (ELLIT · FINAL)
+# PARTE 2 / 3 — SIDEBAR ENTERPRISE (ELLIT · FIX STREAMLIT)
 # ============================================================
 
 st.markdown("""
 <style>
 
+/* ===== SIDEBAR BASE ===== */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg,#0F2F57 0%,#0B2545 100%);
-    border-right: 1px solid #163A63;
+    border-right:1px solid #163A63;
 }
 
+/* ===== LOGO ===== */
 .ellit-logo {
     display:flex;
     justify-content:center;
-    align-items:center;
-    padding:20px 0;
+    padding:20px 0 16px 0;
     border-bottom:1px solid #163A63;
-    margin-bottom:16px;
 }
 .ellit-logo img {
     width:120px;
 }
 
-.ellit-main {
+/* ===== MAIN BUTTON ===== */
+button[kind="secondary"].ellit-main {
+    width:100%;
     height:48px;
-    margin:6px 10px;
-    padding:0 18px;
-    border-radius:12px;
+    margin:6px 0;
+    padding-left:18px;
+    border:none;
     border-left:4px solid transparent;
+    border-radius:12px;
     background:#123A6A;
     color:#E5E7EB;
     font-size:14px;
     font-weight:600;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    cursor:pointer;
+    text-align:left;
 }
 
-.ellit-main:hover {
+button[kind="secondary"].ellit-main:hover {
     background:#153A63;
-    color:#FFFFFF;
+    color:white;
 }
 
-.ellit-main.active {
+button[kind="secondary"].ellit-main-active {
     border-left:4px solid #9D2B6B;
-    color:#FFFFFF;
+    background:#123A6A;
+    color:white;
 }
 
-.ellit-submenu-group {
-    margin:6px 12px 12px 28px;
-    padding:6px 8px 6px 12px;
-    border-left:2px solid rgba(157,43,107,0.6);
-    background:#0B2545;
-    border-radius:8px;
-}
-
-.ellit-sub {
-    height:32px;
-    display:flex;
-    align-items:center;
+/* ===== SUB BUTTON ===== */
+button[kind="secondary"].ellit-sub {
+    width:100%;
+    height:34px;
+    margin:4px 0;
+    padding-left:32px;
+    border:none;
+    background:transparent;
     color:#C7D2E0;
     font-size:13px;
-    font-weight:500;
-    cursor:pointer;
+    text-align:left;
 }
 
-.ellit-sub:hover {
-    color:#FFFFFF;
+button[kind="secondary"].ellit-sub:hover {
+    color:white;
 }
 
-.ellit-sub.active {
+button[kind="secondary"].ellit-sub-active {
     color:#9D2B6B;
     font-weight:700;
 }
@@ -516,30 +512,15 @@ MENU_STRUCTURE = {
         "maturity": "Madurez SGSI",
         "pdf": "Informe PDF"
     }),
-    "sgsi": ("Monitorización SGSI", {
-        "dashboard": "Panel general",
-        "history": "Registro histórico",
-        "evidence": "Evidencias y mantenimiento"
-    }),
     "bcp": ("Continuidad de Negocio (BCP)", {
         "generator": "Generador BCP",
         "analysis": "Análisis cognitivo",
         "simulator": "Simulador de crisis",
-        "alert_tree": "ELLIT ALERT TREE – Crisis Communication Demo"
-    }),
-    "policies": ("Políticas IA", {
-        "generator": "Generador multinormativo"
-    }),
-    "predictive": ("Predictive Intelligence", {
-        "standard": "Predicción estándar",
-        "prime": "Predicción Prime"
-    }),
-    "licenses": ("Licencias", {
-        "management": "Gestión de licencias"
+        "alert_tree": "ELLIT Alert Tree"
     }),
     "ellitshield": ("Ellit Shield", {
         "risk": "Análisis de Riesgos",
-        "controls": "Controles Activos",
+        "controls": "Controles",
         "reports": "Informes"
     })
 }
@@ -560,34 +541,34 @@ with st.sidebar:
         st.session_state.submenu = "kpis"
 
     for menu_id, (label, subs) in MENU_STRUCTURE.items():
-        active = (st.session_state.menu == menu_id)
 
-        st.markdown(
-            f"<div class='ellit-main {'active' if active else ''}'>{label}</div>",
-            unsafe_allow_html=True
-        )
+        main_active = menu_id == st.session_state.menu
+        main_class = "ellit-main-active" if main_active else "ellit-main"
 
-        if st.button("", key=f"menu_{menu_id}", help=label):
+        if st.button(label, key=f"menu_{menu_id}", use_container_width=True):
             st.session_state.menu = menu_id
             st.session_state.submenu = list(subs.keys())[0]
             st.rerun()
 
-        if active:
-            st.markdown("<div class='ellit-submenu-group'>", unsafe_allow_html=True)
+        st.markdown(
+            f"<script>document.querySelector('[data-testid=\"stSidebar\"]').querySelectorAll('button')[ -1 ].classList.add('{main_class}')</script>",
+            unsafe_allow_html=True
+        )
 
+        if main_active:
             for sub_id, sub_label in subs.items():
-                sub_active = (st.session_state.submenu == sub_id)
 
-                st.markdown(
-                    f"<div class='ellit-sub {'active' if sub_active else ''}'>{sub_label}</div>",
-                    unsafe_allow_html=True
-                )
+                sub_active = sub_id == st.session_state.submenu
+                sub_class = "ellit-sub-active" if sub_active else "ellit-sub"
 
-                if st.button("", key=f"sub_{menu_id}_{sub_id}", help=sub_label):
+                if st.button(sub_label, key=f"sub_{menu_id}_{sub_id}", use_container_width=True):
                     st.session_state.submenu = sub_id
                     st.rerun()
 
-            st.markdown("</div>", unsafe_allow_html=True)
+                st.markdown(
+                    f"<script>document.querySelector('[data-testid=\"stSidebar\"]').querySelectorAll('button')[ -1 ].classList.add('{sub_class}')</script>",
+                    unsafe_allow_html=True
+                )
 
 
 # ============================================================
