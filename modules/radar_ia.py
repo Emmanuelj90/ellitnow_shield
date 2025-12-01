@@ -1,10 +1,11 @@
 # ============================================================
-# RADAR IA — ELLIT COGNITIVE CORE (CCISO EXECUTIVE RADAR)
+# RADAR IA — ELLIT COGNITIVE CORE (EXECUTIVE CCISO RADAR)
 # Governance · Risk · Controls · Resilience · Culture
 # ============================================================
 
 import streamlit as st
 import plotly.graph_objects as go
+from datetime import datetime
 
 # ============================================================
 # SESSION STATE SAFE INIT
@@ -13,9 +14,11 @@ import plotly.graph_objects as go
 def init_state():
     defaults = {
         "radar_context": {},
+        "cciso_raw_inputs": None,
         "cciso_scores": None,
         "risk_landscape": None,
         "sgsi_score": None,
+        "branding": {}
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -53,50 +56,93 @@ st.markdown("""
     font-size:13px;
     color:#6B7280;
 }
-.info {
-    background:#FDF2F8;
-    border-left:4px solid #7C1F5E;
-    padding:16px;
-    border-radius:8px;
+.small {
+    font-size:12px;
+    color:#6B7280;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# CONTEXTO ORGANIZACIONAL (FORM — UNA SOLA VEZ)
+# COGNITIVE ENGINE — PESOS ELLIT
+# ============================================================
+
+SECTOR_WEIGHT = {
+    "Banca": 1.25,
+    "Seguros": 1.20,
+    "Salud": 1.30,
+    "Tecnología": 1.10,
+    "Industria": 1.15,
+    "Energía": 1.25,
+    "Retail": 1.05,
+    "Sector Público": 1.30,
+    "Otro": 1.10
+}
+
+SIZE_WEIGHT = {
+    "PYME": 1.10,
+    "Mid Market": 1.15,
+    "Enterprise": 1.20,
+    "Multinacional": 1.30
+}
+
+REGULATION_WEIGHT = {
+    "ENS": 1.10,
+    "ISO 27001": 1.05,
+    "NIS2": 1.15,
+    "DORA": 1.20,
+    "PCI DSS": 1.10,
+    "HIPAA": 1.15,
+    "TISAX": 1.10
+}
+
+def cognitive_adjust(raw_score: int, context: dict) -> int:
+    score = raw_score
+
+    score *= SECTOR_WEIGHT.get(context.get("sector"), 1.0)
+    score *= SIZE_WEIGHT.get(context.get("size"), 1.0)
+
+    for r in context.get("regulations", []):
+        score *= REGULATION_WEIGHT.get(r, 1.0)
+
+    if context.get("risks"):
+        score *= 0.90  # penalización por riesgo explícito
+
+    return max(0, min(int(score), 100))
+
+# ============================================================
+# CONTEXTO ORGANIZACIONAL (FORM ÚNICO)
 # ============================================================
 
 def render_context():
 
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("##  Contexto organizacional")
+    with st.expander(" Contexto organizacional", expanded=False):
 
-    with st.form("context_form"):
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
 
-        org = st.text_input("Nombre de la organización")
-        sector = st.selectbox(
-            "Sector principal",
-            ["Banca","Seguros","Salud","Tecnología","Industria","Energía","Retail","Sector Público","Otro"]
-        )
-        size = st.selectbox(
-            "Tamaño",
-            ["PYME","Mid Market","Enterprise","Multinacional"]
-        )
-        regulations = st.multiselect(
-            "Marco regulatorio aplicable",
-            ["ENS","ISO 27001","NIS2","DORA","PCI DSS","HIPAA","TISAX"]
-        )
-        risks = st.text_area(
-            "Riesgos percibidos por el negocio",
-            placeholder="Ej: ransomware, dependencia de terceros, fuga de datos, impacto reputacional…"
-        )
+        with st.form("context_form"):
 
-        submit = st.form_submit_button("Guardar contexto")
+            org = st.text_input("Nombre de la organización")
+            sector = st.selectbox(
+                "Sector principal",
+                list(SECTOR_WEIGHT.keys())
+            )
+            size = st.selectbox(
+                "Tamaño de la organización",
+                list(SIZE_WEIGHT.keys())
+            )
+            regulations = st.multiselect(
+                "Marco regulatorio aplicable",
+                list(REGULATION_WEIGHT.keys())
+            )
+            risks = st.text_area(
+                "Riesgos críticos del negocio",
+                placeholder="Ej: ransomware, terceros, parada operativa…"
+            )
 
-        if submit:
-            if not org:
-                st.error("El nombre de la organización es obligatorio.")
-            else:
+            submit = st.form_submit_button("Guardar contexto")
+
+            if submit:
                 st.session_state["radar_context"] = {
                     "org": org,
                     "sector": sector,
@@ -104,46 +150,60 @@ def render_context():
                     "regulations": regulations,
                     "risks": risks
                 }
-                st.success("Contexto guardado.")
+                st.success("Contexto organizacional guardado.")
 
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# CCISO ASSESSMENT (EXECUTIVE)
+# CCISO INPUT (EJECUTIVO)
 # ============================================================
 
-def render_cciso_assessment():
+def render_cciso_inputs():
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("##  Evaluación CCISO")
+    st.markdown("##  Input ejecutivo CCISO")
 
     domains = {
         "Governance & Leadership": "Gobierno, ownership y board",
-        "Risk Management": "Gestión de riesgo de negocio",
+        "Risk Management": "Gestión del riesgo de negocio",
         "Controls & Architecture": "Controles y arquitectura",
         "Incident Readiness": "Preparación ante incidentes",
         "Resilience & Continuity": "Continuidad y resiliencia"
     }
 
-    scores = {}
-
+    inputs = {}
     for d, desc in domains.items():
         st.subheader(d)
-        scores[d] = st.slider(desc, 0, 100, 50)
+        inputs[d] = st.slider(desc, 0, 100, 50)
 
-    if st.button("Calcular Radar CCISO"):
-        st.session_state["cciso_scores"] = scores
+    if st.button("Evaluar postura real"):
+        st.session_state["cciso_raw_inputs"] = inputs
+
+        context = st.session_state.get("radar_context", {})
+        adjusted = {
+            d: cognitive_adjust(v, context)
+            for d, v in inputs.items()
+        }
+
+        st.session_state["cciso_scores"] = adjusted
+
         st.session_state["risk_landscape"] = [
-            {"risk":"Ransomware", "impact":85, "prob":70},
-            {"risk":"Third-party breach", "impact":75, "prob":65},
-            {"risk":"Regulatory sanctions", "impact":80, "prob":55},
+            {"risk": "Ransomware", "impact": 85, "prob": 70},
+            {"risk": "Third-party failure", "impact": 75, "prob": 65},
+            {"risk": "Regulatory sanctions", "impact": 80, "prob": 55},
         ]
-        st.success("Radar CCISO generado.")
+
+        st.success("Evaluación cognitiva Ellit generada.")
+
+    st.caption(
+        "Las puntuaciones se ajustan automáticamente según "
+        "sector, tamaño, regulación y riesgos declarados."
+    )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# RADAR + KPIS + HEATMAP
+# DASHBOARD CCISO
 # ============================================================
 
 def render_radar_dashboard():
@@ -153,7 +213,7 @@ def render_radar_dashboard():
         return
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("##  Postura global de Seguridad (CCISO)")
+    st.markdown("##  Postura global de Seguridad (Ellit Cognitive Score)")
 
     cols = st.columns(len(scores))
     for i, (k, v) in enumerate(scores.items()):
@@ -175,79 +235,111 @@ def render_radar_dashboard():
         showlegend=False,
         height=420
     )
+
     st.plotly_chart(fig, use_container_width=True)
-    st.download_button("Descargar Radar (PNG)", fig.to_image("png"), "radar_cciso.png")
+
     st.markdown("</div>", unsafe_allow_html=True)
+
+# ============================================================
+# RISK LANDSCAPE
+# ============================================================
+
+def render_risk_landscape():
+
+    risks = st.session_state.get("risk_landscape")
+    if not risks:
+        return
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
     st.markdown("##  Landscape de Riesgo")
 
-    risks = st.session_state["risk_landscape"]
-    fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
         x=[r["prob"] for r in risks],
         y=[r["impact"] for r in risks],
         text=[r["risk"] for r in risks],
         mode="markers+text",
-        marker=dict(size=18, color="#7C1F5E"),
+        marker=dict(size=17, color="#7C1F5E"),
         textposition="top center"
     ))
-    fig2.update_layout(
+
+    fig.update_layout(
         xaxis_title="Probabilidad",
         yaxis_title="Impacto",
         height=420
     )
-    st.plotly_chart(fig2, use_container_width=True)
+
+    st.plotly_chart(fig, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# SGSI – MADUREZ
+# SGSI — MADUREZ
 # ============================================================
 
 def render_sgsi():
 
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("##  Madurez del SGSI")
+    with st.expander("🛡️ Madurez SGSI", expanded=False):
 
-    questions = [
-        "Políticas formales definidas",
-        "Gestión de riesgos periódica",
-        "Controles efectivos",
-        "Formación y concienciación",
-        "Mejora continua"
-    ]
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
 
-    values = [st.slider(q, 0, 5, 2) for q in questions]
+        questions = [
+            "Políticas formales definidas",
+            "Gestión de riesgos periódica",
+            "Controles efectivos",
+            "Formación y concienciación",
+            "Mejora continua"
+        ]
 
-    if st.button("Evaluar SGSI"):
-        st.session_state["sgsi_score"] = int(sum(values)/(len(values)*5)*100)
+        values = [st.slider(q, 0, 5, 2) for q in questions]
 
-    score = st.session_state.get("sgsi_score")
-    if score is not None:
-        st.metric("Madurez SGSI", f"{score}%")
+        if st.button("Evaluar SGSI"):
+            st.session_state["sgsi_score"] = int(sum(values)/(len(values)*5)*100)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+        score = st.session_state.get("sgsi_score")
+        if score is not None:
+            st.metric("Madurez SGSI", f"{score}%")
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# RADAR IA — DASHBOARD ÚNICO (LO QUE LLAMA app.py)
+# PDF CORPORATE (WHITE-LABEL READY)
+# ============================================================
+
+def render_pdf_section():
+
+    with st.expander("📄 Informe ejecutivo corporativo", expanded=False):
+
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+
+        st.markdown(
+            "El informe se genera con identidad corporativa del cliente "
+            "y *powered by Ellit Cognitive Core*."
+        )
+
+        st.info("Generación PDF corporate disponible en versión Enterprise Plus.")
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# ============================================================
+# MAIN ENTRY — LO QUE LLAMA app.py
 # ============================================================
 
 def render_radar_kpis():
-    render_cciso_assessment()
+    render_context()
+    render_cciso_inputs()
     render_radar_dashboard()
+    render_risk_landscape()
+    render_sgsi()
+    render_pdf_section()
 
 def render_radar_profile():
-    with st.expander("🏢 Perfil de la organización", expanded=False):
-        render_context()
+    pass
 
 def render_radar_cognitivo():
-    pass  # ya integrado en render_radar_kpis()
+    pass
 
 def render_radar_madurez():
-    with st.expander("🛡️ Madurez SGSI", expanded=False):
-        render_sgsi()
+    pass
 
 def render_radar_pdf():
-    with st.expander("📄 Informe ejecutivo PDF", expanded=False):
-        st.info("Informe ejecutivo PDF próximamente")
-
+    pass
