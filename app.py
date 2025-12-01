@@ -429,80 +429,43 @@ if not st.session_state.get("auth_status"):
     login_screen()
     st.stop()
 # ============================================================
-# PARTE 2 / 3 — SIDEBAR ENTERPRISE (ELLIT · FIX STREAMLIT)
+# PARTE 2 / 3 — SIDEBAR (RESET FUNCIONAL ELLIT)
 # ============================================================
 
 st.markdown("""
 <style>
 
-/* ===== SIDEBAR BASE ===== */
+/* Sidebar básico: solo colores, sin hacks */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg,#0F2F57 0%,#0B2545 100%);
-    border-right:1px solid #163A63;
+    border-right: 1px solid #163A63;
 }
 
-/* ===== LOGO ===== */
 .ellit-logo {
     display:flex;
     justify-content:center;
-    padding:20px 0 16px 0;
+    align-items:center;
+    padding:20px 0;
     border-bottom:1px solid #163A63;
+    margin-bottom:14px;
 }
 .ellit-logo img {
     width:120px;
 }
 
-/* ===== MAIN BUTTON ===== */
-button[kind="secondary"].ellit-main {
-    width:100%;
-    height:48px;
-    margin:6px 0;
-    padding-left:18px;
-    border:none;
-    border-left:4px solid transparent;
-    border-radius:12px;
-    background:#123A6A;
-    color:#E5E7EB;
-    font-size:14px;
-    font-weight:600;
-    text-align:left;
-}
-
-button[kind="secondary"].ellit-main:hover {
-    background:#153A63;
-    color:white;
-}
-
-button[kind="secondary"].ellit-main-active {
-    border-left:4px solid #9D2B6B;
-    background:#123A6A;
-    color:white;
-}
-
-/* ===== SUB BUTTON ===== */
-button[kind="secondary"].ellit-sub {
-    width:100%;
-    height:34px;
-    margin:4px 0;
-    padding-left:32px;
-    border:none;
-    background:transparent;
-    color:#C7D2E0;
-    font-size:13px;
-    text-align:left;
-}
-
-button[kind="secondary"].ellit-sub:hover {
-    color:white;
-}
-
-button[kind="secondary"].ellit-sub-active {
-    color:#9D2B6B;
-    font-weight:700;
+/* Que los botones del sidebar ocupen todo el ancho */
+[data-testid="stSidebar"] button[kind="secondary"] {
+    width: 100% !important;
+    text-align: left;
 }
 
 </style>
 """, unsafe_allow_html=True)
+
+# ============================================================
+# ESTRUCTURA ORIGINAL DEL MENÚ
+# (mantenemos exactamente los IDs para no romper app.py)
+# ============================================================
 
 MENU_STRUCTURE = {
     "radar": ("Radar IA", {
@@ -512,21 +475,36 @@ MENU_STRUCTURE = {
         "maturity": "Madurez SGSI",
         "pdf": "Informe PDF"
     }),
+    "sgsi": ("Monitorización SGSI", {
+        "dashboard": "Panel general",
+        "history": "Registro histórico",
+        "evidence": "Evidencias y mantenimiento"
+    }),
     "bcp": ("Continuidad de Negocio (BCP)", {
         "generator": "Generador BCP",
         "analysis": "Análisis cognitivo",
         "simulator": "Simulador de crisis",
-        "alert_tree": "ELLIT Alert Tree"
+        "alert_tree": "ELLIT ALERT TREE – Crisis Communication Demo"
     }),
-    "ellitshield": ("Ellit Shield", {
-        "risk": "Análisis de Riesgos",
-        "controls": "Controles",
-        "reports": "Informes"
-    })
+    "policies": ("Políticas IA", {
+        "generator": "Generador multinormativo"
+    }),
+    "predictive": ("Predictive Intelligence", {
+        "standard": "Predicción estándar",
+        "prime": "Predicción Prime"
+    }),
+    "licenses": ("Licencias", {
+        "management": "Gestión de licencias"
+    }),
 }
+
+# ============================================================
+# RENDER SIDEBAR (SOLO STREAMLIT, SIN HTML CLICABLE)
+# ============================================================
 
 with st.sidebar:
 
+    # idioma, como ya tenías
     set_language()
 
     st.markdown("""
@@ -535,40 +513,41 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
+    # valores por defecto seguros
     if "menu" not in st.session_state:
         st.session_state.menu = "radar"
     if "submenu" not in st.session_state:
         st.session_state.submenu = "kpis"
 
+    # MENÚ PRINCIPAL
     for menu_id, (label, subs) in MENU_STRUCTURE.items():
 
-        main_active = menu_id == st.session_state.menu
-        main_class = "ellit-main-active" if main_active else "ellit-main"
+        active_menu = (menu_id == st.session_state.menu)
+        chevron = "▼" if active_menu else "▶"
 
-        if st.button(label, key=f"menu_{menu_id}", use_container_width=True):
+        if st.button(
+            f"{label} {chevron}",
+            key=f"menu_{menu_id}",
+            use_container_width=True
+        ):
+            # al hacer click en un menú principal:
+            # - cambiamos menu
+            # - fijamos el primer submenú por defecto
             st.session_state.menu = menu_id
             st.session_state.submenu = list(subs.keys())[0]
             st.rerun()
 
-        st.markdown(
-            f"<script>document.querySelector('[data-testid=\"stSidebar\"]').querySelectorAll('button')[ -1 ].classList.add('{main_class}')</script>",
-            unsafe_allow_html=True
-        )
-
-        if main_active:
+        # SUBMENÚS SOLO SI ESTE MENÚ ESTÁ ACTIVO
+        if active_menu:
             for sub_id, sub_label in subs.items():
-
-                sub_active = sub_id == st.session_state.submenu
-                sub_class = "ellit-sub-active" if sub_active else "ellit-sub"
-
-                if st.button(sub_label, key=f"sub_{menu_id}_{sub_id}", use_container_width=True):
+                if st.button(
+                    f"   • {sub_label}",
+                    key=f"submenu_{menu_id}_{sub_id}",
+                    use_container_width=True
+                ):
                     st.session_state.submenu = sub_id
                     st.rerun()
 
-                st.markdown(
-                    f"<script>document.querySelector('[data-testid=\"stSidebar\"]').querySelectorAll('button')[ -1 ].classList.add('{sub_class}')</script>",
-                    unsafe_allow_html=True
-                )
 
 
 # ============================================================
