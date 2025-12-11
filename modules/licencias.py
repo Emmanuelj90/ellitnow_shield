@@ -95,7 +95,6 @@ def render_licencias_tab():
 
         if st.button("Activar Enterprise", key="pay_enterprise"):
             session = stripe.checkout.Session.create(
-                payment_method_types=["card"],
                 mode="subscription",
                 line_items=[{
                     "price": st.secrets["STRIPE_PRICE_ENTERPRISE_ID"],
@@ -105,6 +104,7 @@ def render_licencias_tab():
                 cancel_url=f"{APP_URL}?canceled=true",
             )
             st.markdown(f"[Continuar pago seguro →]({session.url})")
+
 
     # -------- PRIME --------
     with col2:
