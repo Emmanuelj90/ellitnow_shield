@@ -94,6 +94,7 @@ def render_licencias_tab():
         """, unsafe_allow_html=True)
 
         if st.button("Activar Enterprise", key="pay_enterprise"):
+            st.write("ID usado:", st.secrets["STRIPE_PRICE_ENTERPRISE_ID"])
             session = stripe.checkout.Session.create(
                 mode="subscription",
                 line_items=[{
