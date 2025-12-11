@@ -129,7 +129,6 @@ def render_licencias_tab():
 
         if st.button("Añadir Prime", key="pay_prime"):
             session = stripe.checkout.Session.create(
-                payment_method_types=["card"],
                 mode="subscription",
                 line_items=[{
                     "price": st.secrets["STRIPE_PRICE_PREDICTIVE_ID"],
@@ -139,3 +138,4 @@ def render_licencias_tab():
                 cancel_url=f"{APP_URL}?canceled=true",
             )
             st.markdown(f"[Añadir Prime ahora →]({session.url})")
+
