@@ -72,39 +72,52 @@ def render_licencias_tab():
 
     col1, col2 = st.columns(2)
 
-    # -------- ENTERPRISE --------
-    with col1:
-        st.markdown("""
-        <div class="license-card">
-            <div class="license-title">Enterprise</div>
-            <div class="license-subtitle">
-                Gobierno, cumplimiento y resiliencia operacional
-            </div>
-            <div class="license-features">
-                • Radar IA completo<br>
-                • SGSI & ENS<br>
-                • Continuidad de negocio & crisis<br>
-                • Políticas IA<br>
-                • Acceso multiusuario<br>
-            </div>
-            <div class="license-price">
-                4.900 € <span style="font-size:16px;font-weight:500;">/ año</span>
-            </div>
+# -------- ENTERPRISE --------
+with col1:
+    st.markdown("""
+    <div class="license-card">
+        <div class="license-title">Enterprise</div>
+        <div class="license-subtitle">
+            Gobierno, cumplimiento y resiliencia operacional
         </div>
-        """, unsafe_allow_html=True)
+        <div class="license-features">
+            • Radar IA completo<br>
+            • SGSI & ENS<br>
+            • Continuidad de negocio & crisis<br>
+            • Políticas IA<br>
+            • Acceso multiusuario<br>
+        </div>
+        <div class="license-price">
+            4.900 € <span style="font-size:16px;font-weight:500;">/ año</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-        if st.button("Activar Enterprise", key="pay_enterprise"):
-            st.write("ID usado:", st.secrets["STRIPE_PRICE_ENTERPRISE_ID"])
+    # Botón y checkout dentro del bloque col1
+    if st.button("Activar Enterprise", key="pay_enterprise"):
+
+        company_name = st.text_input("Nombre de la empresa")
+        admin_email = st.text_input("Correo del administrador")
+
+        if company_name and admin_email:
+
             session = stripe.checkout.Session.create(
                 mode="subscription",
                 line_items=[{
                     "price": st.secrets["STRIPE_PRICE_ENTERPRISE_ID"],
                     "quantity": 1
                 }],
-                success_url=f"{APP_URL}?success=enterprise",
+                success_url=f"{APP_URL}?success=enterprise&session_id={{CHECKOUT_SESSION_ID}}",
                 cancel_url=f"{APP_URL}?canceled=true",
+                metadata={
+                    "company_name": company_name,
+                    "admin_email": admin_email
+                }
             )
+
             st.markdown(f"[Continuar pago seguro →]({session.url})")
+
+
 
 
     # -------- PRIME --------
